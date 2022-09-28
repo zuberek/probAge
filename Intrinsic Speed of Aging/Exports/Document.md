@@ -137,7 +137,7 @@ $$
 
 See the figure below for a comparison of the models, where each person is coloured by the intensity of its likelihood and the sites total likelihood expressed with negative log likelihood.
 
-![Person likelihood values for the constant variance model (left) and linear variance model (right).](Pasted%20image%2020220909194354.png)
+![Person likelihood values for the constant variance model (left) and linear variance model (right).](lin_drift_comparison.png)
 
 We then optimized the site parameters ($a_i, b_i$ and $c_i$) to minimize the negative log likelihoods for both models for all the selected sites. Finally, we performed model comparison using the Akaike Information Criterion, that takes into account the total likelihood and the number of parameters, and gives a probability of a given model being the correct one for a given CpG site. For further analysis, we selected sites that were best explained by the linear variance model.
 
@@ -154,11 +154,11 @@ $$
 
 Aging acceleration $\alpha$ is a single measure of how accelerated the person's aging is, in regards to what is a normal, "healthy" speed of aging $a_i$ across all the optimal sites. An acceleration of 2 would mean that this person ages twice as fast as an average person of his age, acceleration of 1 would mean they age in the same rate. What is important, acceleration modifies the speed of aging $a_i$, the slope of the site which can be both negative and positive; positive acceleration returns higher methylation values on sites increasing with age and negative acceleration returns a lower values on decreasing. See below for an example.
 
-![Example of a person that has a no bias but is accelerated - there is no global offset to the mean for a given age but he is following a steeper slope on both the increasing and decreasing sites.](Pasted%20image%2020220910095433.png)
+![Example of a person that has a no bias but is accelerated - there is no global offset to the mean for a given age but he is following a steeper slope on both the increasing and decreasing sites.](accelerated_invidividual.png)
 
 Additionally, person bias $\beta$ is a measure of global hypo or hyper methylation in regards to what is a normal methylation value at the given age $a_it+b_i$ across all the optimal sites. Person bias equal to 0.1 would mean that across all the sites the methylation value is shifted 0.1 above the mean for his age, bias of 0 would mean there is no shift. What is important, bias modifies the absolute methylation value; it affects both the increasing and decreasing sites equally. See below for an example.
 
-![Example of a person that has a negative bias but no acceleration - he is globally shifted an equal value in both the increasing and decreasing sites. If one would correct for the shift, there would be no acceleration.](Figures/Pasted%20image%2020220910095314.png)
+![Example of a person that has a negative bias but no acceleration - he is globally shifted an equal value in both the increasing and decreasing sites. If one would correct for the shift, there would be no acceleration.](biased_individual.png)
 
 <!--
 Why? We have more information than just the age offset
@@ -170,7 +170,7 @@ We also model the person bias because it allows us to differentiate in between t
 
 Finally, the probabilistic approach allows for a computation of the parameter posterior distribution, which gives confidence into the parameter value. The narrower the distribution, the more confident we can be in the peak being the value. See below for an example.
 
-![Example of acceleration and bias posterior distribution, for an accelerated but not biased person.](Pasted%20image%2020220910112303.png)
+![Example of acceleration and bias posterior distribution, for an accelerated but not biased person.](acc_bias_posterior.png)
 
 <!--
 How? We model a person with a single alpha and beta parameter
@@ -199,7 +199,7 @@ There were numerous (n=10402) "multimodal" sites that were not explored in the l
 ![Pasted image 20220910133324](Pasted%20image%2020220910133324.png)
 In the second step of site selection, we measured how much more likely a site is to be explained by a constant variance model vs. the linear variance. As expected, most of the sites showed a very strong probability for the linear variance model. The constant variance model, since its variance was not changing with time, was better at explaining the sites with constant variance (correlation of variance with time $var_r$ was close to zero). Constant variance was also better with the sites decreasing with time since the linear model could only increase and staying constant is closer to decreasing. As a result, the linear variance model captured most of the sites rich in variance. See the figure below for results.
 
-![Histogram of model comparison results for the linear model (left). Most of the sites had a high probability of the linear model. Histogram of variance correlation coefficient with time. Note that the bars are stacked, not behind each other.](Pasted%20image%2020220910142255.png)
+![Histogram of model comparison results for the linear model (left). Most of the sites had a high probability of the linear model. Histogram of variance correlation coefficient with time. Note that the bars are stacked, not behind each other.](model_comparison_hist.png)
 
 ## Person modelling
 
@@ -207,17 +207,17 @@ After selecting the sites whose methylation values change with time while mainta
 
 Both the accuracy and bias ranged within the expected values. Both old and young people shower a propensity for faster aging. This is has a plausible explanation, as both the younger and older people can engage in activities known to increase aging like smoking etc. This means that the acceleration parameter carries information different than age. What is interesting, the bias parameter tended to have a higher range for older people. See the figure below for visualisation.
 
-![Pasted image 20220910160059](Pasted%20image%2020220910160059.png)
+![Pasted image 20220910160059](acc_bias_change.png)
 
 We can compare both the acceleration and bias to identify subgroups in the population. As expected, majority of the people have an acceleration value close to 1, and bias close to 0. Those people form the Expected group. People whose acceleration reaches higher/lower values while still having a small bias can be thought of as accelerated; either faster or slower aging. Finally, people whose bias is high seem to be hypo/hyper methylated.
 
-![Pasted image 20220910160943](Pasted%20image%2020220910160943.png)
+![Pasted image 20220910160943](acc_bias_map.png)
 
 ## Association study
 
 Generation Scotland is rich with participants' phenotype data. The preliminary studies have showed a statistically significant relation in between the person's acceleration and his reported smoking and drinking status. The statistic for smoking is $F=25.4$ for the pvalue of $pvalue=4.8*10^{-7}$, while for drinking, it's $F=6.29$ for the pvalue of $pvalue=0.01$. See the figure below for a visualization.
 
-![Pasted image 20220910164827](Pasted%20image%2020220910164827.png)
+![Pasted image 20220910164827](smoking_drinking_ANOVA.png)
 What is interesting, those relations were present only for the acceleration but not the bias.
 
 # Conclusion
