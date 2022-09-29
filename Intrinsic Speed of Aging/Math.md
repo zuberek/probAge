@@ -32,14 +32,20 @@ $$\begin{align} P(\mathcal{D}^i \mid \bar{a^i}, \bar{b^i},\bar{c^i}) &= \max_{a^
 &= \hat{\mathcal{L}}_{lin}.
 \end{align}$$
 
-Then for a single individual $m_j$ , its associated probability will be
+Then for a single individual $m_j$ , its associated probability for the single site model is
 
-$$ P(m^i \mid \bar{a^i}, \bar{b^i},\bar{c^i}) = \mathcal{N}_{pdf}\left(m; \bar{a}^it+b^i, \ c^i\right). $$
+$$ P(m_j \mid \bar{a^i}, \bar{b^i},\bar{c^i}) = \mathcal{N}_{pdf}\left(m_j ^i; \bar{a^i}t_j+\bar{b^i}, \ \bar{c^i}\right). $$
+%% missing a product? %%
 
 # Single site drift model
-- [ ] equations with changing variance
 
+As noted in the literature [REFERENCE!!!], there is a naturally occurring drift in methylation profile as a result of the stochastic nature of methylation gain. To accommodate for this process, we propose a drift model $\mathcal{M}_{drift}$ with a variance that increases linearly with time, as is the mean. Analogously to the linear model, the probability of observing a methylation value at site $i$ in a single individual $m_j$  is therefore equal to
 
+$$
+ P(m_j \mid \bar{a^i}, \bar{b^i},\bar{c^i}) = \mathcal{N}_{pdf}\left(m_j ^i; \bar{a^i}t_j+\bar{b^i}, \ \bar{c^i}t_j\right),  
+$$
+
+where $(\bar{a^i}, \bar{b^i},\bar{c^i})$ are, once again, the maximum likelihood estimator parameters associated to this model.
 # Model comparison
 Further, associated to our maximum likelihood estimator model is its Akaike information criterion (AIC)
 
