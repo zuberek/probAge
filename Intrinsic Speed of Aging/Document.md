@@ -65,14 +65,14 @@ Dataset used in this project is Generation Scotland dataset. While the dataset i
 <!---
 What? Selecting sites where time explains change in methylation 
 -->
-In the first step, we selected only the CpG sites whose changes in methylation values can be explained by age. There is a linear relationship in between them and when age changes, so does the methylation value. This is in contrast with the sites that don't offer differentiation in between the methylation value at an early age vs.~at the older age. See the [@Fig:site-types] for examples from Generation Scotland dataset.
+In the first step, we selected only the CpG sites whose changes in methylation values can be explained by age. There is a linear relationship in between them and when age changes, so does the methylation value. This is in contrast with the sites that do not offer differentiation in between the methylation value at an early age vs. at the older age. See the [@Fig:site-types] for examples from Generation Scotland dataset.
 
 ![ Examples of sites not linear with respect to time therefore discarded in further steps.](Figures/site_types.png){#fig:site-types}
 
 <!--
 Why? Time related sites are useful for getting age deviation
 -->
-We select linear sites as a data preparation step to only use the sites that are useful in age prediction. We do this in order to prevent the problem of previous approaches, where training a model with all the sites causes a selection of sites that are disease predicting rather age predicting. See the argument in the Related Work section.
+We select linear sites as a data preparation step to only use the sites that are useful in age prediction. We do this to prevent the problem of previous approaches, where training a model with all the sites causes a selection of sites that are disease predicting rather age predicting. See the argument in the Related Work section.
 
 <!--
 How? We perform non-parametric selection based on statistics
