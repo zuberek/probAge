@@ -1,0 +1,24 @@
+name: NSEA_env
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python
+  - r-base
+  - r-anndata
+  - numpy
+  - pandas
+  - pymc = 4
+  - plotly
+  - matplotlib
+  - scikit-learn
+  - statsmodels
+  - tqdm
+  - ipykernel
+  - nbformat
+  - scipy
+  - seaborn
+  - anndata
+  - ipywidgets
+  - scikit-optimize
