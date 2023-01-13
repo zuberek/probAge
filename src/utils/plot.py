@@ -1,7 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-sns.set_theme()
 
 def fonts(fontsize=10):
     plt.rc('font', size=fontsize)       # controls default text size

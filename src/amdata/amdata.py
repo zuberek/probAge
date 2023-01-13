@@ -10,11 +10,9 @@ import numpy as np
 import seaborn as sns
 
 from src.utils import plot
-from src.utils import get
 from tqdm import tqdm
-from multiprocess import Pool
 
-from src.amdata import ammodel
+# from src.amdata import ammodel
 from src.amdata import amplot
 
 
@@ -86,7 +84,7 @@ class AnnMethylData(ad.AnnData):
         # self.samples = MethylDataFrame(self.var)
 
         # load additional modules
-        self.model = ammodel.AnnMethylModeller(self)
+        # self.model = ammodel.AnnMethylModeller(self)
         self.plot = amplot.AnnMethylPlotter(self)
 
     def __getitem__(self, index) -> "AnnMethylData":
