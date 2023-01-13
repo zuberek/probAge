@@ -76,10 +76,10 @@ class AnnMethylData(ad.AnnData):
 
         # give alternative names 
         self.sites = self.obs
-        self.samples = self.var
+        self.participants = self.var
 
         self.n_sites = self.n_obs
-        self.n_samples = self.n_vars
+        self.n_participants = self.n_vars
         # self.sites = MethylDataFrame(self.obs)
         # self.samples = MethylDataFrame(self.var)
 
