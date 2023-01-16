@@ -110,26 +110,40 @@ def plot_confidence(site_index, amdata):
     sns.lineplot(x=x_space, y=y_2nstd)
 
 
-def accelerated_biased_person_model(data):
+def accelerated_biased_person_model(age, m_values, params):
 
     with pm.Model():
 
         # Define priors
         bias = pm.Uniform("bias", lower=-1, upper=1)
         acc = pm.Uniform("acc", lower=-2, upper=2)
-
-        mu = np.exp(acc)*data.mean_slope*data.age + data.mean_inter + bias
-        var = data.var_slope*data.age + data.var_slope
+        
+        mu = np.exp(acc)*params.mean_slope*age + params.mean_inter + bias
+        var = params.var_slope*age + params.var_slope
 
         # Define likelihood
         likelihood = pm.Normal("m-values",
             mu=mu,
             sigma=np.sqrt(var),
-            observed=data)
+            observed=m_values)
 
         trace = pm.sample(cores=1, progressbar=False)
-        map = pm.find_MAP(progressbar=False)
 
     return trace, map
+
+def fit_person(person_data):
+    age = person_data.var.age[0]
+    m_values = person_data.X.flatten()
+    params = person_data.obs['mean_slope', 'mean_inter', 'var_slope', 'var_inter']
+    person_index = person_data.var.index[0]
+
+    trace, map = accelerated_biased_person_model(age, m_values, params)
+
+    fit = az.summary(trace, round_to=5)
+    fit.insert(1, 'MAP', np.array(list(map.values())[-2:]).round(5))
+    fit = fit.reset_index().rename(columns={'index': 'param'})
+    fit = fit.assign(person=person_index).set_index(['person','param'])
+
+    return fit
 
 
