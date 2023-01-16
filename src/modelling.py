@@ -1,8 +1,14 @@
 import pymc as pm
-import numpy as np
 import arviz as az
+
+import numpy as np
+from scipy.stats import norm
+
 import pandas as pd
+
 import seaborn as sns
+import matplotlib.pyplot as plt
+
 
 def linear_site(ages, m_values):
 
