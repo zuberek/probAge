@@ -7,14 +7,14 @@
 		{"id":"38e30850f6984f1b","x":596,"y":45,"width":250,"height":136,"type":"text","text":"**NSEA_fit**\nlinear modelling (site modelling)\nmodel comparison\naccelaration+bias (person modelling)"},
 		{"id":"3b2d276389860c62","x":982,"y":-428,"width":250,"height":94,"type":"text","text":"def compute_r2(anndata)\n\tr2 = sklearn.r2(anndata)\n\treturn r2"},
 		{"id":"739f2812f1363d2c","x":185,"y":177,"width":250,"height":98,"type":"text","text":"**exports**\nFolder to store intermediate results\nanndata\npickles"},
-		{"id":"d11ac14ae4127ac1","x":185,"y":365,"width":250,"height":60,"type":"text","text":"**results**\nFinal results (plots, tables)"},
 		{"id":"9533b8e92fd52fd1","x":-214,"y":189,"width":250,"height":60,"type":"text","text":"root"},
+		{"id":"558c1d6cfe139235","x":576,"y":-354,"width":290,"height":555,"type":"group","label":"NSEA"},
+		{"id":"067a4b7f133655e5","x":1421,"y":87,"width":250,"height":60,"type":"text","text":"def linear_"},
+		{"id":"d11ac14ae4127ac1","x":185,"y":365,"width":250,"height":60,"type":"text","text":"**results**\nFinal results (plots, tables)"},
 		{"id":"06186ded680054f3","x":185,"y":515,"width":250,"height":60,"type":"text","text":"**scripts**\nscripts to run preprocessing and modelling seperately"},
 		{"id":"6631da3684ed4198","x":185,"y":665,"width":250,"height":89,"type":"text","text":"**bash script**\nruns all the scripts\nrun the waves separately"},
 		{"id":"d84e9905c10edd72","x":185,"y":814,"width":250,"height":104,"type":"text","text":"**notebooks**\nignore\nfor our own experiments\n"},
-		{"id":"558c1d6cfe139235","x":576,"y":-354,"width":290,"height":555,"type":"group","label":"NSEA"},
-		{"id":"87e851ce1332ef2b","x":623,"y":425,"width":250,"height":60,"type":"text","text":"amdata_process\n.py"},
-		{"id":"067a4b7f133655e5","x":1421,"y":87,"width":250,"height":60,"type":"text","text":"def linear_"}
+		{"id":"87e851ce1332ef2b","x":623,"y":425,"width":250,"height":60,"type":"text","text":"amdata_process\n.py"}
 	],
 	"edges":[
 		{"id":"87a3cc88ef9f5f6e","fromNode":"9533b8e92fd52fd1","fromSide":"right","toNode":"d8608109855197b0","toSide":"left"},
@@ -28,6 +28,7 @@
 		{"id":"f7317154e470fbfd","fromNode":"9533b8e92fd52fd1","fromSide":"right","toNode":"06186ded680054f3","toSide":"left"},
 		{"id":"3311c188644d2b8e","fromNode":"9533b8e92fd52fd1","fromSide":"right","toNode":"6631da3684ed4198","toSide":"left"},
 		{"id":"157219ee19343922","fromNode":"06186ded680054f3","fromSide":"right","toNode":"87e851ce1332ef2b","toSide":"left"},
-		{"id":"80a9d9f472a0750d","fromNode":"87e851ce1332ef2b","fromSide":"right","toNode":"fc011763bdf1d24a","toSide":"right","label":"m2beta()\nsklearn.r2()\nmerge_meta(anndata, meta)"}
+		{"id":"80a9d9f472a0750d","fromNode":"87e851ce1332ef2b","fromSide":"right","toNode":"fc011763bdf1d24a","toSide":"right","label":"m2beta()\nsklearn.r2()\nmerge_meta(anndata, meta)"},
+		{"id":"98677e1515d897f2","fromNode":"9533b8e92fd52fd1","fromSide":"right","toNode":"d84e9905c10edd72","toSide":"left"}
 	]
 }
