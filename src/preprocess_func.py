@@ -1,4 +1,3 @@
-
 import numpy as np
 
 def drop_nans(amdata):

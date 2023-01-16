@@ -3,6 +3,8 @@
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
 
+from src import preprocess_func
+
 from sklearn.feature_selection import r_regression
 
 INPUT_PATH = '../exports/wave3_raw.h5ad'
@@ -44,7 +46,12 @@ with Pool() as p:
 # [01:47<00:00, 7171.79it/s] (16 CPUs)
 
 amdata.obs['r2'] = output
-amdata.obs.sort_values('r2')
+
+# TODO: Select top 1k for further processing
+top_r2 = amdata.obs.sort_values('r2', ascending=False).index[:1000]
+amdata[top_r2].write_h5ad('../exports/wave3_linear.h5ad')
+
+(amdata.obs.r2>0.3).value_counts()
 
 
 amdata.write_h5ad('../exports/wave3_meta.h5ad')
