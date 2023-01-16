@@ -2,6 +2,7 @@ import pymc as pm
 import numpy as np
 import arviz as az
 import pandas as pd
+import seaborn as sns
 
 def linear_site(ages, m_values):
 
@@ -82,8 +83,34 @@ def fit_and_compare(site_data):
 
     return fit, comparison
 
+def comparison_postprocess(results, amdata):
+    fits = pd.DataFrame()
+    comparisons = pd.DataFrame()
+    for site in results:
+        fit, comparison = site
+        fits = pd.concat([fits, fit])
+        comparisons = pd.concat([comparisons, comparison])
 
-def accelerated_biased_person_model(age, m_values):
+    amdata.obs['mean_slope'] = fits.loc[(slice(None),'drift','mean_slope')]['mean'].values
+    amdata.obs['mean_inter'] = fits.loc[(slice(None),'drift','mean_inter')]['mean'].values
+    amdata.obs['var_slope'] = fits.loc[(slice(None),'drift','var_slope')]['mean'].values
+    amdata.obs['var_inter'] = fits.loc[(slice(None),'drift','var_inter')]['mean'].values
+
+def plot_confidence(site_index, amdata):
+    meta = amdata.obs.loc[site_index]
+    x_space = amdata.var.age
+    y_mean = x_space*meta.mean_slope + meta.mean_inter
+    y_var = x_space*meta.var_slope + meta.var_inter
+    y_2pstd = y_mean + 2*(np.sqrt(y_var))
+    y_2nstd = y_mean - 2*(np.sqrt(y_var))
+
+    sns.scatterplot(x= amdata.var.age, y=amdata[site_index].X.flatten())
+    sns.lineplot(x=x_space, y=y_mean)
+    sns.lineplot(x=x_space, y=y_2pstd)
+    sns.lineplot(x=x_space, y=y_2nstd)
+
+
+def accelerated_biased_person_model(data):
 
     with pm.Model():
 
@@ -91,11 +118,14 @@ def accelerated_biased_person_model(age, m_values):
         bias = pm.Uniform("bias", lower=-1, upper=1)
         acc = pm.Uniform("acc", lower=-2, upper=2)
 
+        mu = np.exp(acc)*data.mean_slope*data.age + data.mean_inter + bias
+        var = data.var_slope*data.age + data.var_slope
+
         # Define likelihood
         likelihood = pm.Normal("m-values",
-            mu=np.exp(acc)*slope_maps*age + inter_maps + bias,
-            sigma=np.sqrt(drift_maps*age) + var_maps,
-            observed=m_values)
+            mu=mu,
+            sigma=np.sqrt(var),
+            observed=data)
 
         trace = pm.sample(cores=1, progressbar=False)
         map = pm.find_MAP(progressbar=False)
