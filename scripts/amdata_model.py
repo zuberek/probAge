@@ -21,31 +21,18 @@ with Pool(15, maxtasksperchild=1) as p:
     results = list(tqdm(
             iterable= p.imap(
                 func=modelling.fit_and_compare,
-                iterable=[amdata[i] for i in amdata.obs.index], 
+                iterable=amdata, 
                 ), 
             total=amdata.n_obs))
 
-def comparison_postprocess(results, amdata):
-    fits = pd.DataFrame()
-    comparisons = pd.DataFrame()
-    for site in results:
-        fit, comparison = site
-        fits = pd.concat([fits, fit])
-        comparisons = pd.concat([comparisons, comparison])
+modelling.comparison_postprocess(results, amdata)
 
-    amdata.obs['mean_slope'] = fits.loc[(slice(None),'drift','mean_slope')].MAP.values
-    amdata.obs['mean_inter'] = fits.loc[(slice(None),'drift','mean_inter')].MAP.values
-    amdata.obs['var_slope'] = fits.loc[(slice(None),'drift','var_slope')].MAP.values
-    amdata.obs['var_inter'] = fits.loc[(slice(None),'drift','var_inter')].MAP.values
+with Pool(15, maxtasksperchild=1) as p:
+    results = list(tqdm(
+            iterable= p.imap(
+                func=modelling.fit_person,
+                iterable=[amdata[:,i] for i in amdata.var.index], 
+                chunksize=1,
+                ), 
+            total=amdata.n_vars))
 
-
-fits.reset_index()['param'].unique()
-np.array(results, dtype='object')
-results[0][0]
-
-results
-
-modelling.fit_and_compare(amdata[0])
-
-
-    

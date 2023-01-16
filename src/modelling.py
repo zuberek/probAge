@@ -129,18 +129,18 @@ def accelerated_biased_person_model(age, m_values, params):
 
         trace = pm.sample(cores=1, progressbar=False)
 
-    return trace, map
+    return trace
 
 def fit_person(person_data):
     age = person_data.var.age[0]
     m_values = person_data.X.flatten()
-    params = person_data.obs['mean_slope', 'mean_inter', 'var_slope', 'var_inter']
+    params = person_data.obs[['mean_slope', 'mean_inter', 'var_slope', 'var_inter']]
     person_index = person_data.var.index[0]
 
-    trace, map = accelerated_biased_person_model(age, m_values, params)
+    trace = accelerated_biased_person_model(age, m_values, params)
 
     fit = az.summary(trace, round_to=5)
-    fit.insert(1, 'MAP', np.array(list(map.values())[-2:]).round(5))
+    # fit.insert(1, 'MAP', np.array(list(map.values())[-2:]).round(5))
     fit = fit.reset_index().rename(columns={'index': 'param'})
     fit = fit.assign(person=person_index).set_index(['person','param'])
 
