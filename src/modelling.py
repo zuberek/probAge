@@ -34,6 +34,73 @@ def linear_site(ages, m_values):
 
     return trace, max_p
 
+import pymc as pm
+normal_dists = pm.Normal.dist(shape=(4, 3))
+pm.draw(normal_dists), normal_dists.ndim
+pm.draw(pm.Multinomial.dist(n=5, p=[0.1, 0.3, 0.6], shape=(3, 5)))
+
+ages = np.broadcast_to(amdata.participants.age, shape=(amdata.n_sites, amdata.n_participants)).T
+
+with pm.Model(coords=coords) as model:
+
+    # Define priors
+    mean_slope = pm.Uniform("mean_slope", lower=-1/100, upper=1/100, dims='sites')
+    mean_inter = pm.Uniform("mean_inter", lower=0, upper=1, dims='sites')
+    var_inter = pm.Uniform("var_inter", lower=0, upper=1/10, dims='sites')
+    
+    # model mean and variance
+    mean = mean_slope*ages + mean_inter
+    variance = var_inter
+
+    pm_data = pm.Data("data", amdata.X.T, dims=("participants", "sites"), mutable=True)
+
+    # Define likelihood
+    likelihood = pm.Normal("m-values",
+        mu = mean,
+        sigma = np.sqrt(variance),
+        observed = pm_data)
+
+mean = mean_slope.eval()*ages + mean_inter.eval()
+variance = var_inter.eval()
+dist = pm.Normal.dist(mu=mean, sigma=np.sqrt(variance))
+pm.draw(dist).shape
+amdata.shape
+dist.ndim
+
+mean_slope.eval()
+
+pm.model_to_graphviz(model)
+
+with model:
+    maps=pm.find_MAP()
+
+def vector_linear_site(amdata):
+    coords = {'sites': amdata.sites.index.values,
+            'participants': amdata.participants.index.values}
+
+    with pm.Model():
+
+        # Define priors
+        mean_slope = pm.Uniform.dist("mean_slope", lower=-1/100, upper=1/100, dims='sites')
+        mean_inter = pm.Uniform("mean_inter", lower=0, upper=1, dims='sites')
+        var_inter = pm.Uniform("var_inter", lower=0, upper=1/10, dims='sites')
+        
+        # model mean and variance
+        mu = mean_slope*ages + mean_inter
+        var = var_inter
+
+        # Define likelihood
+        likelihood = pm.Normal("m-values",
+            mu = mu,
+            sigma = np.sqrt(var),
+            observed = m_values)
+
+        trace = pm.sample(cores=1, progressbar=False)
+        max_p = pm.find_MAP(progressbar=False)
+
+    return trace, max_p
+
+
 def drift_site(ages, m_values):
     with pm.Model():
 
@@ -59,6 +126,10 @@ def drift_site(ages, m_values):
         max_p = pm.find_MAP(progressbar=False)
 
     return trace, max_p
+
+def vect_site_modelling(amdata):
+
+
 
 def fit_and_compare(site_data):
 
@@ -116,7 +187,7 @@ def plot_confidence(site_index, amdata):
     sns.lineplot(x=x_space, y=y_2nstd)
 
 
-def accelerated_biased_person_model(age, m_values, params):
+def accelerated_biased_person_model_map(age, m_values, params):
 
     with pm.Model():
 
@@ -125,7 +196,7 @@ def accelerated_biased_person_model(age, m_values, params):
         acc = pm.Uniform("acc", lower=-2, upper=2)
         
         mu = np.exp(acc)*params.mean_slope*age + params.mean_inter + bias
-        var = params.var_slope*age + params.var_slope
+        var = params.var_slope*age + params.var_inter
 
         # Define likelihood
         likelihood = pm.Normal("m-values",
@@ -133,9 +204,10 @@ def accelerated_biased_person_model(age, m_values, params):
             sigma=np.sqrt(var),
             observed=m_values)
 
-        trace = pm.sample(cores=1, progressbar=False)
+        map=pm.find_MAP(progressbar=True)
 
-    return trace
+    return map
+
 
 def fit_person(person_data):
     age = person_data.var.age[0]
@@ -152,4 +224,80 @@ def fit_person(person_data):
 
     return fit
 
+def fit_person_MAP(person_data):
+    # person_data = amdata_T[0]
+    age = person_data.obs.age[0]
+    m_values = person_data.X.flatten()
+    params = person_data.var[['mean_slope', 'mean_inter', 'var_slope', 'var_inter']]
+    map = accelerated_biased_person_model_map(age, m_values, params)
+    return map
 
+
+
+
+
+def vector_person_model(amdata):
+
+    # The data has two dimensions: participant and CpG site
+    coords = {"site": amdata.sites.index, "part": amdata.participants.index}
+
+    # # create a numpy array of the participants ages
+    # # array of ages needs to be broadcasted into a matrix array for each CpG site
+    m_slope = np.broadcast_to(amdata.sites.mean_slope, shape=(amdata.shape[1], amdata.shape[0])).T
+    m_int = np.broadcast_to(amdata.sites.mean_inter, shape=(amdata.shape[1], amdata.shape[0])).T
+    v_slope = np.broadcast_to(amdata.sites.var_slope, shape=(amdata.shape[1], amdata.shape[0])).T
+    v_int = np.broadcast_to(amdata.sites.var_inter, shape=(amdata.shape[1], amdata.shape[0])).T
+    age = amdata.participants.age.values
+
+    # Define Pymc model
+    with pm.Model(coords=coords) as model:
+        
+        # Define model variables
+        acc = pm.Uniform('acc', lower=-2, upper = 2, dims='part')
+        bias = pm.Uniform('bias', lower=-1, upper = 1, dims='part')
+
+        mean = np.exp(acc)*m_slope*age + m_int + bias
+        var = v_slope*age + v_int
+        sigma = np.sqrt(var)
+
+        pm_data = pm.Data("data", amdata.X, dims=("site", "part"), mutable=True)
+        
+        obs = pm.Normal("obs", mu=mean, sigma = sigma, observed=pm_data)
+
+        trace_ab = pm.sample(1000, tune=1000, progressbar=False) 
+        map_ab = pm.find_MAP(progressbar=False)
+
+    return trace_ab, map_ab    
+
+def vectorize_all_participants(amdata):
+
+    # The data has two dimensions: participant and CpG site
+    coords = {"site": amdata.sites.index, "part": amdata.participants.index}
+
+    # # create a numpy array of the participants ages
+    # # array of ages needs to be broadcasted into a matrix array for each CpG site
+    m_slope = np.broadcast_to(amdata.sites.mean_slope, shape=(amdata.shape[1], amdata.shape[0])).T
+    m_int = np.broadcast_to(amdata.sites.mean_inter, shape=(amdata.shape[1], amdata.shape[0])).T
+    v_slope = np.broadcast_to(amdata.sites.var_slope, shape=(amdata.shape[1], amdata.shape[0])).T
+    v_int = np.broadcast_to(amdata.sites.var_inter, shape=(amdata.shape[1], amdata.shape[0])).T
+    age = amdata.participants.age.values
+
+    # Define Pymc model
+    with pm.Model(coords=coords) as model:
+        
+        # Define model variables
+        acc = pm.Uniform('acc', lower=-2, upper = 2, dims='part')
+        bias = pm.Uniform('bias', lower=-1, upper = 1, dims='part')
+
+        mean = np.exp(acc)*m_slope*age + m_int + bias
+        var = v_slope*age + v_int
+        sigma = np.sqrt(var)
+
+        pm_data = pm.Data("data", amdata.X, dims=("site", "part"), mutable=True)
+        
+        obs = pm.Normal("obs", mu=mean, sigma = sigma, observed=pm_data)
+
+        # trace_ab = pm.sample(1000, tune=1000) 
+        map_ab = pm.find_MAP(progressbar=False)
+
+    return map_ab
