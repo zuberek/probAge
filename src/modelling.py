@@ -8,6 +8,7 @@ import pandas as pd
 
 import seaborn as sns
 import matplotlib.pyplot as plt
+import xarray as xr
 
 
 def linear_site(ages, m_values):
@@ -213,7 +214,7 @@ def vector_person_model(amdata, show_progress=True):
     v_int = np.broadcast_to(amdata.sites.var_inter, shape=(amdata.shape[1], amdata.shape[0])).T
     age = amdata.participants.age.values
 
-    print('lemon')
+    if show_progress: print('lemon')
 
     # Define Pymc model
     with pm.Model(coords=coords) as model:
@@ -267,3 +268,14 @@ def vectorize_all_participants(amdata):
         map_ab = pm.find_MAP(progressbar=False)
 
     return map_ab
+
+def make_clean_trace(trace):
+    delattr(trace, 'log_likelihood')
+    delattr(trace, 'sample_stats')
+    delattr(trace, 'observed_data')
+    delattr(trace, 'constant_data')
+
+def concat_traces(trace1, trace2, dim):
+    for group in ['posterior']:
+        concatenated_group = xr.concat((trace1[group], trace2[group]), dim=dim)
+        setattr(trace1, group, concatenated_group)

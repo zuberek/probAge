@@ -1,5 +1,6 @@
-%load_ext autoreload
-%autoreload 2
+# %load_ext autoreload 
+# %autoreload 2
+import sys
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
 
@@ -14,7 +15,7 @@ logger.setLevel(logging.ERROR)
 N_SITES =  1024
 
 amdata = amdata.AnnMethylData('../exports/wave3_linear.h5ad')
-amdata = amdata[amdata.obs.sort_values('r2', ascending=False).index[:N_SITES]].to_memory()
+amdata = amdata[amdata.obs.sort_values('r2', ascending=False).index[:N_SITES]]
 
 # sns.scatterplot(x= amdata.var.age, y=amdata['cg07547549'].X.flatten())
 
@@ -30,37 +31,31 @@ modelling.comparison_postprocess(results, amdata)
 amdata.write_h5ad('../exports/wave3_linear.h5ad')
 
 
-data = [amdata[:,i] for i in amdata.participants.index]
 chunk_size = 10
-test = []
-
-for i in range(0, amdata.n_participants, chunk_size):
-    test.append(amdata[:,i:i+chunk_size])
+amdata_chunks = []
+for i in range(0, 150, chunk_size):
+    amdata_chunks.append(amdata[:,i:i+chunk_size])
 
 with Pool(15, maxtasksperchild=1) as p:
     results = list(tqdm(
             iterable= p.imap(
                 func=modelling.vector_person_model,
-                iterable=test, 
-                # chunksize=100
+                iterable=amdata_chunks, 
                 ), 
-            total=len(test)))
+            total=len(amdata_chunks)))
 
-traces0 = modelling.vector_person_model(test[0])
-traces1 = modelling.vector_person_model(test[1])
+traces = results[0]
+modelling.make_clean_trace(traces)
+for trace in tqdm(results[2:]):
+    modelling.concat_traces(traces, trace, dim='part')
 
-part_idx = amdata.participants.index[0]
-traces0.sel(part=part_idx)
+traces.to_netcdf('../exports/participant_traces.nc', compress=False)
+import pickle
+with open('../exports/trace.pk', 'wb') as f:
+    pickle.dump(traces, f)
 
 
+part_idx = '202915420061_R01C01'
+az.plot_pair(traces, coords={'part': part_idx}, kind=['hexbin', 'kde'], point_estimate='mean', marginals=True)
 
-# extend
-traces0.extend(traces1)
-part_idx = test[0].participants.index[0]
-traces[part_idx]
-
-# concat
-traces = az.concat(traces0, traces1, dim='part')
-
-az.plot_trace(traces0)
-az.plot_trace(traces1)
+az.plot_trace(traces)
