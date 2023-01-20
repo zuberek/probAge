@@ -34,71 +34,39 @@ def linear_site(ages, m_values):
 
     return trace, max_p
 
-import pymc as pm
-normal_dists = pm.Normal.dist(shape=(4, 3))
-pm.draw(normal_dists), normal_dists.ndim
-pm.draw(pm.Multinomial.dist(n=5, p=[0.1, 0.3, 0.6], shape=(3, 5)))
-
-ages = np.broadcast_to(amdata.participants.age, shape=(amdata.n_sites, amdata.n_participants)).T
-
-with pm.Model(coords=coords) as model:
-
-    # Define priors
-    mean_slope = pm.Uniform("mean_slope", lower=-1/100, upper=1/100, dims='sites')
-    mean_inter = pm.Uniform("mean_inter", lower=0, upper=1, dims='sites')
-    var_inter = pm.Uniform("var_inter", lower=0, upper=1/10, dims='sites')
-    
-    # model mean and variance
-    mean = mean_slope*ages + mean_inter
-    variance = var_inter
-
-    pm_data = pm.Data("data", amdata.X.T, dims=("participants", "sites"), mutable=True)
-
-    # Define likelihood
-    likelihood = pm.Normal("m-values",
-        mu = mean,
-        sigma = np.sqrt(variance),
-        observed = pm_data)
-
-mean = mean_slope.eval()*ages + mean_inter.eval()
-variance = var_inter.eval()
-dist = pm.Normal.dist(mu=mean, sigma=np.sqrt(variance))
-pm.draw(dist).shape
-amdata.shape
-dist.ndim
-
-mean_slope.eval()
-
-pm.model_to_graphviz(model)
-
-with model:
-    maps=pm.find_MAP()
-
-def vector_linear_site(amdata):
+def vect_linear_site(amdata):
+    ages = np.broadcast_to(amdata.participants.age, shape=(amdata.n_sites, amdata.n_participants)).T
     coords = {'sites': amdata.sites.index.values,
             'participants': amdata.participants.index.values}
 
-    with pm.Model():
+
+    with pm.Model(coords=coords) as model:
 
         # Define priors
-        mean_slope = pm.Uniform.dist("mean_slope", lower=-1/100, upper=1/100, dims='sites')
+        mean_slope = pm.Uniform("mean_slope", lower=-1/100, upper=1/100, dims='sites')
         mean_inter = pm.Uniform("mean_inter", lower=0, upper=1, dims='sites')
         var_inter = pm.Uniform("var_inter", lower=0, upper=1/10, dims='sites')
         
         # model mean and variance
-        mu = mean_slope*ages + mean_inter
-        var = var_inter
+        mean = mean_slope*ages + mean_inter
+        variance = var_inter
+
+        pm_data = pm.Data("data", amdata.X.T, dims=("participants", "sites"), mutable=True)
 
         # Define likelihood
         likelihood = pm.Normal("m-values",
-            mu = mu,
-            sigma = np.sqrt(var),
-            observed = m_values)
+            mu = mean,
+            sigma = np.sqrt(variance),
+            observed = pm_data)
 
         trace = pm.sample(cores=1, progressbar=False)
         max_p = pm.find_MAP(progressbar=False)
 
     return trace, max_p
+
+
+
+
 
 
 def drift_site(ages, m_values):
@@ -126,10 +94,6 @@ def drift_site(ages, m_values):
         max_p = pm.find_MAP(progressbar=False)
 
     return trace, max_p
-
-def vect_site_modelling(amdata):
-
-
 
 def fit_and_compare(site_data):
 
@@ -236,7 +200,7 @@ def fit_person_MAP(person_data):
 
 
 
-def vector_person_model(amdata):
+def vector_person_model(amdata, show_progress=True):
 
     # The data has two dimensions: participant and CpG site
     coords = {"site": amdata.sites.index, "part": amdata.participants.index}
@@ -248,6 +212,8 @@ def vector_person_model(amdata):
     v_slope = np.broadcast_to(amdata.sites.var_slope, shape=(amdata.shape[1], amdata.shape[0])).T
     v_int = np.broadcast_to(amdata.sites.var_inter, shape=(amdata.shape[1], amdata.shape[0])).T
     age = amdata.participants.age.values
+
+    print('lemon')
 
     # Define Pymc model
     with pm.Model(coords=coords) as model:
@@ -264,10 +230,10 @@ def vector_person_model(amdata):
         
         obs = pm.Normal("obs", mu=mean, sigma = sigma, observed=pm_data)
 
-        trace_ab = pm.sample(1000, tune=1000, progressbar=False) 
-        map_ab = pm.find_MAP(progressbar=False)
+        trace_ab = pm.sample(1000, tune=1000, chains=4, cores=1, progressbar=show_progress) 
+        # map_ab = pm.find_MAP(progressbar=False)
 
-    return trace_ab, map_ab    
+    return trace_ab    
 
 def vectorize_all_participants(amdata):
 
