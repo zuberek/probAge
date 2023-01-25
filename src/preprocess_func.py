@@ -29,7 +29,7 @@ def merge_meta(amdata, meta, pheno, survival, clock_results, clock_sites):
     amdata.var['norm_pack_years'] = np.log(1+amdata.var.pack_years)
 
     # Combine ever_smoke with pack_years
-    amdata.obs['weighted_smoke'] = amdata.obs['norm_pack_years']/np.exp(amdata.obs['ever_smoke'])
+    amdata.var['weighted_smoke'] = amdata.var['norm_pack_years']/np.exp(amdata.var['ever_smoke'])
 
     # Add accelerations given to genscot participant by other clocks
     ####################
