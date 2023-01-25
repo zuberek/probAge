@@ -9,7 +9,7 @@ dependencies:
   - r-anndata
   - numpy
   - pandas
-  - pymc = 4
+  - pymc = 5
   - plotly
   - matplotlib
   - scikit-learn
@@ -22,3 +22,5 @@ dependencies:
   - anndata
   - ipywidgets
   - scikit-optimize
+  - jax
+  - numpyro
