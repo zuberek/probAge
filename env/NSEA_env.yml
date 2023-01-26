@@ -24,3 +24,4 @@ dependencies:
   - scikit-optimize
   - jax
   - numpyro
+  - blackjax
