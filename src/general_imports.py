@@ -11,5 +11,5 @@ import anndata as ad
 # import custom code
 import sys
 sys.path.append("..")   # fix to import modules from root
-from src.amdata import amdata
+import src.amdata.amdata as amdata_src
 from src.utils import plot
