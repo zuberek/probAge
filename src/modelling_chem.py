@@ -3,7 +3,8 @@ import arviz as az
 
 import numpy as np
 from scipy.stats import norm
-
+from pymc.sampling_jax import sample_numpyro_nuts
+from pymc.sampling import jax
 import pandas as pd
 
 import seaborn as sns
@@ -11,36 +12,12 @@ import matplotlib.pyplot as plt
 import xarray as xr
 
 
-def linear_site(ages, m_values):
+CHAINS = 1
+def linear_sites(amdata, return_MAP=False, return_trace=True, show_progress=False):
 
-    with pm.Model():
-
-        # Define priors
-        mean_slope = pm.Uniform("mean_slope",    lower=-1/100,   upper=1/100)
-        mean_inter = pm.Uniform("mean_inter",    lower=0,        upper=1)
-        var_inter = pm.Uniform("var_inter",     lower=0,        upper=1/10)
-        
-        # model mean and variance
-        mu = mean_slope*ages + mean_inter
-        var = var_inter
-
-        # Define likelihood
-        likelihood = pm.Normal("m-values",
-            mu = mu,
-            sigma = np.sqrt(var),
-            observed = m_values)
-
-        trace = pm.sample(cores=1, progressbar=False)
-        pm.compute_log_likelihood(trace)
-        max_p = pm.find_MAP(progressbar=False)
-
-    return trace, max_p
-
-def vect_linear_site(amdata):
     ages = np.broadcast_to(amdata.participants.age, shape=(amdata.n_sites, amdata.n_participants)).T
     coords = {'sites': amdata.sites.index.values,
             'participants': amdata.participants.index.values}
-
 
     with pm.Model(coords=coords) as model:
 
@@ -53,30 +30,36 @@ def vect_linear_site(amdata):
         mean = mean_slope*ages + mean_inter
         variance = var_inter
 
-        pm_data = pm.Data("data", amdata.X.T, dims=("participants", "sites"), mutable=True)
-
         # Define likelihood
-        likelihood = pm.Normal("m-values",
+        likelihood = pm.Normal("m_values",
             mu = mean,
             sigma = np.sqrt(variance),
-            observed = pm_data)
+            dims=("participants", "sites"),
+            observed = amdata.X.T)
 
-        trace = pm.sample(cores=1, progressbar=False)
-        pm.compute_log_likelihood(trace)
-        max_p = pm.find_MAP(progressbar=False)
+        res = {}
+        if return_MAP:
+            res['map'] = pm.find_MAP(progressbar=False)
 
-    return trace, max_p
+        if return_trace:
+            res['trace'] = pm.sample(1000, tune=1000, chains=CHAINS, cores=1, progressbar=show_progress) 
+            pm.compute_log_likelihood(res['trace'])
+    return res
 
-def chem_site(ages, m_values):
+def bio_sites(amdata, return_MAP=False, return_trace=True, show_progress=False):
 
-    with pm.Model() as model:
+    ages = np.broadcast_to(amdata.participants.age, shape=(amdata.n_sites, amdata.n_participants)).T
+    coords = {'sites': amdata.sites.index.values,
+            'participants': amdata.participants.index.values}
+
+    with pm.Model(coords=coords) as model:
 
         # Define priors
-        nu_0 = pm.Uniform("nu_0", lower=0, upper=0.1)
-        nu_1 = pm.Uniform("nu_1", lower=0, upper=0.1 )
-        p = pm.Uniform("init_meth", lower=0, upper=1)
-        var_init = pm.Uniform("var_init", lower=0, upper=10_000_000)
-        N = pm.Uniform('system_size', lower= 1, upper=1_000_1000)
+        nu_0 = pm.Uniform("nu_0", lower=0, upper=0.1, dims='sites')
+        nu_1 = pm.Uniform("nu_1", lower=0, upper=0.1 , dims='sites')
+        p = pm.Uniform("meth_init", lower=0, upper=1, dims='sites')
+        var_init = pm.Uniform("var_init", lower=0, upper=10_000_000, dims='sites')
+        N = pm.Uniform('system_size', lower= 1, upper=1_000_1000, dims='sites')
 
         # Useful variables
         omega = nu_0 + nu_1
@@ -98,85 +81,50 @@ def chem_site(ages, m_values):
         likelihood = pm.Beta("m-values",
             mu = mean,
             sigma = np.sqrt(variance),
-            observed = m_values)
+            dims=("participants", "sites"),
+            observed = amdata.X.T)
 
-        trace = pm.sample(cores=1, progressbar=False)
-        pm.compute_log_likelihood(trace)
-        max_p = pm.find_MAP(progressbar=False)
+        res = {}
+        if return_MAP:
+            res['map'] = pm.find_MAP(progressbar=False)
 
-    return trace, max_p
+        if return_trace:
+            res['trace'] = pm.sample(1000, tune=1000, chains=CHAINS, cores=1, progressbar=show_progress) 
+            pm.compute_log_likelihood(res['trace'])
 
-def fit_and_compare_2(site_data):
-
-    ROUND = 7
-
-    ages = site_data.var.age
-    m_values = site_data.X.flatten()
-    site_index = site_data.obs.index[0]
-
-    # trace_d, map_d = drift_site(ages, m_values)
-    trace_l, map_l = linear_site(ages, m_values)
-    trace_chem, map_chem = chem_site(ages, m_values)
-
-    comparison = az.compare({ 
-                            #"drift": trace_d, 
-                            "linear": trace_l,
-                            "chem":trace_chem})
-
-    # drift_fit = az.summary(trace_d, round_to=ROUND)
-    linear_fit = az.summary(trace_l, round_to=ROUND)
-    chem_fit = az.summary(trace_chem, round_to=ROUND)
-
-    # drift_fit.insert(1, 'MAP', np.array(list(map_d.values())[-4:]).round(ROUND))
-    linear_fit.insert(1, 'MAP', np.array(list(map_l.values())[-3:]).round(ROUND))
-    chem_fit.insert(1, 'MAP', np.array(list(map_chem.values())[-5:]).round(ROUND))
-
-    fit = pd.concat([linear_fit,
-                    # drift_fit, 
-                    chem_fit
-                    ],
-                    keys=['linear',
-                        #   'drift',
-                          'chemical'], names=['model','param'])
-    fit = fit.assign(site=site_index).set_index('site', append=True).reorder_levels(['site','model','param'])
-
-    comparison = comparison.reset_index().rename(columns={'index': 'model'})
-    comparison['site'] = site_index
-    comparison = comparison.set_index(['site', 'model'])
-
-    # return fit, comparison, trace_d, trace_l
-
-    return fit, comparison
+    return res
 
 
-def fit_and_compare(site_data):
+def fit_and_compare(amdata):
 
     ROUND = 7
 
-    ages = site_data.var.age
-    m_values = site_data.X.flatten()
-    site_index = site_data.obs.index[0]
-
-    trace_d, map_d = drift_site(ages, m_values)
-    trace_l, map_l = linear_site(ages, m_values)
-    comparison = az.compare({"drift": trace_d, "linear": trace_l})
+    trace_l = linear_sites(amdata, show_progress=True)['trace']
+    trace_bio = bio_sites(amdata, show_progress=True)['trace']
 
     linear_fit = az.summary(trace_l, round_to=ROUND)
-    drift_fit = az.summary(trace_d, round_to=ROUND)
+    bio_fit = az.summary(trace_bio, round_to=ROUND)
 
-    drift_fit.insert(1, 'MAP', np.array(list(map_d.values())[-4:]).round(ROUND))
-    linear_fit.insert(1, 'MAP', np.array(list(map_l.values())[-3:]).round(ROUND))
+    linear_fit.index = pd.MultiIndex.from_tuples([(index_tuple[1][:-1], 'linear', index_tuple[0]) for index_tuple in linear_fit.index.str.split('[')],
+                              names=['site', 'model', 'param'])
+    
+    bio_fit.index = pd.MultiIndex.from_tuples([(index_tuple[1][:-1], 'bio', index_tuple[0]) for index_tuple in bio_fit.index.str.split('[')],
+                              names=['site', 'model', 'param'])
+    all_fits = pd.concat([linear_fit, bio_fit],
+                    )
+    all_fits.sort_index(level=0)
 
-    fit = pd.concat([linear_fit, drift_fit], keys=['linear','drift'], names=['model','param'])
-    fit = fit.assign(site=site_index).set_index('site', append=True).reorder_levels(['site','model','param'])
+    all_comparisons = pd.DataFrame()
+    for site in amdata.sites.index:
+        comparison = az.compare({"linear": trace_l.sel(site=site), "bio": trace_bio.sel(site=site)})
+        comparison = comparison.reset_index().rename(columns={'index': 'model'})
+        comparison['site'] = site
+        comparison = comparison.set_index(['site', 'model'])
+        all_comparisons = pd.concat([all_comparisons, comparison])
 
-    comparison = comparison.reset_index().rename(columns={'index': 'model'})
-    comparison['site'] = site_index
-    comparison = comparison.set_index(['site', 'model'])
+    return all_fits, all_comparisons
 
-    # return fit, comparison, trace_d, trace_l
 
-    return fit, comparison
 
 def comparison_postprocess(results, amdata):
     fits = pd.DataFrame()
@@ -186,10 +134,12 @@ def comparison_postprocess(results, amdata):
         fits = pd.concat([fits, fit])
         comparisons = pd.concat([comparisons, comparison])
 
-    amdata.obs['mean_slope'] = fits.loc[(slice(None),'drift','mean_slope')]['mean'].values
-    amdata.obs['mean_inter'] = fits.loc[(slice(None),'drift','mean_inter')]['mean'].values
-    amdata.obs['var_slope'] = fits.loc[(slice(None),'drift','var_slope')]['mean'].values
-    amdata.obs['var_inter'] = fits.loc[(slice(None),'drift','var_inter')]['mean'].values
+    amdata.obs['nu_0'] = fits.loc[(slice(None),'bio','nu_0')]['mean'].values
+    amdata.obs['nu_1'] = fits.loc[(slice(None),'bio','nu_1')]['mean'].values
+    amdata.obs['meth_init'] = fits.loc[(slice(None),'bio','meth_init')]['mean'].values
+    amdata.obs['var_init'] = fits.loc[(slice(None),'bio','var_init')]['mean'].values
+    amdata.obs['system_size'] = fits.loc[(slice(None),'bio','system_size')]['mean'].values
+
 
 def plot_confidence(site_index, amdata):
     meta = amdata.obs.loc[site_index]
@@ -251,23 +201,21 @@ def fit_person_MAP(person_data):
     return map
 
 
-
-
-
-def vector_person_model(amdata, show_progress=True):
+def person_model(amdata, return_trace=True, return_MAP=False, show_progress=False):
 
     # The data has two dimensions: participant and CpG site
     coords = {"site": amdata.sites.index, "part": amdata.participants.index}
 
     # # create a numpy array of the participants ages
     # # array of ages needs to be broadcasted into a matrix array for each CpG site
-    m_slope = np.broadcast_to(amdata.sites.mean_slope, shape=(amdata.shape[1], amdata.shape[0])).T
-    m_int = np.broadcast_to(amdata.sites.mean_inter, shape=(amdata.shape[1], amdata.shape[0])).T
-    v_slope = np.broadcast_to(amdata.sites.var_slope, shape=(amdata.shape[1], amdata.shape[0])).T
-    v_int = np.broadcast_to(amdata.sites.var_inter, shape=(amdata.shape[1], amdata.shape[0])).T
+    nu_0 = np.broadcast_to(amdata.sites.nu_0, shape=(amdata.shape[1], amdata.shape[0])).T
+    nu_1 = np.broadcast_to(amdata.sites.nu_1, shape=(amdata.shape[1], amdata.shape[0])).T
+    p = np.broadcast_to(amdata.sites.meth_init, shape=(amdata.shape[1], amdata.shape[0])).T
+    var_init = np.broadcast_to(amdata.sites.var_init, shape=(amdata.shape[1], amdata.shape[0])).T
+    N = np.broadcast_to(amdata.sites.system_size, shape=(amdata.shape[1], amdata.shape[0])).T
+
     age = amdata.participants.age.values
 
-    if show_progress: print('lemon')
 
     # Define Pymc model
     with pm.Model(coords=coords) as model:
@@ -276,51 +224,41 @@ def vector_person_model(amdata, show_progress=True):
         acc = pm.Uniform('acc', lower=-2, upper = 2, dims='part')
         bias = pm.Uniform('bias', lower=-1, upper = 1, dims='part')
 
-        mean = np.exp(acc)*m_slope*age + m_int + bias
-        var = v_slope*age + v_int
-        sigma = np.sqrt(var)
-
-        pm_data = pm.Data("data", amdata.X, dims=("site", "part"), mutable=True)
+        # Useful variables
+        exp_acc = np.exp(acc)
+        acc_nu_0 = exp_acc*nu_0
+        acc_nu_1 = exp_acc*nu_1
+        omega = acc_nu_0 + acc_nu_1
+        eta_0 = acc_nu_0/omega
+        eta_1 = acc_nu_1/omega
         
-        obs = pm.Normal("obs", mu=mean, sigma = sigma, observed=pm_data)
+        # model mean and variance
+        var_term_0 = eta_0*eta_1
+        var_term_1 = (1-p)*np.power(eta_0,2) + p*np.power(eta_1,2)
 
-        trace_ab = pm.sample(1000, tune=1000, chains=4, cores=1, progressbar=show_progress) 
-        # map_ab = pm.find_MAP(progressbar=False)
+        mean = eta_0 + np.exp(-omega*age)*((p-1)*eta_0 + p*eta_1) + bias
+        mean = pm.math.minimum(mean, 1)
+        mean = pm.math.maximum(mean,0)
 
-    return trace_ab    
+        variance = (var_term_0/N 
+                + np.exp(-omega*age)*(var_term_1-var_term_0)/N 
+                + np.exp(-2*omega*age)*(var_init/np.power(N,2) - var_term_1/N)
+            )
 
-def vectorize_all_participants(amdata):
+        # Define likelihood
+        obs = pm.Normal("obs", mu=mean,
+                               sigma = np.sqrt(variance), 
+                               dims=("site", "part"), 
+                               observed=amdata.X)
 
-    # The data has two dimensions: participant and CpG site
-    coords = {"site": amdata.sites.index, "part": amdata.participants.index}
+        res = {}
+        if return_MAP:
+            res['map'] = pm.find_MAP(progressbar=False)
 
-    # # create a numpy array of the participants ages
-    # # array of ages needs to be broadcasted into a matrix array for each CpG site
-    m_slope = np.broadcast_to(amdata.sites.mean_slope, shape=(amdata.shape[1], amdata.shape[0])).T
-    m_int = np.broadcast_to(amdata.sites.mean_inter, shape=(amdata.shape[1], amdata.shape[0])).T
-    v_slope = np.broadcast_to(amdata.sites.var_slope, shape=(amdata.shape[1], amdata.shape[0])).T
-    v_int = np.broadcast_to(amdata.sites.var_inter, shape=(amdata.shape[1], amdata.shape[0])).T
-    age = amdata.participants.age.values
+        if return_trace:
+            res['trace'] = pm.sample(1000, tune=1000, chains=4, cores=1, progressbar=show_progress) 
 
-    # Define Pymc model
-    with pm.Model(coords=coords) as model:
-        
-        # Define model variables
-        acc = pm.Uniform('acc', lower=-2, upper = 2, dims='part')
-        bias = pm.Uniform('bias', lower=-1, upper = 1, dims='part')
-
-        mean = np.exp(acc)*m_slope*age + m_int + bias
-        var = v_slope*age + v_int
-        sigma = np.sqrt(var)
-
-        pm_data = pm.Data("data", amdata.X, dims=("site", "part"), mutable=True)
-        
-        obs = pm.Normal("obs", mu=mean, sigma = sigma, observed=pm_data)
-
-        # trace_ab = pm.sample(1000, tune=1000) 
-        map_ab = pm.find_MAP(progressbar=False)
-
-    return map_ab
+    return res    
 
 def make_clean_trace(trace):
     delattr(trace, 'log_likelihood')
