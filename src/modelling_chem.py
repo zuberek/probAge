@@ -12,7 +12,8 @@ import matplotlib.pyplot as plt
 import xarray as xr
 
 
-CHAINS = 1
+CHAINS = 2
+
 def linear_sites(amdata, return_MAP=False, return_trace=True, show_progress=False):
 
     ages = np.broadcast_to(amdata.participants.age, shape=(amdata.n_sites, amdata.n_participants)).T
@@ -78,7 +79,7 @@ def bio_sites(amdata, return_MAP=False, return_trace=True, show_progress=False):
             )
 
         # Define likelihood
-        likelihood = pm.Beta("m-values",
+        likelihood = pm.Normal("m-values",
             mu = mean,
             sigma = np.sqrt(variance),
             dims=("participants", "sites"),
@@ -140,81 +141,22 @@ def comparison_postprocess(results, amdata):
     amdata.obs['var_init'] = fits.loc[(slice(None),'bio','var_init')]['mean'].values
     amdata.obs['system_size'] = fits.loc[(slice(None),'bio','system_size')]['mean'].values
 
+    return fits, comparisons
 
-def plot_confidence(site_index, amdata):
-    meta = amdata.obs.loc[site_index]
-    x_space = amdata.var.age
-    y_mean = x_space*meta.mean_slope + meta.mean_inter
-    y_var = x_space*meta.var_slope + meta.var_inter
-    y_2pstd = y_mean + 2*(np.sqrt(y_var))
-    y_2nstd = y_mean - 2*(np.sqrt(y_var))
-
-    sns.scatterplot(x= amdata.var.age, y=amdata[site_index].X.flatten())
-    sns.lineplot(x=x_space, y=y_mean)
-    sns.lineplot(x=x_space, y=y_2pstd)
-    sns.lineplot(x=x_space, y=y_2nstd)
-
-
-def accelerated_biased_person_model_map(age, m_values, params):
-
-    with pm.Model():
-
-        # Define priors
-        bias = pm.Uniform("bias", lower=-1, upper=1)
-        acc = pm.Uniform("acc", lower=-2, upper=2)
-        
-        mu = np.exp(acc)*params.mean_slope*age + params.mean_inter + bias
-        var = params.var_slope*age + params.var_inter
-
-        # Define likelihood
-        likelihood = pm.Normal("m-values",
-            mu=mu,
-            sigma=np.sqrt(var),
-            observed=m_values)
-
-        map=pm.find_MAP(progressbar=True)
-
-    return map
-
-
-def fit_person(person_data):
-    age = person_data.var.age[0]
-    m_values = person_data.X.flatten()
-    params = person_data.obs[['mean_slope', 'mean_inter', 'var_slope', 'var_inter']]
-    person_index = person_data.var.index[0]
-
-    trace = accelerated_biased_person_model(age, m_values, params)
-
-    fit = az.summary(trace, round_to=5)
-    # fit.insert(1, 'MAP', np.array(list(map.values())[-2:]).round(5))
-    fit = fit.reset_index().rename(columns={'index': 'param'})
-    fit = fit.assign(person=person_index).set_index(['person','param'])
-
-    return fit
-
-def fit_person_MAP(person_data):
-    # person_data = amdata_T[0]
-    age = person_data.obs.age[0]
-    m_values = person_data.X.flatten()
-    params = person_data.var[['mean_slope', 'mean_inter', 'var_slope', 'var_inter']]
-    map = accelerated_biased_person_model_map(age, m_values, params)
-    return map
-
-
-def person_model(amdata, return_trace=True, return_MAP=False, show_progress=False):
+def person_model(amdata, return_trace=True, return_MAP=True, show_progress=False):
 
     # The data has two dimensions: participant and CpG site
-    coords = {"site": amdata.sites.index, "part": amdata.participants.index}
+    coords = {"site": amdata.obs.index, "part": amdata.var.index}
 
     # # create a numpy array of the participants ages
     # # array of ages needs to be broadcasted into a matrix array for each CpG site
-    nu_0 = np.broadcast_to(amdata.sites.nu_0, shape=(amdata.shape[1], amdata.shape[0])).T
-    nu_1 = np.broadcast_to(amdata.sites.nu_1, shape=(amdata.shape[1], amdata.shape[0])).T
-    p = np.broadcast_to(amdata.sites.meth_init, shape=(amdata.shape[1], amdata.shape[0])).T
-    var_init = np.broadcast_to(amdata.sites.var_init, shape=(amdata.shape[1], amdata.shape[0])).T
-    N = np.broadcast_to(amdata.sites.system_size, shape=(amdata.shape[1], amdata.shape[0])).T
+    nu_0 = np.broadcast_to(amdata.obs.nu_0, shape=(amdata.shape[1], amdata.shape[0])).T
+    nu_1 = np.broadcast_to(amdata.obs.nu_1, shape=(amdata.shape[1], amdata.shape[0])).T
+    p = np.broadcast_to(amdata.obs.meth_init, shape=(amdata.shape[1], amdata.shape[0])).T
+    var_init = np.broadcast_to(amdata.obs.var_init, shape=(amdata.shape[1], amdata.shape[0])).T
+    N = np.broadcast_to(amdata.obs.system_size, shape=(amdata.shape[1], amdata.shape[0])).T
 
-    age = amdata.participants.age.values
+    age = amdata.var.age.values
 
 
     # Define Pymc model
@@ -246,10 +188,10 @@ def person_model(amdata, return_trace=True, return_MAP=False, show_progress=Fals
             )
 
         # Define likelihood
-        obs = pm.Normal("obs", mu=mean,
-                               sigma = np.sqrt(variance), 
-                               dims=("site", "part"), 
-                               observed=amdata.X)
+        obs = pm.Beta("obs", mu=mean,
+                             sigma = np.sqrt(variance), 
+                             dims=("site", "part"), 
+                             observed=amdata.X)
 
         res = {}
         if return_MAP:
@@ -261,10 +203,8 @@ def person_model(amdata, return_trace=True, return_MAP=False, show_progress=Fals
     return res    
 
 def make_clean_trace(trace):
-    delattr(trace, 'log_likelihood')
     delattr(trace, 'sample_stats')
     delattr(trace, 'observed_data')
-    delattr(trace, 'constant_data')
 
 def concat_traces(trace1, trace2, dim):
     for group in ['posterior']:
