@@ -71,32 +71,6 @@ comparisons.loc[(slice(None),'linear'), :].sum()
 index = 4 
 params = amdata[index].obs[['nu_0', 'nu_1', 'init_meth', 'var_init', 'system_size']].values[0]
 
-def chemical_plot (nu_0, nu_1, p, var_init, N, site=None):
-  omega = nu_0 + nu_1
-  eta_0 = nu_0/omega
-  eta_1 = nu_1/omega
-
-  t= np.linspace(0,100, 1_000)
-  mean = eta_0 + np.exp(-omega*t)*((p-1)*eta_0 + p*eta_1)
-
-  var_term_0 = eta_0*eta_1
-  var_term_1 = (1-p)*np.power(eta_0,2) + p*np.power(eta_1,2)
-
-
-  var = (var_term_0/N 
-          + np.exp(-omega*t)*(var_term_1-var_term_0)/N 
-          + np.exp(-2*omega*t)*(var_init/np.power(N,2) - var_term_1/N)
-        )
-
-  sns.lineplot(x=t, y=mean, color='orange')
-  sns.lineplot(x=t, y=mean+2*np.sqrt(var), color='orange')
-  sns.lineplot(x=t, y=mean-2*np.sqrt(var), color='orange')
-
-  if site != None:
-    sns.scatterplot(x=amdata[site].participants.age, y=amdata[site].X.flatten())
-
-chemical_plot(*params, site=index)
-plt.ylim(0,1)
 
 # %%
 
