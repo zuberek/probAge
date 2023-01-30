@@ -210,3 +210,28 @@ def concat_traces(trace1, trace2, dim):
     for group in ['posterior']:
         concatenated_group = xr.concat((trace1[group], trace2[group]), dim=dim)
         setattr(trace1, group, concatenated_group)
+
+def bio_model_plot (nu_0, nu_1, p, var_init, N, data=None):
+  omega = nu_0 + nu_1
+  eta_0 = nu_0/omega
+  eta_1 = nu_1/omega
+
+  t= np.linspace(0,100, 1_000)
+  mean = eta_0 + np.exp(-omega*t)*((p-1)*eta_0 + p*eta_1)
+
+  var_term_0 = eta_0*eta_1
+  var_term_1 = (1-p)*np.power(eta_0,2) + p*np.power(eta_1,2)
+
+
+  var = (var_term_0/N 
+          + np.exp(-omega*t)*(var_term_1-var_term_0)/N 
+          + np.exp(-2*omega*t)*(var_init/np.power(N,2) - var_term_1/N)
+        )
+
+  sns.lineplot(x=t, y=mean, color='orange')
+  sns.lineplot(x=t, y=mean+2*np.sqrt(var), color='orange')
+  sns.lineplot(x=t, y=mean-2*np.sqrt(var), color='orange')
+
+  if data != None:
+    sns.scatterplot(x=data.participants.age, y=data.X.flatten())
+    plt.ylim(0,1)
