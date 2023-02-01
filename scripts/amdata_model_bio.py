@@ -1,8 +1,13 @@
+# %%
+%%time
+%load_ext autoreload
+%autoreload 2
+
 import sys
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
 
-from src import modelling_chem
+from src import modelling_bio
 import arviz as az
 
 import pickle
@@ -12,7 +17,9 @@ logger = logging.getLogger('pymc')
 logger.propagate = False
 logger.setLevel(logging.ERROR)
 
-N_SITES =  1024
+
+N_SITES =  1_500
+N_PARTS = 100
 N_CORES = 7
 
 amdata = amdata_src.AnnMethylData('../exports/wave3_linear.h5ad')
@@ -21,15 +28,26 @@ amdata = amdata[amdata.obs.sort_values('r2', ascending=False).index[:N_SITES]]
 with Pool(N_CORES, maxtasksperchild=1) as p:
     results = list(tqdm(
             iterable= p.imap(
-                func=modelling_chem.fit_and_compare,
+                func=modelling_bio.fit_and_compare,
                 iterable=amdata,
                 chunksize=1
                 ), 
             total=amdata.n_obs))
 
-fits, comparisons = modelling_chem.comparison_postprocess(results, amdata)
+print('Exporting site model results')
+fits, comparisons = modelling_bio.comparison_postprocess(results, amdata)
 comparisons.to_csv('../exports/comparison_bio.csv')
 fits.to_csv('../exports/fits_bio.csv')
+
+
+full_comparisons_plot = (
+    modelling_bio.full_comparison_plot(comparisons))
+full_comparisons_plot.figure.savefig('../results/full_comparison.png')
+
+# Fitting acceleration and bias
+print('Acceleration and bias model fitting')
+if N_PARTS is not False:
+    amdata = amdata[:, :N_PARTS]
 
 # create amdata chunks to vectorize acc and bias over participants
 chunk_size = 10
@@ -41,16 +59,16 @@ for i in range(0, n_participants, chunk_size):
 with Pool(N_CORES, maxtasksperchild=1) as p:
     results = list(tqdm(
             iterable= p.imap(
-                func=modelling_chem.person_model_reparam,
+                func=modelling_bio.person_model_reparam,
                 iterable=amdata_chunks, 
                 ), 
             total=len(amdata_chunks)))
 
 traces = results[0]['trace']
-modelling_chem.make_clean_trace(traces)
+modelling_bio.make_clean_trace(traces)
 if len(results) > 1:
     for trace in tqdm(results[1:]):
-        modelling_chem.concat_traces(traces, trace['trace'], dim='part')
+        modelling_bio.concat_traces(traces, trace['trace'], dim='part')
 
 to_save = ['mean', 'sd', 'hdi_3%', 'hdi_97%']
 to_save_acc = [f'acc_{col}' for col in to_save]

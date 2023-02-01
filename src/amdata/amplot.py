@@ -1,3 +1,4 @@
+from re import A
 from src.utils import plot
 
 import numpy as np
@@ -11,7 +12,7 @@ class AnnMethylPlotter():
     def lemon(self):
         print(self.amdata)
 
-    def site(self, site_name=None, ages=None, site_values=None, sample=None, linefit=False, var2obs=False, highlight=None, hue=None, observation=True, ax=None, zoom=False, pred=None, **kwargs):
+    def site(self, site_name=None, ages=None, site_values=None, sample=None, linefit=False, var2obs=False, highlight=None, hue=None, observation=False, ax=None, zoom=False, pred=None, **kwargs):
         if site_name is None:
             if (site_values is None) or (ages is None):
                 print('You need to pass either the site name or the x/y values!')
@@ -27,7 +28,8 @@ class AnnMethylPlotter():
 
         if site_name is not None:
             site_meta, site_obs, site_values = self.amdata.site(site_name, sample=sample_idxs, var2obs=var2obs)
-            ages = site_obs.age
+            ages = self.amdata.var.age
+    
 
 
         # site_meta = self.amdata[site_name].obs.squeeze()

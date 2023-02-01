@@ -10,6 +10,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import xarray as xr
 
+from pymc.sampling import jax
+
 
 def linear_sites(amdata, return_MAP=False, return_trace=True, show_progress=False):
 
@@ -37,9 +39,10 @@ def linear_sites(amdata, return_MAP=False, return_trace=True, show_progress=Fals
 
         res = {}
         if return_MAP:
-            res['map'] = pm.find_MAP(progressbar=False)
+            res['map'] = pm.find_MAP(progressbar=show_progress)
 
         if return_trace:
+            # res['trace'] = jax.sample_numpyro_nuts(progressbar=show_progress)
             res['trace'] = pm.sample(1000, tune=1000, chains=4, cores=1, progressbar=show_progress) 
 
     return res    
@@ -53,10 +56,10 @@ def drift_sites(amdata, return_MAP=False, return_trace=True, show_progress=False
     with pm.Model(coords=coords) as model:
 
         # Define priors
-        mean_slope = pm.Uniform("mean_slope", lower=-1/100, upper=1/100, dims='sites')
-        mean_inter = pm.Uniform("mean_inter", lower=0, upper=1, dims='sites')
-        var_slope = pm.Uniform("var_slope",     lower=0,        upper=1/10)
-        var_inter = pm.Uniform("var_inter", lower=0, upper=1/10, dims='sites')
+        mean_slope = pm.Uniform("mean_slope",   lower=-1/100, upper=1/100, dims='sites')
+        mean_inter = pm.Uniform("mean_inter",   lower=0, upper=1, dims='sites')
+        var_slope = pm.Uniform("var_slope",     lower=0, upper=1/10, dims='sites')
+        var_inter = pm.Uniform("var_inter",     lower=0, upper=1/10, dims='sites')
         
         # model mean and variance
         mean = mean_slope*ages + mean_inter
@@ -71,38 +74,44 @@ def drift_sites(amdata, return_MAP=False, return_trace=True, show_progress=False
 
         res = {}
         if return_MAP:
-            res['map'] = pm.find_MAP(progressbar=False)
+            res['map'] = pm.find_MAP(progressbar=show_progress)
 
         if return_trace:
             res['trace'] = pm.sample(1000, tune=1000, chains=4, cores=1, progressbar=show_progress) 
 
     return res    
 
-def fit_and_compare(amdata):
+def fit_and_compare(amdata, show_progress=False):
 
     ROUND = 5
 
-    drift_trace = drift_sites(amdata)['trace']
-    linear_trace = linear_sites(amdata)['trace']
-
-    comparison = az.compare({"drift": drift_trace, "linear": linear_trace})
+    drift_trace = drift_sites(amdata, show_progress=show_progress)['trace']
+    linear_trace = linear_sites(amdata, show_progress=show_progress)['trace']
 
     linear_fit = az.summary(linear_trace, round_to=ROUND)
     drift_fit = az.summary(drift_trace, round_to=ROUND)
 
-    # drift_fit.insert(1, 'MAP', np.array(list(map_d.values())[-4:]).round(ROUND))
-    # linear_fit.insert(1, 'MAP', np.array(list(map_l.values())[-3:]).round(ROUND))
 
-    fit = pd.concat([linear_fit, drift_fit], keys=['linear','drift'], names=['model','param'])
-    # fit = fit.assign(site=site_index).set_index('site', append=True).reorder_levels(['site','model','param'])
+    linear_fit.index = pd.MultiIndex.from_tuples([(index_tuple[1][:-1], 'linear', index_tuple[0]) for index_tuple in linear_fit.index.str.split('[')],
+                              names=['site', 'model', 'param'])
+    
+    drift_fit.index = pd.MultiIndex.from_tuples([(index_tuple[1][:-1], 'drift', index_tuple[0]) for index_tuple in drift_fit.index.str.split('[')],
+                              names=['site', 'model', 'param'])
+    all_fits = pd.concat([linear_fit, drift_fit],
+                    )
 
-    comparison = comparison.reset_index().rename(columns={'index': 'model'})
-    comparison['site'] = amdata.obs.index
-    comparison = comparison.set_index(['site', 'model'])
+    all_fits.sort_index(level=0)
 
-    # return fit, comparison, trace_d, trace_l
+    all_comparisons = pd.DataFrame()
+    for site in amdata.sites.index:
+        comparison = az.compare({"linear": linear_trace.sel(site=site), "drift": drift_trace.sel(site=site)})
+        comparison = comparison.reset_index().rename(columns={'index': 'model'})
+        comparison['site'] = site
+        comparison = comparison.set_index(['site', 'model'])
+        all_comparisons = pd.concat([all_comparisons, comparison])
 
-    return fit, comparison
+    return all_fits, all_comparisons
+
 
 def comparison_postprocess(results, amdata):
     fits = pd.DataFrame()
@@ -135,15 +144,15 @@ def plot_confidence(site_index, amdata):
 def person_model(amdata, return_trace=True, return_MAP=False, show_progress=False):
 
     # The data has two dimensions: participant and CpG site
-    coords = {"site": amdata.sites.index, "part": amdata.participants.index}
+    coords = {"site": amdata.obs.index, "part": amdata.var.index}
 
-    # # create a numpy array of the participants ages
+    # # create a numpy array of the var ages
     # # array of ages needs to be broadcasted into a matrix array for each CpG site
-    m_slope = np.broadcast_to(amdata.sites.mean_slope, shape=(amdata.shape[1], amdata.shape[0])).T
-    m_int = np.broadcast_to(amdata.sites.mean_inter, shape=(amdata.shape[1], amdata.shape[0])).T
-    v_slope = np.broadcast_to(amdata.sites.var_slope, shape=(amdata.shape[1], amdata.shape[0])).T
-    v_int = np.broadcast_to(amdata.sites.var_inter, shape=(amdata.shape[1], amdata.shape[0])).T
-    age = amdata.participants.age.values
+    m_slope = np.broadcast_to(amdata.obs.mean_slope, shape=(amdata.shape[1], amdata.shape[0])).T
+    m_int = np.broadcast_to(amdata.obs.mean_inter, shape=(amdata.shape[1], amdata.shape[0])).T
+    v_slope = np.broadcast_to(amdata.obs.var_slope, shape=(amdata.shape[1], amdata.shape[0])).T
+    v_int = np.broadcast_to(amdata.obs.var_inter, shape=(amdata.shape[1], amdata.shape[0])).T
+    age = amdata.var.age.values
 
     if show_progress: print('lemon')
 
@@ -162,18 +171,53 @@ def person_model(amdata, return_trace=True, return_MAP=False, show_progress=Fals
 
         res = {}
         if return_MAP:
-            res['map'] = pm.find_MAP(progressbar=False)
+            res['map'] = pm.find_MAP(progressbar=show_progress)
 
         if return_trace:
             res['trace'] = pm.sample(1000, tune=1000, chains=4, cores=1, progressbar=show_progress) 
 
     return res    
 
+def site_offsets(amdata, return_MAP=False, return_trace=True, show_progress=False):
+    m_slope = np.broadcast_to(amdata.obs.mean_slope, shape=(amdata.shape[1], amdata.shape[0]))
+    m_int = np.broadcast_to(amdata.obs.mean_inter, shape=(amdata.shape[1], amdata.shape[0]))
+    v_slope = np.broadcast_to(amdata.obs.var_slope, shape=(amdata.shape[1], amdata.shape[0]))
+    v_int = np.broadcast_to(amdata.obs.var_inter, shape=(amdata.shape[1], amdata.shape[0]))
+    ages = np.broadcast_to(amdata.var.age, shape=(amdata.n_obs, amdata.n_vars)).T
+    
+    coords = {'sites': amdata.obs.index.values,
+            'participants': amdata.var.index.values}
+
+    with pm.Model(coords=coords) as model:
+
+        # Define priors
+        offset = pm.Uniform("offset",   lower=-1, upper=1, dims='sites')
+
+        # model mean and variance
+        mean = m_slope*ages + m_int + offset
+        variance = v_slope*ages + v_int
+
+        # Define likelihood
+        likelihood = pm.Normal("m_values",
+            mu = mean,
+            sigma = np.sqrt(variance),
+            dims=("participants", "sites"),
+            observed = amdata.X.T)
+
+        res = {}
+        if return_MAP:
+            res['map'] = pm.find_MAP(progressbar=show_progress)
+
+        if return_trace:
+            res['trace'] = pm.sample(1000, tune=1000, chains=4, cores=1, progressbar=show_progress) 
+
+    return res    
+
+
 def make_clean_trace(trace):
     # delattr(trace, 'log_likelihood')
-    # delattr(trace, 'sample_stats')
+    delattr(trace, 'sample_stats')
     delattr(trace, 'observed_data')
-    delattr(trace, 'constant_data')
 
 def concat_traces(trace1, trace2, dim):
     for group in ['posterior']:
