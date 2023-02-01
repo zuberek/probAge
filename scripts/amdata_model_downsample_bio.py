@@ -4,7 +4,7 @@ sys.path.append("..")   # fix to import modules from root
 from turtle import color
 from src.general_imports import *
 
-from src import modelling
+from src import modelling_bio
 
 # import logging
 # logger = logging.getLogger('pymc')
@@ -13,23 +13,13 @@ from src import modelling
 
 amdata = amdata.AnnMethylData('../exports/wave3_linear.h5ad')
 
-
-
-# maps = modelling.vectorize_all_participants(amdata)
-# amdata.participants['acc'] = maps['acc']
-# amdata.participants['bias'] = maps['bias']
-
-# sns.jointplot(data=amdata.participants, x='acc', y='bias')
-# ax1, ax2 = plot.row([])
-
-
 n_sites_grid = [2**n for n in range(1,11)]
 n_sites_label = [f'{n_sites_grid[i]}-{n_sites_grid[i+1]}' for i in range(len(n_sites_grid))[:-1]]
 
 accs = np.empty((len(n_sites_grid), amdata.n_participants))
 biases = np.empty((len(n_sites_grid), amdata.n_participants))
 for i, n_sites in enumerate(tqdm(n_sites_grid)):
-    map = modelling_bio.person_model_reparam(amdata[:n_sites], return_MAP=True, return_trace=False)['map']
+    map = modelling.vector_person_model(amdata[:n_sites], return_MAP=True, return_trace=False)['map']
     accs[i] = map['acc']
     biases[i] = map['bias']    
 
