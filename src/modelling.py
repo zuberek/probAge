@@ -178,7 +178,7 @@ def person_model(amdata, return_trace=True, return_MAP=False, show_progress=Fals
 
     return res    
 
-def dset_offsets(amdata, return_MAP=False, return_trace=True, show_progress=False):
+def site_offsets(amdata, return_MAP=False, return_trace=True, show_progress=False):
     m_slope = np.broadcast_to(amdata.obs.mean_slope, shape=(amdata.shape[1], amdata.shape[0]))
     m_int = np.broadcast_to(amdata.obs.mean_inter, shape=(amdata.shape[1], amdata.shape[0]))
     v_slope = np.broadcast_to(amdata.obs.var_slope, shape=(amdata.shape[1], amdata.shape[0]))
@@ -195,7 +195,7 @@ def dset_offsets(amdata, return_MAP=False, return_trace=True, show_progress=Fals
 
         # model mean and variance
         mean = m_slope*ages + m_int + offset
-        variance = v_slope*ages + ages
+        variance = v_slope*ages + v_int
 
         # Define likelihood
         likelihood = pm.Normal("m_values",
