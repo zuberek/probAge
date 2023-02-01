@@ -1,8 +1,4 @@
 # %%
-%%time
-%load_ext autoreload
-%autoreload 2
-
 import sys
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
@@ -19,8 +15,8 @@ logger.setLevel(logging.ERROR)
 
 
 N_SITES =  1_500
-N_PARTS = 100
-N_CORES = 7
+N_PARTS = False
+N_CORES = 15
 
 amdata = amdata_src.AnnMethylData('../exports/wave3_linear.h5ad')
 amdata = amdata[amdata.obs.sort_values('r2', ascending=False).index[:N_SITES]]
