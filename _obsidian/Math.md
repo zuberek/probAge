@@ -1,7 +1,5 @@
-
-However rather that inferring the distribution of methylation values associated to a CpG site from data for each year separately (or age binning), we turn our attention to modelling.
 # Probabilistic model of epigenetic aging
-In this section we will develop a probabilistic model of epigenetic ageing that allows us to assign a probability to methylation profile observed in an individual. We do this by inferring the probability distribution of methylation values in a cohort as a function of age. 
+In this section we will develop a probabilistic model of epigenetic ageing that allows us to assign a probability to a methylation profile observed in an individual. We do this by inferring the probability distribution of methylation values in a cohort as a function of age. However rather that inferring the distribution of methylation values associated to a CpG site from data for each year separately (or age binning), we turn our attention to modelling.
 
 First let us set some notation. Methylation data associated to an individual, $j$, can be interpreted as a highly dimensional vector,
 
@@ -45,6 +43,8 @@ Then for a single individual $m_j$ , its associated probability for the single s
 $$ P(m_j \mid \bar{a^i}, \bar{b^i},\bar{c^i}) = \mathcal{N}_{pdf}\left(m_j ^i; \bar{a^i}t_j+\bar{b^i}, \ \bar{c^i}\right). $$
 
 ### Drift model
+
+
 
 As noted in the literature [REFERENCE!!!], there is a naturally occurring drift in methylation profile as a result of the stochastic nature of methylation gain. To accommodate for this process, we propose a drift model $\mathcal{M}_{drift}$ with a variance that increases linearly with time, as is the mean. Analogously to the linear model, the probability of observing a methylation value at site $i$ in a single individual $m_j$  is therefore equal to
 

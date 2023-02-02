@@ -1,4 +1,6 @@
 # %%
+%load_ext autoreload
+%autoreload 2
 import sys
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
@@ -18,38 +20,26 @@ N_SITES =  5
 N_PARTS = False
 N_CORES = 7
 
-amdata = amdata_src.AnnMethylData('../exports/wave3_linear.h5ad')
-amdata = amdata[amdata.obs.sort_values('r2', ascending=False).index[:N_SITES]]
+# Load bio sites
+amdata = amdata_src.AnnMethylData('../exports/wave3_bio.h5ad')
+comparisons = pd.read_csv('../exports/comparison_bio.csv', index_col=[0,1])
+fits = pd.read_csv('../exports/fits_bio.csv')
 
-with Pool(N_CORES, maxtasksperchild=1) as p:
-    results = list(tqdm(
-            iterable= p.imap(
-                func=modelling_bio.fit_and_compare,
-                iterable=amdata,
-                chunksize=1
-                ), 
-            total=amdata.n_obs))
 
-print('Exporting site model results')
-fits, comparisons = modelling_bio.comparison_postprocess(results, amdata)
-comparisons.to_csv('../exports/comparison_bio.csv')
-fits.to_csv('../exports/fits_bio.csv')
+fig = modelling_bio.comparison_plot(comparisons, 10)
+fig.write_image('../results/model_comparison_10_sites.png', height=1_000)
 
-full_comparisons_plot = (
-    modelling_bio.full_comparison_plot(comparisons))
-full_comparisons_plot.figure.savefig('../results/full_comparison.png')
 
-amdata.write_h5ad('../exports/wave3_bio.h5ad')
+fig = modelling_bio.comparison_plot(comparisons, -1)
+fig.write_image('../results/model_comparison_full.png')
 
-#drop saturating sites
+# drop saturating sites
 amdata = amdata[amdata.obs['saturating'] == False]
 
 # Fitting acceleration and bias
 print('Acceleration and bias model fitting')
 if N_PARTS is not False:
     amdata = amdata[:, :N_PARTS]
-
-
 
 # create amdata chunks to vectorize acc and bias over participants
 chunk_size = 10

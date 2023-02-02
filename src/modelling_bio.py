@@ -8,6 +8,7 @@ from pymc.sampling import jax
 import pandas as pd
 
 import seaborn as sns
+import plotly.express as px
 import matplotlib.pyplot as plt
 import xarray as xr
 
@@ -315,6 +316,7 @@ def person_model(amdata, return_trace=True, return_MAP=True, show_progress=False
         mean = pm.math.minimum(mean, 1)
         mean = pm.math.maximum(mean,0)
         variance = pm.math.minimum(variance, mean*(1-mean))
+        variance = pm.math.maximum(variance, 0)
 
         # Define likelihood
         obs = pm.Beta("obs", mu=mean,
@@ -332,7 +334,7 @@ def person_model(amdata, return_trace=True, return_MAP=True, show_progress=False
     return res
 
 
-def person_model_reparam(amdata, return_trace=True, return_MAP=True, show_progress=False):
+def person_model_reparam(amdata, normal=True, return_trace=True, return_MAP=True, show_progress=False):
 
     # The data has two dimensions: participant and CpG site
     coords = {"site": amdata.obs.index, "part": amdata.var.index}
@@ -363,23 +365,35 @@ def person_model_reparam(amdata, return_trace=True, return_MAP=True, show_progre
         var_term_0 = eta_0*eta_1
         var_term_1 = (1-p)*np.power(eta_0,2) + p*np.power(eta_1,2)
 
+
         mean = eta_0 + np.exp(-omega*age)*((p-1)*eta_0 + p*eta_1) + bias
 
         variance = (var_term_0/N 
                 + np.exp(-omega*age)*(var_term_1-var_term_0)/N 
                 + np.exp(-2*omega*age)*(var_init/np.power(N,2) - var_term_1/N)
             )
-        
-        # Force mean and variance in acceptable range
-        mean = pm.math.minimum(mean, 1)
-        mean = pm.math.maximum(mean,0)
-        variance = pm.math.minimum(variance, mean*(1-mean))
 
-        # Define likelihood
-        obs = pm.Beta("obs", mu=mean,
+        if normal is True:
+            # Define likelihood
+            obs = pm.Normal("obs",
+                             mu=mean,
                              sigma = np.sqrt(variance), 
                              dims=("site", "part"), 
                              observed=amdata.X)
+       
+
+        if normal is False:
+            # Force mean and variance in acceptable range
+            mean = pm.math.minimum(mean, 1)
+            mean = pm.math.maximum(mean,0)
+            variance = pm.math.minimum(variance, mean*(1-mean))
+            variance = pm.math.maximum(variance, 0)
+
+            # Define likelihood
+            obs = pm.Beta("obs", mu=mean,
+                                 sigma = np.sqrt(variance), 
+                                 dims=("site", "part"), 
+                                 observed=amdata.X)
 
         res = {}
         if return_MAP:
@@ -477,6 +491,63 @@ def is_saturating(amdata):
 
     else:
         return False
+
+
+def comparison_plot(comparisons, n_sites, scale=True):
+    """Plot model comparison grouped by sites, using the unified comparison df."""
+    if n_sites != -1:
+        sites = comparisons.index.get_level_values(level='site').unique()[:n_sites]
+
+        plot_df = comparisons.reset_index()[:2*n_sites].copy()
+
+    else: 
+        plot_df = comparisons.reset_index().copy()
+        plot_df = plot_df.groupby('model').sum(numeric_only=True).reset_index()
+        sites =['all_sites']
+
+    # Create indexing for plot
+    index_group = plot_df.index.values - plot_df.index.values % 2
+    plot_df['plot_index'] = ((plot_df.model =='linear')*1 - 0.5)/2 + index_group
+    plot_df['plot_index'] = -plot_df['plot_index']
+
+    parameter_plot = 'elpd_loo'
+    center = plot_df['elpd_loo'].mean()
+    if n_sites != -1 and scale is True:
+        means = plot_df.groupby('site', axis=0).transform('mean')
+        plot_df['elpd_loo_scaled'] = plot_df['elpd_loo'] - means['elpd_loo']
+        parameter_plot = 'elpd_loo_scaled'
+        center = 0
+    
+    # Create errorbar plot
+    fig = px.scatter(plot_df,
+            x=parameter_plot,
+            y='plot_index',
+            error_x='se',
+            color='model',
+            template='simple_white')
+    
+    fig.add_vline(x=center, line=dict(color='dimgrey',
+                                 width=2,
+                                 dash='dash') )
+    if n_sites != -1:
+        fig.update_yaxes(title='Site')
+        fig.update_layout(
+            yaxis = dict(
+                tickmode = 'array',
+                tickvals = -plot_df.index.values*2,
+                ticktext = sites)
+            )
+    else:
+        fig.update_yaxes(title='')
+        fig.update_layout(
+            yaxis = dict(
+                tickmode = 'array',
+                tickvals = -plot_df.index.values*2,
+                ticktext = sites)
+            )
+
+    return fig
+
 
 def full_comparison_plot(comparisons):
     full_comparison = comparisons.groupby(level='model').sum(numeric_only=True)
