@@ -17,12 +17,14 @@ import sys
 sys.path.append("..") 
 from src.general_imports import sns_colors
 
+import contextlib
+
 CHAINS = 4
 CORES = 1
 # cores are set at 1 to allow to 
 # avoid daemonic children in mp
 
-def linear_sites(amdata, return_MAP=False, return_trace=True, show_progress=False):
+def linear_sites(amdata, use_jax=False, return_MAP=False, return_trace=True, show_progress=False):
 
     ages = np.broadcast_to(amdata.participants.age, shape=(amdata.n_sites, amdata.n_participants)).T
     coords = {'sites': amdata.sites.index.values,
@@ -51,14 +53,24 @@ def linear_sites(amdata, return_MAP=False, return_trace=True, show_progress=Fals
             res['map'] = pm.find_MAP(progressbar=False)
 
         if return_trace:
-            res['trace'] = jax.sample_numpyro_nuts(1000, tune=1000, chains=CHAINS, chain_method='sequential', postprocessing_backend='cpu',  progressbar=show_progress) 
-            # res['trace'] = pm.sample(1000, tune=1000, chains=CHAINS, cores=CORES, progressbar=show_progress) 
+            if use_jax:
+                with contextlib.redirect_stdout(None):
+
+                    res['trace'] = jax.sample_numpyro_nuts(1000, tune=1000,
+                                    chains=CHAINS, chain_method='sequential',
+                                    postprocessing_backend='cpu', 
+                                    progressbar=show_progress)
+            else:
+                res['trace'] = pm.sample(1000, tune=1000,
+                                     chains=CHAINS, cores=CORES,
+                                     progressbar=show_progress)
+ 
             pm.compute_log_likelihood(res['trace'], progressbar=show_progress)
 
     return res
 
 
-def bio_sites(amdata, return_MAP=False, return_trace=True, show_progress=False, target_accept=0.9):
+def bio_sites(amdata, return_MAP=False, use_jax=False, return_trace=True, show_progress=False, target_accept=0.9):
 
     ages = np.broadcast_to(amdata.participants.age, shape=(amdata.n_sites, amdata.n_participants)).T
     coords = {'sites': amdata.sites.index.values,
@@ -103,17 +115,22 @@ def bio_sites(amdata, return_MAP=False, return_trace=True, show_progress=False, 
             res['map'] = pm.find_MAP(progressbar=False)
 
         if return_trace:
-            # res['trace'] = pm.sample(1000, tune=1000,
-            #                          chains=CHAINS, cores=CORES,
-            #                          progressbar=show_progress,
-            #                          target_accept=target_accept) 
-            res['trace'] = jax.sample_numpyro_nuts(1000, tune=1000, chains=CHAINS, chain_method='sequential', postprocessing_backend='cpu',  progressbar=show_progress) 
+            if use_jax:
+                with contextlib.redirect_stdout(None):
 
+                    res['trace'] = jax.sample_numpyro_nuts(1000, tune=1000,
+                                    chains=CHAINS, chain_method='sequential',
+                                    postprocessing_backend='cpu', 
+                                    progressbar=show_progress)
+            else:
+                res['trace'] = pm.sample(1000, tune=1000,
+                                     chains=CHAINS, cores=CORES,
+                                     progressbar=show_progress)
             pm.compute_log_likelihood(res['trace'], progressbar=show_progress)
 
     return res
 
-def bio_sites_reparam(amdata, return_MAP=False, return_trace=True, show_progress=False, init_nuts='auto', target_accept=0.9):
+def bio_sites_reparam(amdata, return_MAP=False, use_jax=False, return_trace=True, show_progress=False, init_nuts='auto', target_accept=0.9):
 
     ages = np.broadcast_to(amdata.participants.age, shape=(amdata.n_sites, amdata.n_participants)).T
     coords = {'sites': amdata.sites.index.values,
@@ -157,65 +174,22 @@ def bio_sites_reparam(amdata, return_MAP=False, return_trace=True, show_progress
             res['map'] = pm.find_MAP(progressbar=False)
 
         if return_trace:
-            # res['trace'] = pm.sample(1000, tune=1000, init=init_nuts,
-            #                          chains=CHAINS, cores=CORES,
-            #                          progressbar=show_progress,
-            #                          target_accept=target_accept)
-            res['trace'] = jax.sample_numpyro_nuts(1000, tune=1000,
-                                chains=CHAINS, chain_method='sequential',
-                                postprocessing_backend='cpu', 
-                                progressbar=show_progress)
+            if use_jax:
+                with contextlib.redirect_stdout(None):
+
+                    res['trace'] = jax.sample_numpyro_nuts(1000, tune=1000,
+                                    chains=CHAINS, chain_method='sequential',
+                                    postprocessing_backend='cpu', 
+                                    progressbar=show_progress)
+            else:
+                res['trace'] = pm.sample(1000, tune=1000,
+                                     chains=CHAINS, cores=CORES,
+                                     progressbar=show_progress)
  
             pm.compute_log_likelihood(res['trace'], progressbar=show_progress)
 
     return res
 
-def bio_sites_jax(amdata, return_MAP=False, return_trace=True, show_progress=False):
-
-    ages = np.broadcast_to(amdata.participants.age, shape=(amdata.n_sites, amdata.n_participants)).T
-    coords = {'sites': amdata.sites.index.values,
-            'participants': amdata.participants.index.values}
-
-    with pm.Model(coords=coords) as model:
-        init_std_bound = 0.1
-        # Define priors
-        eta_0 = pm.Uniform("eta_0", lower=0, upper=1, dims='sites')
-        omega = pm.Uniform("omega", lower=0, upper=1, dims='sites')
-        p = pm.Uniform("meth_init", lower=0, upper=1, dims='sites')
-        N = pm.Uniform('system_size', lower= 1, upper=100_000, dims='sites')
-        var_init = pm.Uniform("var_init", lower=0,
-                                          upper=np.power(init_std_bound*N,2),
-                                          dims='sites')
-        # Useful variables
-        eta_1 = 1-eta_0
-        
-        # model mean and variance
-        var_term_0 = eta_0*eta_1
-        var_term_1 = (1-p)*np.power(eta_0,2) + p*np.power(eta_1,2)
-
-        mean = eta_0 + np.exp(-omega*ages)*((p-1)*eta_0 + p*eta_1)
-
-        variance = (var_term_0/N 
-                + np.exp(-omega*ages)*(var_term_1-var_term_0)/N 
-                + np.exp(-2*omega*ages)*(var_init/np.power(N,2) - var_term_1/N)
-            )
-
-        # Define likelihood
-        likelihood = pm.Normal("m-values",
-            mu = mean,
-            sigma = np.sqrt(variance),
-            dims=("participants", "sites"),
-            observed = amdata.X.T)
-
-        res = {}
-        if return_MAP:
-            res['map'] = pm.find_MAP(progressbar=False)
-
-        if return_trace:
-            res['trace'] = jax.sample_numpyro_nuts(1000, tune=1000, chains=CHAINS, chain_method='sequential', postprocessing_backend='cpu',  progressbar=show_progress) 
-            pm.compute_log_likelihood(res['trace'], progressbar=show_progress)
-
-    return res
 
 def fit_and_compare(amdata, show_progress=False):
 
@@ -334,7 +308,7 @@ def person_model(amdata, return_trace=True, return_MAP=True, show_progress=False
     return res
 
 
-def person_model_reparam(amdata, normal=True, return_trace=True, return_MAP=True, show_progress=False):
+def person_model_reparam(amdata, fit_acc =True, return_trace=True, return_MAP=True, show_progress=False):
 
     # The data has two dimensions: participant and CpG site
     coords = {"site": amdata.obs.index, "part": amdata.var.index}
@@ -373,27 +347,26 @@ def person_model_reparam(amdata, normal=True, return_trace=True, return_MAP=True
                 + np.exp(-2*omega*age)*(var_init/np.power(N,2) - var_term_1/N)
             )
 
-        if normal is True:
-            # Define likelihood
-            obs = pm.Normal("obs",
-                             mu=mean,
-                             sigma = np.sqrt(variance), 
-                             dims=("site", "part"), 
-                             observed=amdata.X)
+        # Define likelihood
+        obs = pm.Normal("obs",
+                            mu=mean,
+                            sigma = np.sqrt(variance), 
+                            dims=("site", "part"), 
+                            observed=amdata.X)
        
 
-        if normal is False:
-            # Force mean and variance in acceptable range
-            mean = pm.math.minimum(mean, 1)
-            mean = pm.math.maximum(mean,0)
-            variance = pm.math.minimum(variance, mean*(1-mean))
-            variance = pm.math.maximum(variance, 0)
+        # if normal is False:
+        #     # Force mean and variance in acceptable range
+        #     mean = pm.math.minimum(mean, 1)
+        #     mean = pm.math.maximum(mean,0)
+        #     variance = pm.math.minimum(variance, mean*(1-mean))
+        #     variance = pm.math.maximum(variance, 0)
 
-            # Define likelihood
-            obs = pm.Beta("obs", mu=mean,
-                                 sigma = np.sqrt(variance), 
-                                 dims=("site", "part"), 
-                                 observed=amdata.X)
+        #     # Define likelihood
+        #     obs = pm.Beta("obs", mu=mean,
+        #                          sigma = np.sqrt(variance), 
+        #                          dims=("site", "part"), 
+        #                          observed=amdata.X)
 
         res = {}
         if return_MAP:
@@ -557,4 +530,64 @@ def full_comparison_plot(comparisons):
 
     comparison_plot = az.plot_compare(full_comparison)
     return comparison_plot
-    
+
+
+def bio_sites_offset(amdata, return_MAP=False, use_jax=False, return_trace=True, show_progress=False, init_nuts='auto', target_accept=0.9):
+
+    ages = np.broadcast_to(amdata.participants.age, shape=(amdata.n_sites, amdata.n_participants)).T
+    coords = {'sites': amdata.sites.index.values,
+            'participants': amdata.participants.index.values}
+
+    with pm.Model(coords=coords) as model:
+        # condition on maximal initial standard deviation
+        init_std_bound = 0.1
+
+        # Define priors
+        eta_0 = pm.Uniform("eta_0", lower=0, upper=1, dims='sites')
+        omega = pm.Uniform("omega", lower=0, upper=1, dims='sites')
+        p = pm.Uniform("meth_init", lower=0, upper=1, dims='sites')
+        N = pm.Uniform('system_size', lower= 1, upper=100_000, dims='sites')
+        var_init = pm.Uniform("var_init", lower=0,
+                                          upper=np.power(init_std_bound*N,2),
+                                          dims='sites')
+        # Useful variables
+        eta_1 = 1-eta_0
+        
+        # model mean and variance
+        var_term_0 = eta_0*eta_1
+        var_term_1 = (1-p)*np.power(eta_0,2) + p*np.power(eta_1,2)
+
+        mean = eta_0 + np.exp(-omega*ages)*((p-1)*eta_0 + p*eta_1)
+
+        variance = (var_term_0/N 
+                + np.exp(-omega*ages)*(var_term_1-var_term_0)/N 
+                + np.exp(-2*omega*ages)*(var_init/np.power(N,2) - var_term_1/N)
+            )
+
+        # Define likelihood
+        likelihood = pm.Normal("m-values",
+            mu = mean,
+            sigma = np.sqrt(variance),
+            dims=("participants", "sites"),
+            observed = amdata.X.T)
+
+        res = {}
+        if return_MAP:
+            res['map'] = pm.find_MAP(progressbar=False)
+
+        if return_trace:
+            if use_jax:
+                with contextlib.redirect_stdout(None):
+
+                    res['trace'] = jax.sample_numpyro_nuts(1000, tune=1000,
+                                    chains=CHAINS, chain_method='sequential',
+                                    postprocessing_backend='cpu', 
+                                    progressbar=show_progress)
+            else:
+                res['trace'] = pm.sample(1000, tune=1000,
+                                     chains=CHAINS, cores=CORES,
+                                     progressbar=show_progress)
+ 
+            pm.compute_log_likelihood(res['trace'], progressbar=show_progress)
+
+    return res
