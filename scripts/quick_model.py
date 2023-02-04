@@ -15,7 +15,7 @@ logger.setLevel(logging.ERROR)
 
 wave3 = amdata_src.AnnMethylData('../exports/wave3_linear.h5ad')
 
-DATA_PATH = '../exports/hannum.h5ad'
+DATA_PATH = '../exports/wave1_linear.h5ad'
 
 amdata = amdata_src.AnnMethylData(DATA_PATH)
 amdata= ad.read_h5ad(DATA_PATH)
@@ -52,14 +52,14 @@ amdata.obs.sort_values('offset')
 
 # Plot the data correction
 ax = plot.row('Top shifted down')
-sns.scatterplot(x=wave3.var.age, y=wave3['cg07553761'].X.flatten(), label='wave3',ax=ax)
-sns.scatterplot(x=amdata.var.age, y=amdata['cg07553761'].X.flatten(), label='hannum', ax=ax)
-sns.scatterplot(x=amdata.var.age, y=amdata['cg07553761'].X.flatten()-amdata['cg07553761'].obs.offset.values[0], label='hannum (corr)', ax=ax)
+sns.scatterplot(x=wave3.var.age, y=wave3['cg07497042'].X.flatten(), label='wave3',ax=ax)
+sns.scatterplot(x=amdata.var.age, y=amdata['cg07497042'].X.flatten(), label='hannum', ax=ax)
+sns.scatterplot(x=amdata.var.age, y=amdata['cg07497042'].X.flatten()-amdata['cg07497042'].obs.offset.values[0], label='hannum (corr)', ax=ax)
 
 ax = plot.row('Top shifted up')
-sns.scatterplot(x=wave3.var.age, y=wave3['cg00048759'].X.flatten(), label='wave3',ax=ax)
-sns.scatterplot(x=amdata.var.age, y=amdata['cg00048759'].X.flatten(), label='hannum', ax=ax)
-sns.scatterplot(x=amdata.var.age, y=amdata['cg00048759'].X.flatten()-amdata['cg00048759'].obs.offset.values[0], label='hannum (corr)', ax=ax)
+sns.scatterplot(x=wave3.var.age, y=wave3['cg05404236'].X.flatten(), label='wave3',ax=ax)
+sns.scatterplot(x=amdata.var.age, y=amdata['cg05404236'].X.flatten(), label='hannum', ax=ax)
+sns.scatterplot(x=amdata.var.age, y=amdata['cg05404236'].X.flatten()-amdata['cg05404236'].obs.offset.values[0], label='hannum (corr)', ax=ax)
 
 # Apply the offset and refit acceleration and bias
 offset = np.broadcast_to(amdata.obs.offset, shape=(amdata.n_participants, amdata.n_sites)).T
@@ -67,4 +67,14 @@ amdata.X = amdata.X - offset
 ab_maps = modelling.person_model(amdata, return_MAP=True, return_trace=False, show_progress=True)['map']
 sns.histplot(x=ab_maps['acc'], y=ab_maps['bias'], cbar=True, ax=plot.row('After'))
 
+amdata.var['raw_acc'] = ab_maps['acc']
+amdata.var['raw_bias'] = ab_maps['bias']
+amdata.var['corr_acc'] = ab_maps['acc']
+amdata.var['corr_bias'] = ab_maps['bias']
+
+sns.histplot(data=amdata.var, x='raw_acc', y='corr_acc')
+sns.lineplot(x=[-1,1], y=[-1,1])
+
+sns.histplot(data=amdata.var, x='raw_bias', y='corr_bias')
+sns.lineplot(x=[-0.1,0.1], y=[-0.1,0.1])
 
