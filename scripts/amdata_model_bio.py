@@ -1,4 +1,6 @@
 # %%
+%load_ext autoreload 
+%autoreload 2
 import sys
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
@@ -14,12 +16,13 @@ logger.propagate = False
 logger.setLevel(logging.ERROR)
 
 
-N_SITES =  5
+N_SITES =  30
 N_PARTS = False
-N_CORES = 7
+N_CORES = 15
 
-amdata = amdata_src.AnnMethylData('../exports/wave3_linear.h5ad')
-amdata = amdata[amdata.obs.sort_values('r2', ascending=False).index[:N_SITES]]
+amdata = amdata_src.AnnMethylData('../exports/wave3_meta.h5ad', backed='r')
+amdata = amdata[amdata.obs.sort_values('r2', ascending=False).index[:N_SITES]].to_memory()
+amdata = amdata_src.AnnMethylData(amdata)
 
 with Pool(N_CORES, maxtasksperchild=1) as p:
     results = list(tqdm(
@@ -29,6 +32,8 @@ with Pool(N_CORES, maxtasksperchild=1) as p:
                 chunksize=1
                 ), 
             total=amdata.n_obs))
+
+modelling_bio.fit_and_compare(amdata[:10], show_progress=True)
 
 print('Exporting site model results')
 fits, comparisons = modelling_bio.comparison_postprocess(results, amdata)
