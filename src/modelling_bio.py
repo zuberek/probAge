@@ -223,7 +223,7 @@ def comparison_postprocess(results, amdata):
 
     return fits, comparisons
 
-def person_model(amdata, return_trace=True, return_MAP=True, show_progress=False):
+def person_model(amdata, normal=True, return_trace=True, return_MAP=True, show_progress=False):
 
     # The data has two dimensions: participant and CpG site
     coords = {"site": amdata.obs.index, "part": amdata.var.index}
@@ -271,11 +271,27 @@ def person_model(amdata, return_trace=True, return_MAP=True, show_progress=False
         variance = pm.math.minimum(variance, mean*(1-mean))
         variance = pm.math.maximum(variance, 0)
 
-        # Define likelihood
-        obs = pm.Beta("obs", mu=mean,
+        if normal is True:
+            # Define likelihood
+            obs = pm.Normal("obs",
+                             mu=mean,
                              sigma = np.sqrt(variance), 
                              dims=("site", "part"), 
                              observed=amdata.X)
+       
+
+        if normal is False:
+            # Force mean and variance in acceptable range
+            mean = pm.math.minimum(mean, 0.001)
+            mean = pm.math.maximum(mean, 0.999)
+            variance = pm.math.minimum(variance, mean*(1-mean))
+            variance = pm.math.maximum(variance, 0.001)
+
+            # Define likelihood
+            obs = pm.Beta("obs", mu=mean,
+                                 sigma = np.sqrt(variance), 
+                                 dims=("site", "part"), 
+                                 observed=amdata.X)
 
         res = {}
         if return_MAP:
