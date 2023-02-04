@@ -15,14 +15,16 @@ logger = logging.getLogger('pymc')
 logger.propagate = False
 logger.setLevel(logging.ERROR)
 
-
-N_SITES =  30
+N_SITES = 60
 N_PARTS = False
-N_CORES = 15
+N_CORES = 60
 
 amdata = amdata_src.AnnMethylData('../exports/wave3_meta.h5ad', backed='r')
 amdata = amdata[amdata.obs.sort_values('r2', ascending=False).index[:N_SITES]].to_memory()
 amdata = amdata_src.AnnMethylData(amdata)
+
+# %%
+%%time
 
 with Pool(N_CORES, maxtasksperchild=1) as p:
     results = list(tqdm(
@@ -32,7 +34,7 @@ with Pool(N_CORES, maxtasksperchild=1) as p:
                 chunksize=1
                 ), 
             total=amdata.n_obs))
-
+# %%
 modelling_bio.fit_and_compare(amdata[:10], show_progress=True)
 
 print('Exporting site model results')
@@ -46,7 +48,7 @@ full_comparisons_plot.figure.savefig('../results/full_comparison.png')
 
 amdata.write_h5ad('../exports/wave3_bio.h5ad')
 
-#drop saturating sites
+# drop saturating sites
 amdata = amdata[amdata.obs['saturating'] == False]
 
 # Fitting acceleration and bias
