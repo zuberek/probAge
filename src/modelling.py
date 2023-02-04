@@ -13,11 +13,11 @@ import xarray as xr
 from pymc.sampling import jax
 
 
-def linear_sites(amdata, return_MAP=False, return_trace=True, show_progress=False):
+def linear_sites(amdata, return_MAP=False, return_trace=True, cores=1, show_progress=False):
 
-    ages = np.broadcast_to(amdata.participants.age, shape=(amdata.n_sites, amdata.n_participants)).T
-    coords = {'sites': amdata.sites.index.values,
-            'participants': amdata.participants.index.values}
+    ages = np.broadcast_to(amdata.var.age, shape=(amdata.n_sites, amdata.n_vars)).T
+    coords = {'sites': amdata.obs.index.values,
+            'participants': amdata.var.index.values}
 
     with pm.Model(coords=coords) as model:
 
@@ -43,15 +43,16 @@ def linear_sites(amdata, return_MAP=False, return_trace=True, show_progress=Fals
 
         if return_trace:
             # res['trace'] = jax.sample_numpyro_nuts(progressbar=show_progress)
-            res['trace'] = pm.sample(1000, tune=1000, chains=4, cores=1, progressbar=show_progress) 
+            res['trace'] = pm.sample(1000, tune=1000, chains=4, cores=cores, progressbar=show_progress) 
+            pm.compute_log_likelihood(res['trace'], progressbar=False)
 
     return res    
 
 
-def drift_sites(amdata, return_MAP=False, return_trace=True, show_progress=False):
-    ages = np.broadcast_to(amdata.participants.age, shape=(amdata.n_sites, amdata.n_participants)).T
-    coords = {'sites': amdata.sites.index.values,
-            'participants': amdata.participants.index.values}
+def drift_sites(amdata, return_MAP=False, return_trace=True, cores=1, show_progress=False):
+    ages = np.broadcast_to(amdata.var.age, shape=(amdata.n_sites, amdata.n_vars)).T
+    coords = {'sites': amdata.obs.index.values,
+            'participants': amdata.var.index.values}
 
     with pm.Model(coords=coords) as model:
 
@@ -77,16 +78,17 @@ def drift_sites(amdata, return_MAP=False, return_trace=True, show_progress=False
             res['map'] = pm.find_MAP(progressbar=show_progress)
 
         if return_trace:
-            res['trace'] = pm.sample(1000, tune=1000, chains=4, cores=1, progressbar=show_progress) 
+            res['trace'] = pm.sample(1000, tune=1000, chains=4, cores=cores, progressbar=show_progress) 
+            pm.compute_log_likelihood(res['trace'], progressbar=False)
 
     return res    
 
-def fit_and_compare(amdata, show_progress=False):
+def fit_and_compare(amdata, cores=1, show_progress=False):
 
-    ROUND = 5
+    ROUND = 7
 
-    drift_trace = drift_sites(amdata, show_progress=show_progress)['trace']
-    linear_trace = linear_sites(amdata, show_progress=show_progress)['trace']
+    drift_trace = drift_sites(amdata, cores=cores, show_progress=show_progress)['trace']
+    linear_trace = linear_sites(amdata, cores=cores, show_progress=show_progress)['trace']
 
     linear_fit = az.summary(linear_trace, round_to=ROUND)
     drift_fit = az.summary(drift_trace, round_to=ROUND)
@@ -97,14 +99,13 @@ def fit_and_compare(amdata, show_progress=False):
     
     drift_fit.index = pd.MultiIndex.from_tuples([(index_tuple[1][:-1], 'drift', index_tuple[0]) for index_tuple in drift_fit.index.str.split('[')],
                               names=['site', 'model', 'param'])
-    all_fits = pd.concat([linear_fit, drift_fit],
-                    )
+    all_fits = pd.concat([linear_fit, drift_fit])
 
-    all_fits.sort_index(level=0)
+    all_fits= all_fits.sort_index(level=0)
 
     all_comparisons = pd.DataFrame()
-    for site in amdata.sites.index:
-        comparison = az.compare({"linear": linear_trace.sel(site=site), "drift": drift_trace.sel(site=site)})
+    for site in amdata.obs.index:
+        comparison = az.compare({"linear": linear_trace.sel(sites=site), "drift": drift_trace.sel(sites=site)})
         comparison = comparison.reset_index().rename(columns={'index': 'model'})
         comparison['site'] = site
         comparison = comparison.set_index(['site', 'model'])
@@ -125,6 +126,8 @@ def comparison_postprocess(results, amdata):
     amdata.obs['mean_inter'] = fits.loc[(slice(None),'drift','mean_inter')]['mean'].values
     amdata.obs['var_slope'] = fits.loc[(slice(None),'drift','var_slope')]['mean'].values
     amdata.obs['var_inter'] = fits.loc[(slice(None),'drift','var_inter')]['mean'].values
+
+    return fits, comparisons
 
 def plot_confidence(site_index, amdata):
     meta = amdata.obs.loc[site_index]
