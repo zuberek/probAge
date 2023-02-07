@@ -1,6 +1,3 @@
-# %%
-%load_ext autoreload 
-%autoreload 2
 import sys
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
@@ -18,7 +15,7 @@ from functools import partial
 import pickle
 import gc
 
-N_CORES = 7
+N_CORES = 50
 MAX_ITER = 1_000
 N_ALPHAS = 5
 
@@ -50,14 +47,15 @@ train_non_smokers = list(train_part - smoker_idx_set)
 
 # Set fitting parameters
 # Cohort parameters
-prop_smoke_list = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
+# prop_smoke_list = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+prop_smoke_list = [0, 0.25, 0.5, 0.75, 1]
 train_data_size = len(train_smokers)/prop_smoke_list[-1]
 train_data_size = int(train_data_size)
 
 # linear fitting parameters
 
 n_cores = 5
-n_iterations = 25
+n_iterations = 10
 
 train_data_size = 100
 bootstrap_fit_partial = partial(bootstrap_fit, data_path=data_path, 
@@ -80,4 +78,4 @@ with Pool(processes=n_cores, maxtasksperchild=1) as p:
                     total=len(comb_list)))
 
 with open('../exports/tobacco_prop.npy', 'wb') as f:
-    pickle.dump(result, f)
+    pickle.dump(results, f)
