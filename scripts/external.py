@@ -57,16 +57,14 @@ for i in range(0, n_participants, chunk_size):
     amdata_chunks.append(amdata[:,i:i+chunk_size])
 
 # Modify fitting function to return only MAP
-person_model = partial(modelling_bio.person_model_reparam, return_MAP=True, return_trace=False)
+person_model = partial(modelling_bio.person_model, return_MAP=True, return_trace=False)
 
-with Pool(N_CORES, maxtasksperchild=1) as p:
-    results = list(tqdm(
-            iterable= p.imap(
-                func=person_model,
-                iterable=amdata_chunks, 
-                ), 
-            total=len(amdata_chunks)))
-
+results = []
+for chunk in tqdm(amdata_chunks):
+    results.append(
+        person_model(chunk
+        )
+    )
 
 # Append acc and bias to amdata object
 acc = np.concatenate([r['map']['acc'] for r in results])
