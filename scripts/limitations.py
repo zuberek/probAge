@@ -15,9 +15,10 @@ from functools import partial
 import pickle
 import gc
 
-N_CORES = 50
+N_CORES = 5
 MAX_ITER = 1_000
 N_ALPHAS = 5
+MAX_TRAIN_SIZE = 1_000
 
 data_path = '../exports/wave3_meta.h5ad'
 amdata = ad.read_h5ad(data_path, 'r')
@@ -50,14 +51,13 @@ train_non_smokers = list(train_part - smoker_idx_set)
 # prop_smoke_list = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
 prop_smoke_list = [0, 0.25, 0.5, 0.75, 1]
 train_data_size = len(train_smokers)/prop_smoke_list[-1]
-train_data_size = int(train_data_size)
+train_data_size = np.min([int(train_data_size), MAX_TRAIN_SIZE])
 
 # linear fitting parameters
 
 n_cores = 5
 n_iterations = 10
 
-train_data_size = 100
 bootstrap_fit_partial = partial(bootstrap_fit, data_path=data_path, 
                         train_data_size=train_data_size,
                         train_smokers=train_smokers,
