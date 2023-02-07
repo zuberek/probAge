@@ -352,8 +352,9 @@ def person_model_reparam(amdata, normal=True,
     with pm.Model(coords=coords) as model:
         
         # Define model variables
-        acc = pm.Normal('acc', mu=0, sigma = 1, dims='part')
-        # bias = pm.Normal('bias', mu=0, sigma=0.01, dims='part')
+        acc = pm.Normal('acc', mu=1, sigma = 1, dims='part')
+        # bias = pm.Uniform('bias', lower=-0.1, upper=0.1, dims='part')
+        bias = pm.Normal('bias', mu=0, sigma=0.01, dims='part')
 
         # Useful variables
         omega = acc*omega
@@ -364,8 +365,8 @@ def person_model_reparam(amdata, normal=True,
         var_term_1 = (1-p)*np.power(eta_0,2) + p*np.power(eta_1,2)
 
 
-        mean = eta_0 + np.exp(-omega*age)*((p-1)*eta_0 + p*eta_1)
-        # mean = eta_0 + np.exp(-omega*age)*((p-1)*eta_0 + p*eta_1) + bias
+        # mean = eta_0 + np.exp(-omega*age)*((p-1)*eta_0 + p*eta_1)
+        mean = eta_0 + np.exp(-omega*age)*((p-1)*eta_0 + p*eta_1) + bias
 
         variance = (var_term_0/N 
                 + np.exp(-omega*age)*(var_term_1-var_term_0)/N 
@@ -399,12 +400,12 @@ def person_model_reparam(amdata, normal=True,
             res['map'] = pm.find_MAP(progressbar=show_progress, method=map_method, maxeval=10_000)
 
         if return_trace:
-            # res['trace'] = pm.sample(1000, tune=1000,
-            #                         chains=CHAINS, progressbar=show_progress)
-            res['trace'] = jax.sample_numpyro_nuts(1000, tune=1000,
-                                                   chains=CHAINS, chain_method='sequential',
-                                                   postprocessing_backend='cpu', 
-                                                   progressbar=show_progress) 
+            res['trace'] = pm.sample(1000, tune=1000, init='adapt_full',
+                                    chains=CHAINS, progressbar=show_progress)
+            # res['trace'] = jax.sample_numpyro_nuts(1000, tune=1000,
+            #                                        chains=CHAINS, chain_method='sequential',
+            #                                        postprocessing_backend='cpu', 
+            #                                        progressbar=show_progress) 
 
     return res    
 
