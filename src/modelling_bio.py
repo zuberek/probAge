@@ -354,8 +354,8 @@ def person_model_reparam(amdata, normal=True,
     with pm.Model(coords=coords) as model:
         
         # Define model variables
-        acc = pm.Normal('acc', mu=1, sigma = 1, dims='part')
-        bias = pm.Normal('bias', mu=0, sigma=0.01, dims='part')
+        acc = pm.Normal('acc', mu=0, sigma = 1, dims='part')
+        # bias = pm.Normal('bias', mu=0, sigma=0.01, dims='part')
 
         # Useful variables
         omega = acc*omega
@@ -401,12 +401,12 @@ def person_model_reparam(amdata, normal=True,
             res['map'] = pm.find_MAP(progressbar=show_progress, method=map_method, maxeval=10_000)
 
         if return_trace:
-            # res['trace'] = pm.sample(1000, tune=1000,
-            #                         chains=CHAINS, progressbar=show_progress)
-            res['trace'] = jax.sample_numpyro_nuts(1000, tune=1000,
-                                                   chains=CHAINS, chain_method='sequential',
-                                                   postprocessing_backend='cpu', 
-                                                   progressbar=show_progress) 
+            res['trace'] = pm.sample(1000, tune=1000, init='adapt_full',
+                                    chains=CHAINS, progressbar=show_progress)
+            # res['trace'] = jax.sample_numpyro_nuts(1000, tune=1000,
+            #                                        chains=CHAINS, chain_method='sequential',
+            #                                        postprocessing_backend='cpu', 
+            #                                        progressbar=show_progress) 
 
     return res    
 
