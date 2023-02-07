@@ -11,12 +11,13 @@ N_ALPHAS = 5
 
 def non_to_uniform_sampling(amdata, train_ids, n_samples):
 
+
     # Return empty list if no samples are to be drawn
     if n_samples == 0:
         return []
     
     # Define a uniform distribution with min and max associated to extreme observations
-    train_age = amdata[train_ids].obs.age
+    train_age = amdata[:, train_ids].var.age
     train_arange = [np.min(train_age), np.max(train_age)]
     uniform_sampling = np.random.uniform(train_arange[0], train_arange[1], size=n_samples)
 
@@ -36,8 +37,17 @@ def non_to_uniform_sampling(amdata, train_ids, n_samples):
     selection_idx = train_age[train_age.selection==1].index
     return selection_idx
 
-np.random.seed(1)
-def bootstrap_fit(amdata, prop_smoke, bstrp_idx, train_smokers, train_non_smokers, train_data_size, test_part, max_iter=MAX_ITER, n_alphas=N_ALPHAS):
+
+def bootstrap_fit(prop_smoke, bstrp_idx, data_path, train_smokers, train_non_smokers, train_data_size, test_part, max_iter=MAX_ITER, n_alphas=N_ALPHAS):
+    
+    amdata = ad.read_h5ad(data_path, 'r')
+    # Create weighted_smoke phenotype
+    # Normalize pack_years data
+    amdata.var['norm_pack_years'] = np.log(1+amdata.var.pack_years)
+
+    # Combine ever_smoke with pack_years
+    amdata.var['weighted_smoke'] = amdata.var['norm_pack_years']/np.exp(amdata.var['ever_smoke'])
+
 
     np.random.seed(int(time.time()*1_000_000%100_000))
     """Bootstrap r2 and tobacoo association for different cohort sizes"""
@@ -45,16 +55,17 @@ def bootstrap_fit(amdata, prop_smoke, bstrp_idx, train_smokers, train_non_smoker
     n_non_smokers = train_data_size-n_smokers
 
     # Create training set
-    subset_train_smokers = non_to_uniform_sampling(train_smokers, n_smokers)
-    subset_train_non_smokers = non_to_uniform_sampling(train_non_smokers, n_non_smokers)
+    subset_train_smokers = non_to_uniform_sampling(amdata, train_smokers, n_smokers)
+    subset_train_non_smokers = non_to_uniform_sampling(amdata, train_non_smokers, n_non_smokers)
     subset_train_part = list(subset_train_smokers) + list(subset_train_non_smokers)
 
     # Load training data in memory
     train_data = amdata[:, subset_train_part].to_memory()
+    train_data = train_data.T
 
     # Set train and test age observationsS
     train_age = train_data.obs.age
-    test_age = amdata[test_part].obs.age
+    test_age = amdata[:, test_part].var.age
     
     # fitting the lasso model
     lasso_model = LassoCV(n_alphas=n_alphas, max_iter=max_iter, verbose=False)
@@ -67,25 +78,23 @@ def bootstrap_fit(amdata, prop_smoke, bstrp_idx, train_smokers, train_non_smoker
 
     y_pred = np.zeros(len(test_part))
     for n in range(n_chunks):
-        chunk_data = amdata[test_part[n*chunk_size:(n+1)*chunk_size]]
+        chunk_data = amdata[:, test_part[n*chunk_size:(n+1)*chunk_size]].to_memory().T
         y_pred[n*chunk_size:(n+1)*chunk_size] = lasso_model.predict(chunk_data.X)
-        
+
     # Predict distance from prediction to data
     pred_diff = y_pred - test_age
 
-    # # Compute MSE
-    # MSE[prop_smoke_idx, bootstrap_iter] = np.mean((pred_diff)**2)
-
+    # Compute MSE
     mse = np.mean((pred_diff)**2)
 
     # compute associations
     # Create association dataframe
     association_df = pd.DataFrame({'acc':pred_diff,
                 #'norm_pack_years':amdata[test_part].obs.norm_pack_years,
-                'weighted_smoke': amdata[test_part].obs.weighted_smoke,
-                'age':amdata[test_part].obs.age,
-                'sex':amdata[test_part].obs.sex,})
-
+                'weighted_smoke': amdata[:, test_part].var.weighted_smoke,
+                'age':amdata[:, test_part].var.age,
+                'sex':amdata[:, test_part].var.sex,})
+    
     association_df = association_df.dropna()
     association_mod = smf.ols("acc ~ weighted_smoke + age + sex", association_df)
     association_fit = association_mod.fit()
