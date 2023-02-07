@@ -352,11 +352,11 @@ def person_model_reparam(amdata, normal=True,
     with pm.Model(coords=coords) as model:
         
         # Define model variables
-        acc = pm.Uniform('acc', lower=-2, upper = 2, dims='part')
+        acc = pm.Uniform('acc', lower=0, upper = 10, dims='part')
         bias = pm.Uniform('bias', lower=-1, upper = 1, dims='part')
 
         # Useful variables
-        omega = np.exp(acc)*omega
+        omega = acc*omega
         eta_1 = 1-eta_0
         
         # model mean and variance
@@ -395,7 +395,7 @@ def person_model_reparam(amdata, normal=True,
 
         res = {}
         if return_MAP:
-            res['map'] = pm.find_MAP(progressbar=False, method=map_method, maxeval=10_000)
+            res['map'] = pm.find_MAP(progressbar=show_progress, method=map_method, maxeval=10_000)
 
         if return_trace:
             res['trace'] = jax.sample_numpyro_nuts(1000, tune=1000, chains=CHAINS, chain_method='sequential', postprocessing_backend='cpu',  progressbar=show_progress) 
@@ -645,3 +645,70 @@ def acc_bias_map(params, filtered_sites_amdata, site_params, age):
     nll = -norm.logpdf(filtered_sites_amdata.X, loc= mean, scale=np.sqrt(variance)).sum()
 
     return nll
+
+def dset_offsets(amdata, normal=True, return_MAP=True, show_progress=False,
+                         map_method='L-BFGS-B'):
+
+    # The data has two dimensions: participant and CpG site
+    coords = {"site": amdata.obs.index, "part": amdata.var.index}
+
+    # # create a numpy array of the participants ages
+    # # array of ages needs to be broadcasted into a matrix array for each CpG site
+    omega = np.broadcast_to(amdata.obs.omega, shape=(amdata.shape[1], amdata.shape[0])).T
+    eta_0 = np.broadcast_to(amdata.obs.eta_0, shape=(amdata.shape[1], amdata.shape[0])).T
+    p = np.broadcast_to(amdata.obs.meth_init, shape=(amdata.shape[1], amdata.shape[0])).T
+    var_init = np.broadcast_to(amdata.obs.var_init, shape=(amdata.shape[1], amdata.shape[0])).T
+    N = np.broadcast_to(amdata.obs.system_size, shape=(amdata.shape[1], amdata.shape[0])).T
+
+    age = amdata.var.age.values
+
+
+    # Define Pymc model
+    with pm.Model(coords=coords) as model:
+        
+        # Define priors
+        offset = pm.Uniform("offset",   lower=-1, upper=1, dims='site')
+
+        # Useful variables
+        # omega = np.exp(acc)*omega
+        eta_1 = 1-eta_0
+        
+        # model mean and variance
+        var_term_0 = eta_0*eta_1
+        var_term_1 = (1-p)*np.power(eta_0,2) + p*np.power(eta_1,2)
+
+
+        mean = eta_0 + np.exp(-omega*age)*((p-1)*eta_0 + p*eta_1) + offset
+
+        variance = (var_term_0/N 
+                + np.exp(-omega*age)*(var_term_1-var_term_0)/N 
+                + np.exp(-2*omega*age)*(var_init/np.power(N,2) - var_term_1/N)
+            )
+
+        if normal is True:
+            # Define likelihood
+            obs = pm.Normal("obs",
+                             mu=mean,
+                             sigma = np.sqrt(variance), 
+                             dims=("site", "part"), 
+                             observed=amdata.X)
+       
+
+        if normal is False:
+            # Force mean and variance in acceptable range
+            mean = pm.math.minimum(mean, 0.001)
+            mean = pm.math.maximum(mean, 0.999)
+            variance = pm.math.minimum(variance, mean*(1-mean))
+            variance = pm.math.maximum(variance, 0.001)
+
+            # Define likelihood
+            obs = pm.Beta("obs", mu=mean,
+                                 sigma = np.sqrt(variance), 
+                                 dims=("site", "part"),     
+                                 observed=amdata.X)
+
+        res = {}
+        if return_MAP:
+            res['map'] = pm.find_MAP(progressbar=False, method=map_method, maxeval=10_000)
+
+    return res    
