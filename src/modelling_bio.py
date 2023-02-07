@@ -62,7 +62,7 @@ def linear_sites(amdata, return_MAP=False, return_trace=True, show_progress=Fals
     return res
 
 
-def bio_sites(amdata, return_MAP=False, return_trace=True, show_progress=False, target_accept=0.9):
+def bio_sites(amdata, return_MAP=False, return_trace=True, show_progress=False):
 
     ages = np.broadcast_to(amdata.participants.age, shape=(amdata.n_sites, amdata.n_participants)).T
     coords = {'sites': amdata.sites.index.values,
@@ -129,7 +129,7 @@ def bio_sites_reparam(amdata, return_MAP=False, return_trace=True, show_progress
 
         # Define priors
         eta_0 = pm.Uniform("eta_0", lower=0, upper=1, dims='sites')
-        omega = pm.Uniform("omega", lower=0, upper=1, dims='sites')
+        omega = pm.HalfNormal("omega", sigma=0.02, dims='sites')
         p = pm.Uniform("meth_init", lower=0, upper=1, dims='sites')
         N = pm.Uniform('system_size', lower= 1, upper=100_000, dims='sites')
         var_init = pm.Uniform("var_init", lower=0,
@@ -161,14 +161,14 @@ def bio_sites_reparam(amdata, return_MAP=False, return_trace=True, show_progress
             res['map'] = pm.find_MAP(progressbar=False)
 
         if return_trace:
-            # res['trace'] = pm.sample(1000, tune=1000, init=init_nuts,
-            #                          chains=CHAINS, cores=CORES,
-            #                          progressbar=show_progress,
-            #                          target_accept=target_accept)
-            res['trace'] = jax.sample_numpyro_nuts(1000, tune=1000,
-                                chains=CHAINS, chain_method='sequential',
-                                postprocessing_backend='cpu', 
-                                progressbar=show_progress)
+            res['trace'] = pm.sample(1000, tune=1000, init=init_nuts,
+                                     chains=CHAINS, cores=CORES,
+                                     progressbar=show_progress,
+                                     target_accept=target_accept)
+            # res['trace'] = jax.sample_numpyro_nuts(1000, tune=1000,
+            #                     chains=CHAINS, chain_method='sequential',
+            #                     postprocessing_backend='cpu', 
+            #                     progressbar=show_progress)
  
             pm.compute_log_likelihood(res['trace'], progressbar=show_progress)
 
@@ -331,7 +331,9 @@ def person_model(amdata, normal=True, return_trace=True, return_MAP=True, show_p
 
 
 def person_model_reparam(amdata, normal=True,
-                         return_trace=True, return_MAP=False, show_progress=False,
+                         return_trace=True,
+                         return_MAP=False,
+                         show_progress=False,
                          map_method='L-BFGS-B'):
 
     # The data has two dimensions: participant and CpG site
@@ -352,8 +354,8 @@ def person_model_reparam(amdata, normal=True,
     with pm.Model(coords=coords) as model:
         
         # Define model variables
-        acc = pm.Normal('acc', mu=0, sigma = 1, dims='part')
-        # bias = pm.Normal('bias', mu=0, sigma=0.01, dims='part')
+        acc = pm.Normal('acc', mu=1, sigma = 1, dims='part')
+        bias = pm.Normal('bias', mu=0, sigma=0.01, dims='part')
 
         # Useful variables
         omega = acc*omega
@@ -364,8 +366,8 @@ def person_model_reparam(amdata, normal=True,
         var_term_1 = (1-p)*np.power(eta_0,2) + p*np.power(eta_1,2)
 
 
-        mean = eta_0 + np.exp(-omega*age)*((p-1)*eta_0 + p*eta_1)
-        # mean = eta_0 + np.exp(-omega*age)*((p-1)*eta_0 + p*eta_1) + bias
+        # mean = eta_0 + np.exp(-omega*age)*((p-1)*eta_0 + p*eta_1)
+        mean = eta_0 + np.exp(-omega*age)*((p-1)*eta_0 + p*eta_1) + bias
 
         variance = (var_term_0/N 
                 + np.exp(-omega*age)*(var_term_1-var_term_0)/N 
