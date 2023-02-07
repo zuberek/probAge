@@ -79,3 +79,5 @@ with Pool(processes=n_cores, maxtasksperchild=1) as p:
                                 ),
                     total=len(comb_list)))
 
+with open('../exports/tobacco_prop.npy', 'wb') as f:
+    pickle.dump(result, f)
