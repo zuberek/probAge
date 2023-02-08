@@ -105,7 +105,6 @@ def bio_sites(amdata, return_MAP=False, return_trace=True, show_progress=False, 
         res = {}
         if return_MAP:
             res['map'] = pm.find_MAP(progressbar=False)
-            res['map']['acc'] = np.log2(res['map']['acc'])
 
         if return_trace:
             trace = pm.sample(1000, tune=1000, init=init_nuts,
@@ -176,6 +175,7 @@ def person_model(amdata,
             res['map'] = pm.find_MAP(progressbar=show_progress,
                                      method=map_method,
                                      maxeval=10_000)
+            res['map']['acc'] = np.log2(res['map']['acc'])
 
         if return_trace:
             res['trace'] = pm.sample(1000, tune=1000, init=init_nuts,
