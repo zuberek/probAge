@@ -21,6 +21,8 @@ import sys
 sys.path.append("..") 
 from src.general_imports import sns_colors
 
+from src.utils import plot
+
 CHAINS = 4
 CORES = 1
 # cores are set at 1 to allow to 
@@ -241,6 +243,7 @@ def comparison_postprocess(results, amdata):
 
 def bio_fit(amdata, show_progress=False):
     ROUND = 7
+    if show_progress: print(f'Modelling sites {amdata.obs.index.values}')
     trace_bio = bio_sites(amdata, return_trace=True, return_MAP=False, init_nuts='advi+adapt_diag', show_progress=show_progress)['trace']
     bio_fit = az.summary(trace_bio, round_to=ROUND)
     bio_fit.index = pd.MultiIndex.from_tuples([(index_tuple[1][:-1], 'bio', index_tuple[0]) for index_tuple in bio_fit.index.str.split('[')],
@@ -309,9 +312,10 @@ def bio_model_stats(amdata, t, acc=0, bias=0):
         )
     return mean, variance
 
-def bio_model_plot (amdata, alpha=1, fits=None):
+def bio_model_plot (amdata, alpha=1, fits=None, ax=None):
     """Plot the evolution of site predicted by bio_model"""
-    t = np.linspace(0,100, 1_000)
+    xlim=(0,200)
+    t = np.linspace(xlim[0],xlim[1], 1_000)
 
     mean, variance = bio_model_stats(amdata, t)
 
@@ -322,33 +326,38 @@ def bio_model_plot (amdata, alpha=1, fits=None):
     low_conf = conf_int[0]
     upper_conf = conf_int[1]
 
-    ax=sns.scatterplot(x=amdata.participants.age,
+    if ax is None:
+        ax = plot.row(amdata.obs.index[0])
+
+    sns.scatterplot(x=amdata.participants.age,
                     y=amdata.X.flatten(),
                     color='tab:grey',
                     label='data',
-                    alpha=alpha
+                    alpha=alpha, ax=ax
                     )
 
     if fits is not None:
         site = amdata.obs.index[0]
         mean_slope, mean_inter, var_inter = fits.xs((site, 'linear'), level=['site', 'model'])['mean'].values
-        mean_y = mean_slope*np.array([0,100]) + mean_inter
+        mean_y = mean_slope*np.array([xlim[0],xlim[1]]) + mean_inter
         std2_plus = mean_y+2*np.sqrt(var_inter)
         std2_minus = mean_y-2*np.sqrt(var_inter)
 
-        sns.lineplot(x=[0,100], y=mean_y, ax=ax, label='linear_mean', color='tab:orange')
-        sns.lineplot(x=[0,100], y=std2_plus, ax=ax, color='tab:orange', label='linear_2-std')
-        sns.lineplot(x=[0,100], y=std2_minus, ax=ax, color='tab:orange')
+        sns.lineplot(x=[xlim[0],xlim[1]], y=mean_y, ax=ax, label='linear_mean', color='tab:orange')
+        sns.lineplot(x=[xlim[0],xlim[1]], y=std2_plus, ax=ax, color='tab:orange', label='linear_2-std')
+        sns.lineplot(x=[xlim[0],xlim[1]], y=std2_minus, ax=ax, color='tab:orange')
         
     sns.lineplot(x=t, y=mean, color='tab:blue', label='mean',ax=ax)
     sns.lineplot(x=t, y=low_conf, color='tab:blue', label='2-std',ax=ax)
     sns.lineplot(x=t, y=upper_conf, color='tab:blue',ax=ax)
 
-    plt.ylabel('methylation')
-    plt.xlabel('age')
-    plt.xlim(15,90)
+    ax.set_ylabel('methylation')
+    ax.set_xlabel('age')
+    ax.set_xlim(xlim[0],xlim[1])
+    ax.set_ylim(0,1)
 
-    plt.legend(title='Bio_model')
+    ax.legend(title='Bio_model')
+
 
     return ax
 
