@@ -16,7 +16,7 @@ logger.setLevel(logging.ERROR)
 external_path = '../exports/hannum.h5ad'
 external_cohort_name = 'hannum'
 
-N_SITES = False
+N_SITES = 2
 N_PARTS = False
 N_CORES = 7
 
@@ -30,6 +30,9 @@ amdata = amdata_src.AnnMethylData(external_path, backed='r')
 amdata = amdata[amdata.sites.index.isin(sites)].to_memory()
 amdata = amdata_src.AnnMethylData(amdata)
 
+amdata.X = np.where(amdata.X == 0, 0.00001, amdata.X)
+amdata.X = np.where(amdata.X == 1, 0.99999, amdata.X)
+
 if N_SITES is not False:
     amdata = amdata[:N_SITES]
 
@@ -42,7 +45,9 @@ with Pool(N_CORES, maxtasksperchild=1) as p:
                 ), 
             total=amdata.n_obs))
 
-fits = modelling_bio.bio_fit_post(results, amdata)
+fits = modelling_bio.bio_fit_post(results,  amdata)
+
+fits.to_csv('../exports/fits_' + external_cohort_name + '.csv')
 
 # Fitting acceleration and bias
 print('Acceleration and bias model fitting')
