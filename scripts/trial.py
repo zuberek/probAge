@@ -7,7 +7,10 @@ sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
 
 from src import modelling_bio
+import pymc as pm
+
 import arviz as az
+from operator import itemgetter
 
 import pickle
 
@@ -16,59 +19,43 @@ logger = logging.getLogger('pymc')
 logger.propagate = False
 logger.setLevel(logging.ERROR)
 
+# %%
 # Load bio sites
-# amdata = amdata_src.AnnMethylData('../exports/wave3_bio.h5ad')
-amdata = amdata_src.AnnMethylData('../exports/hannum_acc_bio.h5ad')
+amdata_hannum = amdata_src.AnnMethylData('../exports/hannum_acc_bio.h5ad')
 
-amdata = amdata[amdata.obs.sort_values('r2', ascending=False)]
-sns.scatterplot(x=amdata.var.age, y=amdata[].X.flatten())
+keep_sites = list(np.arange(0, amdata_hannum.shape[0]))
+[keep_sites.remove(i) for i in [8, 172]]
+amdata_hannum = amdata_hannum[keep_sites]
 
-N_PARTS = 100
-N_CORES = 7
-
-# drop saturating sites
-amdata = amdata[amdata.obs['saturating'] == False]
-
-# Fitting acceleration and bias
-print('Acceleration and bias model fitting')
-if N_PARTS is not False:
-    amdata = amdata[:250, :N_PARTS]
-
-# create amdata chunks to vectorize acc and bias over participants
-chunk_size = 10
-n_participants = amdata.shape[1]
-amdata_chunks = []
-for i in range(0, n_participants, chunk_size):
-    amdata_chunks.append(amdata[:,i:i+chunk_size])
-
-results = []
-for chunk in tqdm(amdata_chunks):
-    results.append(
-        modelling_bio.person_model(chunk
-        )
-    )
-
-traces = results[0]['trace']
-modelling_bio.make_clean_trace(traces)
-if len(results) > 1:
-    for trace in tqdm(results[1:]):
-        modelling_bio.concat_traces(traces, trace['trace'], dim='part')
+modelling_bio.bio_model_plot(amdata_hannum[8])
 
 
-map = modelling_bio.person_model(amdata[:, :], show_progress=True, return_trace=False, return_MAP=True)
+res = modelling_bio.person_model(amdata_hannum[:10, :],
+                        show_progress=True,
+                        return_MAP=True,
+                        return_trace=False)
 
-map['map']['acc'] = np.log2(map['map']['acc'])
-sns.scatterplot(x=amdata.var.acc_mean, y=map['map']['acc'])
+res['map']['acc'] = np.log2(res['map']['acc'])
+amdata_hannum.var['acc_mean'] = res['map']['acc']
+amdata_hannum.var['bias_mean'] = res['map']['bias']
+sns.jointplot(amdata_hannum.var, x='acc_mean', y='bias_mean')
 
-sns.histplot(map['map']['acc'])
+amdata_hannum.write_h5ad('../exports/hannum_acc_bio.h5ad')
+
+# %%
+# Load site fits
+fits_bio = pd.read_csv('../exports/fits_bio.csv')
+comparisons = pd.read_csv('../exports/comparison_bio.csv', index_col=[0,1])
+# Load bio sites
+amdata = amdata_src.AnnMethylData('../exports/wave3_bio.h5ad')
+
+bio_model = comparisons.xs('bio', level='model')
+
+sns.histplot(bio_model, x='elpd_loo')
 
 
-to_save = ['mean', 'sd', 'hdi_3%', 'hdi_97%']
-to_save_acc = [f'acc_{col}' for col in to_save]
-to_save_bias = [f'bias_{col}' for col in to_save]
-amdata.var[to_save_acc] = az.summary(traces, var_names=['acc'])[to_save].values
-amdata.var[to_save_bias] = az.summary(traces, var_names=['bias'])[to_save].values
+site = bio_model.index[np.argmin(bio_model.elpd_loo)]
 
-amdata.var[to_save_acc] = np.log2(amdata.var[to_save_acc])
-# drift_model = pd.read_csv('../exports/wave3_participants.csv')
-sns.jointplot(amdata.var, x='acc_mean', y='bias_mean')
+for i in range(20):
+    modelling_bio.bio_model_plot(amdata[sites[i]])
+    plt.show()
