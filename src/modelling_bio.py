@@ -241,12 +241,12 @@ def comparison_postprocess(results, amdata):
 
 def bio_fit(amdata, show_progress=False):
     ROUND = 7
-    trace_bio = bio_sites(amdata, init_nuts='advi+adapt_diag', show_progress=show_progress)['trace']
+    trace_bio = bio_sites(amdata, return_trace=True, return_MAP=False, init_nuts='advi+adapt_diag', show_progress=show_progress)['trace']
     bio_fit = az.summary(trace_bio, round_to=ROUND)
     bio_fit.index = pd.MultiIndex.from_tuples([(index_tuple[1][:-1], 'bio', index_tuple[0]) for index_tuple in bio_fit.index.str.split('[')],
                             names=['site', 'model', 'param'])
 
-    loo = az.loo(trace_bio['trace'])
+    loo = az.loo(trace_bio)
     loo = loo['elpd_loo']
 
     return bio_fit, loo
@@ -266,7 +266,6 @@ def bio_fit_post(results, amdata):
         amdata.obs[param] = fits.loc[(slice(None),'bio', param)]['mean'].values
 
     return fits
-
 
 
 def make_clean_trace(trace):
