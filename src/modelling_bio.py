@@ -246,13 +246,20 @@ def bio_fit(amdata, show_progress=False):
     bio_fit.index = pd.MultiIndex.from_tuples([(index_tuple[1][:-1], 'bio', index_tuple[0]) for index_tuple in bio_fit.index.str.split('[')],
                             names=['site', 'model', 'param'])
 
-    return bio_fit
+    loo = az.loo(trace_bio['trace'])
+    loo = loo['elpd_loo']
+
+    return bio_fit, loo
 
 def bio_fit_post(results, amdata):
     fits = pd.DataFrame()
-    for fit in results:
-        fits = pd.concat([fits, fit])
-
+    loo_list = []
+    for site in results:
+            fit, loo = site
+            fits = pd.concat([fits, fit])
+            loo_list.append(loo)
+    # Save elpd_loo
+    amdata.obs['elpd_loo'] = loo_list
     # Extract parameter names from bio model
     param_list = fit.xs('bio', level='model').index.get_level_values(level='param')
     for param in param_list:
