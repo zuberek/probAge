@@ -1,5 +1,4 @@
 .obsidian
 data/**
 exports/**
-results/**
 __pycache__
