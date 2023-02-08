@@ -107,13 +107,15 @@ def bio_sites(amdata, return_MAP=False, return_trace=True, show_progress=False, 
             res['map'] = pm.find_MAP(progressbar=False)
 
         if return_trace:
-            res['trace'] = pm.sample(1000, tune=1000, init=init_nuts,
+            trace = pm.sample(1000, tune=1000, init=init_nuts,
                                      chains=CHAINS, cores=CORES,
                                      progressbar=show_progress,
                                      target_accept=target_accept)
 
-            pm.compute_log_likelihood(res['trace'], progressbar=show_progress)
-
+            pm.compute_log_likelihood(trace, progressbar=show_progress)
+            ppc = pm.sample_posterior_predictive(trace,
+                    extend_inferencedata=True)
+            res['trace'] = trace
     return res
 
 def person_model(amdata,
@@ -142,7 +144,7 @@ def person_model(amdata,
         
         # Define model variables
         acc = pm.Uniform('acc', lower=0.33, upper=3, dims='part')
-        bias = pm.Normal('bias', mu=0, sigma=0.01, dims='part')
+        bias = pm.Normal('bias', mu=0, sigma=0.1, dims='part')
 
         # Useful variables
         omega = acc*omega
