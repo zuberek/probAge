@@ -521,7 +521,7 @@ def acc_bias_map(params, filtered_sites_amdata, site_params, age):
 
     return nll
 
-def dset_offsets(amdata, normal=True, return_MAP=True, show_progress=False,
+def site_offsets(amdata, normal=True, return_MAP=True, return_trace=False, show_progress=False,
                          map_method='L-BFGS-B'):
 
     # The data has two dimensions: participant and CpG site
@@ -529,14 +529,14 @@ def dset_offsets(amdata, normal=True, return_MAP=True, show_progress=False,
 
     # # create a numpy array of the participants ages
     # # array of ages needs to be broadcasted into a matrix array for each CpG site
-    omega = np.broadcast_to(amdata.obs.omega, shape=(amdata.shape[1], amdata.shape[0])).T
-    eta_0 = np.broadcast_to(amdata.obs.eta_0, shape=(amdata.shape[1], amdata.shape[0])).T
-    p = np.broadcast_to(amdata.obs.meth_init, shape=(amdata.shape[1], amdata.shape[0])).T
-    var_init = np.broadcast_to(amdata.obs.var_init, shape=(amdata.shape[1], amdata.shape[0])).T
-    N = np.broadcast_to(amdata.obs.system_size, shape=(amdata.shape[1], amdata.shape[0])).T
+    omega = np.broadcast_to(amdata.obs.omega, shape=(amdata.shape[1], amdata.shape[0]))
+    eta_0 = np.broadcast_to(amdata.obs.eta_0, shape=(amdata.shape[1], amdata.shape[0]))
+    p = np.broadcast_to(amdata.obs.meth_init, shape=(amdata.shape[1], amdata.shape[0]))
+    var_init = np.broadcast_to(amdata.obs.var_init, shape=(amdata.shape[1], amdata.shape[0]))
+    N = np.broadcast_to(amdata.obs.system_size, shape=(amdata.shape[1], amdata.shape[0]))
 
-    age = amdata.var.age.values
-
+    ages = np.broadcast_to(amdata.var.age, shape=(amdata.n_obs, amdata.n_vars)).T
+    
 
     # Define Pymc model
     with pm.Model(coords=coords) as model:
@@ -553,11 +553,11 @@ def dset_offsets(amdata, normal=True, return_MAP=True, show_progress=False,
         var_term_1 = (1-p)*np.power(eta_0,2) + p*np.power(eta_1,2)
 
 
-        mean = eta_0 + np.exp(-omega*age)*((p-1)*eta_0 + p*eta_1) + offset
+        mean = eta_0 + np.exp(-omega*ages)*((p-1)*eta_0 + p*eta_1) + offset
 
         variance = (var_term_0/N 
-                + np.exp(-omega*age)*(var_term_1-var_term_0)/N 
-                + np.exp(-2*omega*age)*(var_init/np.power(N,2) - var_term_1/N)
+                + np.exp(-omega*ages)*(var_term_1-var_term_0)/N 
+                + np.exp(-2*omega*ages)*(var_init/np.power(N,2) - var_term_1/N)
             )
 
         if normal is True:
@@ -565,8 +565,8 @@ def dset_offsets(amdata, normal=True, return_MAP=True, show_progress=False,
             obs = pm.Normal("obs",
                              mu=mean,
                              sigma = np.sqrt(variance), 
-                             dims=("site", "part"), 
-                             observed=amdata.X)
+                             dims=("part", "site"), 
+                             observed=amdata.X.T)
        
 
         if normal is False:
@@ -579,11 +579,12 @@ def dset_offsets(amdata, normal=True, return_MAP=True, show_progress=False,
             # Define likelihood
             obs = pm.Beta("obs", mu=mean,
                                  sigma = np.sqrt(variance), 
-                                 dims=("site", "part"),     
-                                 observed=amdata.X)
+                                 dims=("part", "site"),     
+                                 observed=amdata.X.T)
 
         res = {}
         if return_MAP:
-            res['map'] = pm.find_MAP(progressbar=False, method=map_method, maxeval=10_000)
+            res['map'] = pm.find_MAP(progressbar=show_progress, method=map_method, maxeval=10_000)
 
     return res    
+
