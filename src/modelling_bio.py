@@ -28,7 +28,7 @@ CORES = 1
 # cores are set at 1 to allow to 
 # avoid daemonic children in mp
 
-def linear_sites(amdata, return_MAP=False, return_trace=True, show_progress=False):
+def linear_sites(amdata, return_MAP=False, return_trace=True, cores=CORES, show_progress=False):
 
     ages = np.broadcast_to(amdata.participants.age, shape=(amdata.n_sites, amdata.n_participants)).T
     coords = {'sites': amdata.sites.index.values,
@@ -58,14 +58,14 @@ def linear_sites(amdata, return_MAP=False, return_trace=True, show_progress=Fals
 
         if return_trace:
             res['trace'] = pm.sample(1000, tune=1000,
-                            chains=CHAINS, cores=CORES,
+                            chains=CHAINS, cores=cores,
                             progressbar=show_progress) 
             pm.compute_log_likelihood(res['trace'], progressbar=show_progress)
 
     return res
 
 
-def bio_sites(amdata, return_MAP=False, return_trace=True, show_progress=False, init_nuts='auto', target_accept=0.9):
+def bio_sites(amdata, return_MAP=False, return_trace=True, show_progress=False, init_nuts='auto', target_accept=0.9, cores=CORES):
 
     ages = np.broadcast_to(amdata.participants.age, shape=(amdata.n_sites, amdata.n_participants)).T
     coords = {'sites': amdata.sites.index.values,
@@ -110,7 +110,7 @@ def bio_sites(amdata, return_MAP=False, return_trace=True, show_progress=False, 
 
         if return_trace:
             trace = pm.sample(1000, tune=1000, init=init_nuts,
-                                     chains=CHAINS, cores=CORES,
+                                     chains=CHAINS, cores=cores,
                                      progressbar=show_progress,
                                      target_accept=target_accept)
 
@@ -185,14 +185,18 @@ def person_model(amdata,
                                     progressbar=show_progress)
 
     return res    
-def fit_and_compare(amdata, show_progress=False):
+
+
+def fit_and_compare(amdata, cores=CORES, show_progress=False):
+
+    if show_progress: print(f'Fitting the site {amdata.obs.index.values[0]}')
 
     ROUND = 7
 
     trace_l = linear_sites(amdata,
-    show_progress=show_progress)['trace']
+                            show_progress=show_progress, cores=cores)['trace']
     trace_bio = bio_sites(amdata, init_nuts='advi+adapt_diag',
-                                  show_progress=show_progress)['trace']
+                            show_progress=show_progress, cores=cores)['trace']
 
     linear_fit = az.summary(trace_l, round_to=ROUND)
     bio_fit = az.summary(trace_bio, round_to=ROUND)
@@ -241,10 +245,10 @@ def comparison_postprocess(results, amdata):
 
     return fits, comparisons
 
-def bio_fit(amdata, show_progress=False):
+def bio_fit(amdata, show_progress=False, cores=1):
     ROUND = 7
     if show_progress: print(f'Modelling sites {amdata.obs.index.values}')
-    trace_bio = bio_sites(amdata, return_trace=True, return_MAP=False, init_nuts='advi+adapt_diag', show_progress=show_progress)['trace']
+    trace_bio = bio_sites(amdata, return_trace=True, return_MAP=False, cores=cores, show_progress=show_progress)['trace']
     bio_fit = az.summary(trace_bio, round_to=ROUND)
     bio_fit.index = pd.MultiIndex.from_tuples([(index_tuple[1][:-1], 'bio', index_tuple[0]) for index_tuple in bio_fit.index.str.split('[')],
                             names=['site', 'model', 'param'])
