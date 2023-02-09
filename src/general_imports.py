@@ -7,6 +7,8 @@ from multiprocessing import Pool
 from multiprocessing import cpu_count
 import anndata as ad
 import json
+
+from functools import partial
 # sns.set_theme(style='ticks')
 
 # import custom code
