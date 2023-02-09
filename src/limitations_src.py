@@ -36,7 +36,7 @@ def non_to_uniform_sampling(amdata, train_ids, n_samples):
     return selection_idx
 
 
-def bootstrap_prop_fit(prop_smoke, bstrp_idx, data_path, prop_test=0.2, train_size=600, smoke_threshold=0.25, n_alphas=N_ALPHAS, n_jobs=None):
+def bootstrap_prop_fit(prop_smoke, bstrp_idx, data_path, prop_test=0.2, train_size=700, smoke_threshold=0.2, n_alphas=N_ALPHAS, n_jobs=None):
     """Bootstrap r2 and tobacoo association for different proportions of smokers"""
 
     max_iter = 20*train_size
