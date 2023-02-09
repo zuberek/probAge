@@ -79,7 +79,7 @@ def bio_sites(amdata, return_MAP=False, return_trace=True, show_progress=False, 
         eta_0 = pm.Uniform("eta_0", lower=0, upper=1, dims='sites')
         omega = pm.HalfNormal("omega", sigma=0.02, dims='sites')
         p = pm.Uniform("meth_init", lower=0, upper=1, dims='sites')
-        N = pm.Uniform('system_size', lower= 1, upper=100_000, dims='sites')
+        N = pm.Uniform('system_size', lower= 1, upper=2_000, dims='sites')
         var_init = pm.Uniform("var_init", lower=0,
                                           upper=2*np.power(init_std_bound*N,2),
                                           dims='sites')
