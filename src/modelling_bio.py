@@ -36,7 +36,7 @@ SITE_PARAMETERS = {
     'var_init': 'var_init'
 }
 
-def site_params():
+def get_site_params():
     return list(SITE_PARAMETERS.values())
 
 def linear_sites(amdata, return_MAP=False, return_trace=True, cores=CORES, show_progress=False):
@@ -541,6 +541,10 @@ def acc_bias_map(params, filtered_sites_amdata, site_params, age):
     nll = -norm.logpdf(filtered_sites_amdata.X, loc= mean, scale=np.sqrt(variance)).sum()
 
     return nll
+
+def concat_maps(results):
+    return pd.concat([pd.DataFrame(result['map'])[get_site_params()] for result in results])
+
 
 def site_offsets(amdata, normal=True, return_MAP=True, return_trace=False, show_progress=False,
                          map_method='L-BFGS-B'):
