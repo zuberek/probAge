@@ -333,6 +333,37 @@ def bio_model_stats(amdata, t, acc=0, bias=0):
         )
     return mean, variance
 
+def bio_model_stats_vect(amdata, t, acc=0, bias=0):
+    """Extract mean and variace of site at a given set of 
+    time-points."""
+
+    # Extract parameters from site
+    eta_0 = np.broadcast_to(amdata.obs.eta_0, shape=(len(t), amdata.shape[0])).T
+    omega = np.broadcast_to(amdata.obs.omega, shape=(len(t), amdata.shape[0])).T
+    var_init = np.broadcast_to(amdata.obs.var_init, shape=(len(t), amdata.shape[0])).T
+    p = np.broadcast_to(amdata.obs.meth_init, shape=(len(t), amdata.shape[0])).T
+    N = np.broadcast_to(amdata.obs.system_size, shape=(len(t), amdata.shape[0])).T
+
+    # update acc and bias
+    omega = np.exp(acc)*omega
+    # reparametrization
+    eta_1 = 1-eta_0
+
+    # model mean and variance
+    var_term_0 = eta_0*eta_1
+    var_term_1 = (1-p)*np.power(eta_0,2) + p*np.power(eta_1,2)
+
+    mean = eta_0 + np.exp(-omega*t)*((p-1)*eta_0 + p*eta_1)
+
+    #update bias
+    mean = mean + bias
+
+    variance = (var_term_0/N 
+            + np.exp(-omega*t)*(var_term_1-var_term_0)/N 
+            + np.exp(-2*omega*t)*(var_init/np.power(N,2) - var_term_1/N)
+        )
+    return mean, variance
+
 def bio_model_plot (amdata, alpha=1, fits=None, ax=None):
     """Plot the evolution of site predicted by bio_model"""
     xlim=(0,200)
@@ -404,6 +435,26 @@ def is_saturating(amdata):
 
     else:
         return False
+
+def is_saturating_vect(amdata):
+    """Check if site is saturating at birth or 100yo.
+    We use the predicted 95% CI from the bio_model"""
+
+    t = np.array([0, 100])
+    mean, variance = bio_model_stats_vect(amdata, t)
+    
+    a = ((1-mean)/variance - 1/mean)*np.power(mean,2)
+    b = a*(1/mean - 1)
+
+    conf_int = np.array(beta.interval(0.95, a, b))
+    intervals = pd.DataFrame(np.concatenate(conf_int, axis=1), index=amdata.obs.index)
+    
+    intervals['saturating'] = False
+    intervals.loc[intervals[[0,1]].min(axis=1)< 0.05, 'saturating'] = True
+    intervals.loc[intervals[[0,1]].min(axis=1)>0.95, 'saturating'] = True
+    
+    return intervals['saturating']
+
 
 
 def comparison_plot(comparisons, n_sites, scale=True):
@@ -543,7 +594,7 @@ def acc_bias_map(params, filtered_sites_amdata, site_params, age):
     return nll
 
 def concat_maps(results):
-    return pd.concat([pd.DataFrame(result['map'])[get_site_params()] for result in results])
+    return pd.concat([pd.DataFrame(result['map']) for result in results])
 
 
 def site_offsets(amdata, normal=True, return_MAP=True, return_trace=False, show_progress=False,
