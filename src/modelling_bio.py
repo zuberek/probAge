@@ -28,6 +28,17 @@ CORES = 1
 # cores are set at 1 to allow to 
 # avoid daemonic children in mp
 
+SITE_PARAMETERS = {
+    'eta_0':    'eta_0',
+    'omega':    'omega',
+    'p':        'meth_init',
+    'N':        'system_size',
+    'var_init': 'var_init'
+}
+
+def site_params():
+    return list(SITE_PARAMETERS.values())
+
 def linear_sites(amdata, return_MAP=False, return_trace=True, cores=CORES, show_progress=False):
 
     ages = np.broadcast_to(amdata.participants.age, shape=(amdata.n_sites, amdata.n_participants)).T
@@ -67,11 +78,13 @@ def linear_sites(amdata, return_MAP=False, return_trace=True, cores=CORES, show_
 
 def bio_sites(amdata, return_MAP=False, return_trace=True, show_progress=False, init_nuts='auto', target_accept=0.9, cores=CORES):
 
-    ages = np.broadcast_to(amdata.participants.age, shape=(amdata.n_sites, amdata.n_participants)).T
-    coords = {'sites': amdata.sites.index.values,
-            'participants': amdata.participants.index.values}
+    if show_progress: print(f'Modelling {amdata.shape[0]} bio_sites')
+    ages = np.broadcast_to(amdata.participants.age, shape=(amdata.shape[0], amdata.shape[1])).T
+    coords = {'sites': amdata.obs.index.values,
+            'participants': amdata.var.index.values}
 
     with pm.Model(coords=coords) as model:
+
         # condition on maximal initial standard deviation
         init_std_bound = 0.1
 
@@ -97,12 +110,14 @@ def bio_sites(amdata, return_MAP=False, return_trace=True, show_progress=False, 
                 + np.exp(-2*omega*ages)*(var_init/np.power(N,2) - var_term_1/N)
             )
 
+
         # Define likelihood
         likelihood = pm.Beta("m-values",
             mu = mean,
             sigma = np.sqrt(variance),
             dims=("participants", "sites"),
             observed = amdata.X.T)
+
 
         res = {}
         if return_MAP:
@@ -126,6 +141,8 @@ def person_model(amdata,
                          show_progress=False,
                          init_nuts='auto',
                          map_method='L-BFGS-B'):
+
+    if show_progress: print(f'Modelling {amdata.shape[1]} participants')
 
     # The data has two dimensions: participant and CpG site
     coords = {"site": amdata.obs.index, "part": amdata.var.index}
@@ -245,7 +262,7 @@ def comparison_postprocess(results, amdata):
 
     return fits, comparisons
 
-def bio_fit(amdata, show_progress=False, cores=1):
+def bio_fit(amdata, show_progress=False, cores=CORES):
     ROUND = 7
     if show_progress: print(f'Modelling sites {amdata.obs.index.values}')
     trace_bio = bio_sites(amdata, return_trace=True, return_MAP=False, cores=cores, show_progress=show_progress)['trace']
