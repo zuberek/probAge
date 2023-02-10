@@ -1,17 +1,14 @@
 %load_ext autoreload
 %autoreload 2
 sys.path.append("..")   # fix to import modules from root
-from turtle import color
 from src.general_imports import *
 
 from src import modelling_bio
 
-# import logging
-# logger = logging.getLogger('pymc')
-# logger.propagate = False
-# logger.setLevel(logging.ERROR)
-
-amdata = amdata.AnnMethylData('../exports/wave3_linear.h5ad')
+amdata = amdata_src.AnnMethylData('../exports/wave3_MAP.h5ad')
+amdata = amdata[amdata.obs.sort_values('r2', ascending=False).index]
+amdata = amdata[~amdata.obs.saturating].copy()
+amdata = amdata_src.AnnMethylData(amdata)
 
 n_sites_grid = [2**n for n in range(1,11)]
 n_sites_label = [f'{n_sites_grid[i]}-{n_sites_grid[i+1]}' for i in range(len(n_sites_grid))[:-1]]
@@ -19,7 +16,7 @@ n_sites_label = [f'{n_sites_grid[i]}-{n_sites_grid[i+1]}' for i in range(len(n_s
 accs = np.empty((len(n_sites_grid), amdata.n_participants))
 biases = np.empty((len(n_sites_grid), amdata.n_participants))
 for i, n_sites in enumerate(tqdm(n_sites_grid)):
-    map = modelling.vector_person_model(amdata[:n_sites], return_MAP=True, return_trace=False)['map']
+    map = modelling_bio.person_model(amdata[:n_sites], return_MAP=True, return_trace=False)['map']
     accs[i] = map['acc']
     biases[i] = map['bias']    
 
@@ -31,7 +28,7 @@ biases.to_csv('../exports/downsample_biases.csv')
 accs = pd.read_csv('../exports/downsample_accs.csv', index_col=0)
 biases = pd.read_csv('../exports/downsample_biases.csv', index_col=0)
 
-r2_array = pd.Series([amdata.sites.iloc[i].r2 for i in n_sites_grid[:-1]], name='r2 value')
+r2_array = pd.Series([amdata.sites.iloc[i].r2 for i in n_sites_grid[1:]], name='r2 value')
 
 ax1, ax2 = plot.row(['Acceleration', 'Bias'], scale=10)
 df = pd.DataFrame(np.abs(np.diff(accs, axis=1)), index=amdata.participants.index, columns=n_sites_label)
@@ -50,6 +47,8 @@ sns.boxplot(df, color='tab:blue',  ax=ax2)
 # sns.pointplot(data=df_melted, x='Site Interval', y='Mean absolute difference in interval', ax=ax2)
 sns.lineplot(x=n_sites_label, y=r2_array, marker='o', color='tab:orange', label='r2 value', ax=ax22)
 
+plt.savefig('../results/Acc_bias_downsampling.svg')
+plt.savefig('../results/Acc_bias_downsampling.png')
 
 df.values.argmax(axis=0)
 df.iloc[3258]
