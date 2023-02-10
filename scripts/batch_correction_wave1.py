@@ -56,4 +56,4 @@ sns.jointplot(amdata.var, x='acc', y='bias')
 
 amdata.write_h5ad('../exports/wave1_acc.h5ad')
 amdata.obs.to_csv('../exports/wave1_acc_sites.csv')
-amdata.obs.to_csv('../exports/wave1_participants.csv')
+amdata.var.to_csv('../exports/wave1_participants.csv')
