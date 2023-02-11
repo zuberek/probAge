@@ -92,8 +92,8 @@ def annotate(ax: plt.axis, xlabel=None, ylabel=None, title=None):
 
     return ax
 
-def save(ax, title, bbox=None):
-    ax.get_figure().savefig(f'../../figures/{title}.png',bbox_inches=bbox)
+def save(ax, title, bbox=None, format='png'):
+    ax.get_figure().savefig(f'../results/{title}.{format}',bbox_inches=bbox)
 
 
 def shape(data, dimensions):
