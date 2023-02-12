@@ -129,7 +129,7 @@ def bio_sites(amdata, return_MAP=False, return_trace=True, show_progress=False, 
                                      progressbar=show_progress,
                                      target_accept=target_accept)
 
-            pm.compute_log_likelihood(trace, progressbar=show_progress)
+            pm.compute_log_likelihood(trace, progressbar=False)
             ppc = pm.sample_posterior_predictive(trace,
                     extend_inferencedata=True)
             res['trace'] = trace
@@ -140,6 +140,7 @@ def person_model(amdata,
                          return_MAP=False,
                          show_progress=False,
                          init_nuts='auto',
+                         cores=CORES,
                          map_method='L-BFGS-B'):
 
     if show_progress: print(f'Modelling {amdata.shape[1]} participants')
@@ -198,7 +199,7 @@ def person_model(amdata,
 
         if return_trace:
             res['trace'] = pm.sample(1000, tune=1000, init=init_nuts,
-                                    chains=CHAINS,
+                                    chains=CHAINS, cores=cores,
                                     progressbar=show_progress)
 
     return res    
@@ -206,12 +207,10 @@ def person_model(amdata,
 
 def fit_and_compare(amdata, cores=CORES, show_progress=False):
 
-    if show_progress: print(f'Fitting the site {amdata.obs.index.values[0]}')
-
     ROUND = 7
 
     trace_l = linear_sites(amdata,
-                            show_progress=show_progress, cores=cores)['trace']
+                            show_progress=False, cores=cores)['trace']
     trace_bio = bio_sites(amdata, init_nuts='advi+adapt_diag',
                             show_progress=show_progress, cores=cores)['trace']
 
@@ -264,7 +263,6 @@ def comparison_postprocess(results, amdata):
 
 def bio_fit(amdata, show_progress=False, cores=CORES):
     ROUND = 7
-    if show_progress: print(f'Modelling sites {amdata.obs.index.values}')
     trace_bio = bio_sites(amdata, return_trace=True, return_MAP=False, cores=cores, show_progress=show_progress)['trace']
     bio_fit = az.summary(trace_bio, round_to=ROUND)
     bio_fit.index = pd.MultiIndex.from_tuples([(index_tuple[1][:-1], 'bio', index_tuple[0]) for index_tuple in bio_fit.index.str.split('[')],
@@ -366,7 +364,7 @@ def bio_model_stats_vect(amdata, t, acc=0, bias=0):
 
 def bio_model_plot (amdata, alpha=1, fits=None, ax=None):
     """Plot the evolution of site predicted by bio_model"""
-    xlim=(0,200)
+    xlim=(0,100)
     t = np.linspace(xlim[0],xlim[1], 1_000)
 
     mean, variance = bio_model_stats(amdata, t)
@@ -381,7 +379,7 @@ def bio_model_plot (amdata, alpha=1, fits=None, ax=None):
     if ax is None:
         ax = plot.row(amdata.obs.index[0])
 
-    sns.scatterplot(x=amdata.participants.age,
+    sns.scatterplot(x=amdata.var.age,
                     y=amdata.X.flatten(),
                     color='tab:grey',
                     label='data',
@@ -455,6 +453,9 @@ def is_saturating_vect(amdata):
     
     return intervals['saturating']
 
+def mean_abs_derivative_at_point(amdata, t=100):
+    obs = amdata.obs
+    return np.abs(-obs.omega*np.exp(-obs.omega*t)*(obs.meth_init-obs.eta_0))
 
 
 def comparison_plot(comparisons, n_sites, scale=True):
