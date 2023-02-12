@@ -6,7 +6,7 @@ DATA_PATH = '../exports/wave3_acc.h5ad'
 amdata = ad.read_h5ad(DATA_PATH)
 
 
-amdata.var['age_bin'] = pd.cut(amdata.var.age, 5)
+amdata.var['age_bin'] = pd.cut(amdata.var.age, 5).astype('str')
 amdata.var.age_bin= amdata.var.age_bin.astype('str')
 
 ax = sns.kdeplot(amdata.var, x='acc', hue='age_bin')
