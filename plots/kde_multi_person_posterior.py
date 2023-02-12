@@ -33,5 +33,5 @@ for trace in traces:
 
 ax = sns.kdeplot(data=extracted_df, x='bias', y='acc', hue='person')
 
-plot.save(ax, 'pointplot_variance_bins', format='svg')
-plot.save(ax, 'pointplot_variance_bins', format='png')
+plot.save(ax, 'kde_multi_person_posterior', format='svg')
+plot.save(ax, 'kde_multi_person_posterior', format='png')
