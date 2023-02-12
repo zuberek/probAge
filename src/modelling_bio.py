@@ -140,6 +140,7 @@ def person_model(amdata,
                          return_MAP=False,
                          show_progress=False,
                          init_nuts='auto',
+                         cores=CORES,
                          map_method='L-BFGS-B'):
 
     if show_progress: print(f'Modelling {amdata.shape[1]} participants')
@@ -198,7 +199,7 @@ def person_model(amdata,
 
         if return_trace:
             res['trace'] = pm.sample(1000, tune=1000, init=init_nuts,
-                                    chains=CHAINS,
+                                    chains=CHAINS, cores=cores,
                                     progressbar=show_progress)
 
     return res    
