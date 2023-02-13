@@ -19,3 +19,18 @@ from src.utils import plot
 plt.rcParams['svg.fonttype'] = 'none'
 
 sns_colors = sns.color_palette().as_hex()
+colors = [
+    '#4DBBD5FF',
+    '#E64B35FF',
+    '#00A087FF',
+    '#3C5488FF',
+    '#F39B7FFF',
+    '#8491B4FF',
+    '#91D1C2FF',
+    '#DC0000FF',
+    '#7E6148FF',
+    '#B09C85FF',
+]
+sns.set_palette(sns.color_palette(colors))
+
+
