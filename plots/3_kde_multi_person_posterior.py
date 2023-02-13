@@ -1,4 +1,5 @@
-import sys
+#%% imports
+# import sys
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
 
@@ -37,6 +38,7 @@ person_names = [
     24829,
 ]
 
+#%% compoute traces
 traces = []
 for person_index in person_names:
     traces.append(modelling_bio.person_model(amdata[:,participants.loc[person_index]['index']], return_trace=True, cores=4,
@@ -52,19 +54,30 @@ for trace in traces:
 
 extracted_df.acc = np.log2(extracted_df.acc)
 
-# all grey plot
-ax = plot.row('Example participants acceleration and bias posteriors')
-sns.scatterplot(data=extracted_df, y='bias', x='acc', ax=ax,
-                marker='.', alpha=0.3, color=['tab:grey'])
-sns.kdeplot(data=extracted_df, y='bias', x='acc', hue='person', ax=ax,
-                legend=False, fill=False, palette=['tab:grey'])
-
+#%% plot
 # colour plot
-ax = plot.row('Example participants acceleration and bias posteriors')
-sns.scatterplot(data=extracted_df, y='bias', x='acc', ax=ax,
+# ax = plot.row('Example participants acceleration and bias posteriors')
+# sns.scatterplot(data=extracted_df, y='bias', x='acc', ax=ax,
+#                 marker='.', alpha=0.3, hue='person', legend=False)
+# sns.scatterplot(data=participants.loc[person_names].reset_index(), x='acc', y='bias', 
+#                 hue='index', legend=False, ax=ax)                
+# sns.kdeplot(data=extracted_df, y='bias', x='acc', hue='person', ax=ax,
+#                 legend=False, fill=False)
+
+
+maps= participants.loc[person_names].reset_index()[['index','acc', 'bias']]
+
+g = sns.JointGrid(marginal_ticks=True,)
+sns.scatterplot(data=extracted_df, y='bias', x='acc', ax=g.ax_joint,
                 marker='.', alpha=0.3, hue='person', legend=False)
-sns.kdeplot(data=extracted_df, y='bias', x='acc', hue='person', ax=ax,
-                legend=False, fill=False)
+sns.scatterplot(data=participants.loc[person_names].reset_index(), x='acc', y='bias', 
+                hue='index', legend=False, ax=g.ax_joint)                
+sns.kdeplot(data=extracted_df, y='bias', x='acc', hue='person', 
+                ax=g.ax_joint, thresh=0.25, legend=False, fill=False)
+sns.kdeplot(data=extracted_df,  x='acc', common_norm=True, legend=False, hue='person',ax=g.ax_marg_x)
+sns.kdeplot(data= extracted_df, y='bias', common_norm=True, legend=False, hue='person',ax=g.ax_marg_y)
+g.ax_marg_x.vlines(maps.values[:,0], ymin=0, ymax=1, colors=colors)
+g.ax_marg_y.hlines(maps.values[:,1], xmin=0, xmax=20, colors=colors)
 
 plot.save(ax, 'kde_multi_person_posterior', format='svg')
 plot.save(ax, 'kde_multi_person_posterior', format='png')

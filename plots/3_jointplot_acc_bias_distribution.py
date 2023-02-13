@@ -14,3 +14,4 @@ g=sns.jointplot(data=participants, x='acc', y='bias', hue='data',
                     palette=['tab:grey'], marker='.', alpha=0.3, legend=False,
                     marginal_ticks=True)
 g.plot_joint(sns.kdeplot, color="r", zorder=1, levels=6, legend=False)
+g.refline(y=0, x=0)
