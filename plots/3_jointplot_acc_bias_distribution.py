@@ -10,10 +10,6 @@ amdata = ad.read_h5ad('../exports/wave3_acc.h5ad')
 participants = amdata.var
 participants['data'] = 'Every participant'
 
-g = sns.jointplot(data=participants, x="acc", y="bias", hue='data', color='tab:grey')
-g.plot_joint(sns.kdeplot, color="r", zorder=1, levels=6)
-g.plot_marginals(sns.kdeplot, color="r")
-
 g=sns.jointplot(data=participants, x='acc', y='bias', hue='data',
                     palette=['tab:grey'], marker='.', alpha=0.3, legend=False,
                     marginal_ticks=True)
