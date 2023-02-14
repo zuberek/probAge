@@ -1,8 +1,7 @@
-
+# %% IMPORTS
 %load_ext autoreload
 %autoreload 2
 
-from cProfile import label
 import sys
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
@@ -28,6 +27,7 @@ amdata = ad.read_h5ad(amdata_path)
 params = modelling_bio.get_site_params()
 
 
+# %% PREPARE DATA
 intersection = site_info.index.intersection(amdata.obs.index)
 amdata = amdata[intersection]
 
@@ -35,16 +35,17 @@ amdata = amdata[intersection]
 amdata.X = np.where(amdata.X == 0, 0.00001, amdata.X)
 amdata.X = np.where(amdata.X == 1, 0.99999, amdata.X)
 
-amdata_truth = amdata.copy()
-amdata_wave3 = amdata.copy()
+amdata_truth = amdata_src.AnnMethylData(amdata.copy())
+amdata_wave3 = amdata_src.AnnMethylData(amdata.copy())
 
-import plotly.express as px
-px.scatter(x=amdata.var.age, y=amdata[-5].X.flatten(), hover_name=amdata.var.index)
+# import plotly.express as px
+# px.scatter(x=amdata.var.age, y=amdata[-5].X.flatten(), hover_name=amdata.var.index)
 
 # Add ground truth from wave3
 amdata_wave3.obs[params + ['r2']] = site_info[params + ['r2']]
 
-# Refit to get ground truth
+# %% 
+# REFIT THE GROUND TRUTH
 maps = modelling_bio.bio_sites(amdata_truth, return_MAP=True, return_trace=False, show_progress=True)['map']
 for param in params:
     amdata_truth.obs[f'{param}'] = maps[param]
@@ -55,31 +56,31 @@ amdata_truth.obs['saturating_der'] = amdata_truth.obs.abs_der<0.001
 
 amdata_truth.obs['saturating'] = amdata_truth.obs.saturating_std | amdata_truth.obs.saturating_der
 
-axs = plot.tab(params, 'Hannum - Wave 3 comparison', ncols=2, row_size=5, col_size=8)
-for i, param in enumerate(params):
-    sns.scatterplot(x=amdata_truth.obs[param], y=amdata_wave3.obs[param], ax=axs[i])
+# axs = plot.tab(params, 'Hannum - Wave 3 comparison', ncols=2, row_size=5, col_size=8)
+# for i, param in enumerate(params):
+#     sns.scatterplot(x=amdata_truth.obs[param], y=amdata_wave3.obs[param], ax=axs[i])
 
 amdata_truth = amdata_truth[~amdata_truth.obs.saturating].copy()
 
-# Calculate groud truth predictions
+# %% 
+# CALCULATE GROUND TRUTH PREDICTIONS
 ab_maps = modelling_bio.person_model(amdata_truth, return_MAP=True, return_trace=False, show_progress=True)['map']
 amdata_truth.var['acc'] = ab_maps['acc']
 amdata_truth.var['bias'] = ab_maps['bias']
-
-px.scatter(amdata_wave3.var, x='acc', y='bias', hover_name=amdata_wave3.var.index)
 
 # Calculate predictions without any correction
 ab_maps = modelling_bio.person_model(amdata_wave3, return_MAP=True, return_trace=False, show_progress=True)['map']
 amdata_wave3.var['raw_acc'] = ab_maps['acc']
 amdata_wave3.var['raw_bias'] = ab_maps['bias']
-sns.histplot(amdata_wave3.var, x='raw_acc', y='raw_bias', cbar=True, ax=plot.row('Before'))
+# sns.histplot(amdata_wave3.var, x='raw_acc', y='raw_bias', cbar=True, ax=plot.row('Before'))
 
 # Infer the offsets
 maps = modelling_bio.site_offsets(amdata_wave3, return_MAP=True, return_trace=False, show_progress=True)['map']
 amdata_wave3.obs['offset'] = maps['offset']
-sns.histplot(amdata_wave3.obs.offset)
+# sns.histplot(amdata_wave3.obs.offset)
 amdata_wave3= amdata_wave3[amdata_wave3.obs.sort_values('offset').index]
 
+# %% 
 # Plot the data correction
 ax = plot.row('Top shifted down')
 site_index = amdata_wave3.obs.index[-1]
@@ -93,10 +94,13 @@ sns.scatterplot(x=wave3.var.age, y=wave3[site_index].X.flatten(), label='wave3',
 sns.scatterplot(x=amdata.var.age, y=amdata[site_index].X.flatten(), label='hannum', ax=ax)
 sns.scatterplot(x=amdata.var.age, y=amdata[site_index].X.flatten()-amdata_wave3[site_index].obs.offset.values[0], label='hannum (corr)', ax=ax)
 
+# %% 
 # Apply the offset and refit acceleration and bias
 offset = np.broadcast_to(amdata_wave3.obs.offset, shape=(amdata_wave3.shape[1], amdata_wave3.shape[0])).T
 amdata_wave3.X = amdata_wave3.X - offset
 ab_maps = modelling_bio.person_model(amdata_wave3, return_MAP=True, return_trace=False, show_progress=True)['map']
+
+# %% 
 
 amdata_wave3.var['corr_acc'] = ab_maps['acc']
 amdata_wave3.var['corr_bias'] = ab_maps['bias']
@@ -105,6 +109,25 @@ sns.histplot(amdata_wave3.var, x='corr_acc', y='corr_bias', cbar=True, ax=plot.r
 
 acc_df = pd.concat([amdata_wave3.var[['corr_acc', 'raw_acc']], amdata_truth.var['acc']], axis=1)
 bias_df = pd.concat([amdata_wave3.var[['corr_bias', 'raw_bias']], amdata_truth.var['bias']], axis=1)
+
+
+acc_df['corr_acc_diff'] = acc_df.corr_acc - acc_df.acc
+acc_df['notcorr_acc_diff'] = acc_df.raw_acc - acc_df.acc
+bias_df['corr_bias_diff'] = bias_df.corr_bias - bias_df.bias
+bias_df['notcorr_bias_diff'] = bias_df.raw_bias - bias_df.bias
+df=pd.concat((acc_df, bias_df), axis=1)
+
+g = sns.JointGrid()
+sns.scatterplot(data=df, x='corr_acc_diff', y='corr_bias_diff', label='Corrected', ax=g.ax_joint)
+sns.scatterplot(data=df, x='notcorr_acc_diff', y='notcorr_bias_diff', label='Not Corrected', ax=g.ax_joint)
+sns.kdeplot(data=df, x='corr_acc_diff', ax=g.ax_marg_x)
+sns.kdeplot(data=df, x='notcorr_acc_diff', ax=g.ax_marg_x)
+sns.kdeplot(data=df, y='corr_bias_diff', ax=g.ax_marg_y)
+sns.kdeplot(data=df, y='notcorr_bias_diff', ax=g.ax_marg_y)
+g.refline(y=0, x=0)
+
+g.savefig('../results/3_jointplot_batch_correction_differences.svg')
+
 
 df=acc_df.rename(columns={'corr_acc':'corr','raw_acc':'raw','acc':'true'}).melt(var_name='type', value_name='acc')
 df['bias'] = bias_df.melt()['value']
