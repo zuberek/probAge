@@ -1,4 +1,5 @@
-# %% IMPORTS
+# %% 
+# IMPORTS
 %load_ext autoreload
 %autoreload 2
 
@@ -27,7 +28,8 @@ amdata = ad.read_h5ad(amdata_path)
 params = modelling_bio.get_site_params()
 
 
-# %% PREPARE DATA
+# %% 
+# PREPARE DATA
 intersection = site_info.index.intersection(amdata.obs.index)
 amdata = amdata[intersection]
 
@@ -65,14 +67,14 @@ amdata_truth = amdata_truth[~amdata_truth.obs.saturating].copy()
 # %% 
 # CALCULATE GROUND TRUTH PREDICTIONS
 ab_maps = modelling_bio.person_model(amdata_truth, return_MAP=True, return_trace=False, show_progress=True)['map']
-amdata_truth.var['acc'] = ab_maps['acc']
-amdata_truth.var['bias'] = ab_maps['bias']
+amdata_truth.var['retrained_acc'] = ab_maps['acc']
+amdata_truth.var['retrained_bias'] = ab_maps['bias']
 
 # Calculate predictions without any correction
 ab_maps = modelling_bio.person_model(amdata_wave3, return_MAP=True, return_trace=False, show_progress=True)['map']
-amdata_wave3.var['raw_acc'] = ab_maps['acc']
-amdata_wave3.var['raw_bias'] = ab_maps['bias']
-# sns.histplot(amdata_wave3.var, x='raw_acc', y='raw_bias', cbar=True, ax=plot.row('Before'))
+amdata_wave3.var['not_corr_acc'] = ab_maps['acc']
+amdata_wave3.var['not_corr_bias'] = ab_maps['bias']
+# sns.histplot(amdata_wave3.var, x='not_corr_acc', y='not_corr_bias', cbar=True, ax=plot.row('Before'))
 
 # Infer the offsets
 maps = modelling_bio.site_offsets(amdata_wave3, return_MAP=True, return_trace=False, show_progress=True)['map']
@@ -82,39 +84,44 @@ amdata_wave3= amdata_wave3[amdata_wave3.obs.sort_values('offset').index]
 
 # %% 
 # Plot the data correction
-ax = plot.row('Top shifted down')
-site_index = amdata_wave3.obs.index[-1]
-sns.scatterplot(x=wave3.var.age, y=wave3[site_index].X.flatten(), label='wave3',ax=ax)
-sns.scatterplot(x=amdata.var.age, y=amdata[site_index].X.flatten(), label='hannum', ax=ax)
-sns.scatterplot(x=amdata.var.age, y=amdata[site_index].X.flatten()-amdata_wave3[site_index].obs.offset.values[0], label='hannum (corr)', ax=ax)
-
-ax = plot.row('Top shifted up')
+# ax = plot.row('Example hannum corrected site')
+ax = plot.row('')
+# site_index = amdata_wave3.obs.index[-1]
 site_index = amdata_wave3.obs.index[0]
-sns.scatterplot(x=wave3.var.age, y=wave3[site_index].X.flatten(), label='wave3',ax=ax)
-sns.scatterplot(x=amdata.var.age, y=amdata[site_index].X.flatten(), label='hannum', ax=ax)
-sns.scatterplot(x=amdata.var.age, y=amdata[site_index].X.flatten()-amdata_wave3[site_index].obs.offset.values[0], label='hannum (corr)', ax=ax)
+sns.scatterplot(x=wave3.var.age, y=wave3[site_index].X.flatten(), label='Reference',ax=ax)
+sns.scatterplot(x=amdata.var.age, y=amdata[site_index].X.flatten()-amdata_wave3[site_index].obs.offset.values[0], label='Corrected', ax=ax)
+sns.scatterplot(x=amdata.var.age, y=amdata[site_index].X.flatten(), label='Not corrected', ax=ax)
+ax.set_ylabel('methylation')
+ax.set_ylim((0,1))
 
+plot.save(ax, '3_hannum_corrected_site', format='png')
+plot.save(ax, '3_hannum_corrected_site', format='svg')
+sns.despine()
+# ax = plot.row('Top shifted up')
+# sns.scatterplot(x=wave3.var.age, y=wave3[site_index].X.flatten(), label='wave3',ax=ax)
+# sns.scatterplot(x=amdata.var.age, y=amdata[site_index].X.flatten(), label='hannum', ax=ax)
+# sns.scatterplot(x=amdata.var.age, y=amdata[site_index].X.flatten()-amdata_wave3[site_index].obs.offset.values[0], label='hannum (corr)', ax=ax)
+# ax.set_ylabel('methylation')
+# ax.set_ylim((0,1))
 # %% 
 # Apply the offset and refit acceleration and bias
 offset = np.broadcast_to(amdata_wave3.obs.offset, shape=(amdata_wave3.shape[1], amdata_wave3.shape[0])).T
 amdata_wave3.X = amdata_wave3.X - offset
 ab_maps = modelling_bio.person_model(amdata_wave3, return_MAP=True, return_trace=False, show_progress=True)['map']
 
-# %% 
-
 amdata_wave3.var['corr_acc'] = ab_maps['acc']
 amdata_wave3.var['corr_bias'] = ab_maps['bias']
 
-sns.histplot(amdata_wave3.var, x='corr_acc', y='corr_bias', cbar=True, ax=plot.row('After'))
+# %% 
+# Plot differences to ground truth
 
-acc_df = pd.concat([amdata_wave3.var[['corr_acc', 'raw_acc']], amdata_truth.var['acc']], axis=1)
-bias_df = pd.concat([amdata_wave3.var[['corr_bias', 'raw_bias']], amdata_truth.var['bias']], axis=1)
+acc_df = pd.concat([amdata_wave3.var[['corr_acc', 'not_corr_acc']], amdata_truth.var['retrained_acc']], axis=1)
+bias_df = pd.concat([amdata_wave3.var[['corr_bias', 'not_corr_bias']], amdata_truth.var['retrained_bias']], axis=1)
 
-
-acc_df['corr_acc_diff'] = acc_df.corr_acc - acc_df.acc
-acc_df['notcorr_acc_diff'] = acc_df.raw_acc - acc_df.acc
-bias_df['corr_bias_diff'] = bias_df.corr_bias - bias_df.bias
-bias_df['notcorr_bias_diff'] = bias_df.raw_bias - bias_df.bias
+acc_df['corr_acc_diff'] = acc_df.corr_acc - acc_df.retrained_acc
+acc_df['notcorr_acc_diff'] = acc_df.not_corr_acc - acc_df.retrained_acc
+bias_df['corr_bias_diff'] = bias_df.corr_bias - bias_df.retrained_bias
+bias_df['notcorr_bias_diff'] = bias_df.not_corr_bias - bias_df.retrained_bias
 df=pd.concat((acc_df, bias_df), axis=1)
 
 g = sns.JointGrid()
@@ -127,15 +134,19 @@ sns.kdeplot(data=df, y='notcorr_bias_diff', ax=g.ax_marg_y)
 g.refline(y=0, x=0)
 
 g.savefig('../results/3_jointplot_batch_correction_differences.svg')
+g.savefig('../results/3_jointplot_batch_correction_differences.png')
 
-
-df=acc_df.rename(columns={'corr_acc':'corr','raw_acc':'raw','acc':'true'}).melt(var_name='type', value_name='acc')
+# %% 
+# Plot differences to ground truth
+df=acc_df[['corr_acc','not_corr_acc','retrained_acc']].rename(columns={'corr_acc':'Corrected','not_corr_acc':'Not corrected','retrained_acc':'Retrained'}).melt(var_name='type', value_name='acc')
 df['bias'] = bias_df.melt()['value']
 
-sns.jointplot(df, x='acc', y='bias', hue='type')
-
-sns.kdeplot(data=acc_df.melt(), x='value', hue='variable')
+g= sns.jointplot(df, x='acc', y='bias', hue='type')
+g.savefig('../results/3_jointplot_batch_correction_param_distributions.svg')
+g.savefig('../results/3_jointplot_batch_correction_param_distributions.png')
+# %% 
+sns.kdeplot(data=acc_df[['corr_acc', 'not_corr_acc']].melt(), x='value', hue='variable')
 
 sns.scatterplot(acc_df, alpha=0.1, x='acc', y='corr_acc', label='Corrected')
-sns.scatterplot(acc_df, alpha=0.1, x='acc', y='raw_acc', label='Raw')
+sns.scatterplot(acc_df, alpha=0.1, x='acc', y='not_corr_acc', label='Raw')
 sns.lineplot(x=[-1,1],y=[-1,1])
