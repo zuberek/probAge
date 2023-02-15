@@ -19,18 +19,19 @@ from src.utils import plot
 plt.rcParams['svg.fonttype'] = 'none'
 
 sns_colors = sns.color_palette().as_hex()
+# https://nanx.me/ggsci/reference/pal_npg.html
 colors = [
-    '#4DBBD5FF',
-    '#E64B35FF',
-    '#00A087FF',
-    '#3C5488FF',
+    '#4DBBD5FF',    # blue
+    '#E64B35FF',    # red
+    '#00A087FF',    # dark green
     '#F39B7FFF',
+    '#3C5488FF',    # dark blue
     '#8491B4FF',
     '#91D1C2FF',
     '#DC0000FF',
+    '#B09C85FF',    # light grey
     '#7E6148FF',
-    '#B09C85FF',
 ]
 sns.set_palette(sns.color_palette(colors))
-
+# plt.rc("axes.spines", top=False, right=False)
 
