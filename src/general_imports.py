@@ -24,7 +24,7 @@ colors = [
     '#4DBBD5FF',    # blue
     '#E64B35FF',    # red
     '#00A087FF',    # dark green
-    '#F39B7FFF',
+    '#F39B7FFF',    # orenginh
     '#3C5488FF',    # dark blue
     '#8491B4FF',
     '#91D1C2FF',
@@ -33,5 +33,7 @@ colors = [
     '#7E6148FF',
 ]
 sns.set_palette(sns.color_palette(colors))
+
+CON_PALLETE = sns.color_palette("blend:#E64B35,#4DBBD5")
 # plt.rc("axes.spines", top=False, right=False)
 

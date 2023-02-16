@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import matplotlib.colors
 
 def fonts(fontsize=10):
     plt.rc('font', size=fontsize)       # controls default text size
@@ -93,8 +94,16 @@ def annotate(ax: plt.axis, xlabel=None, ylabel=None, title=None):
     return ax
 
 def save(ax, title, bbox=None, format='png'):
-    ax.get_figure().savefig(f'../results/{title}.{format}',bbox_inches=bbox)
-
+    if isinstance(format, list):
+        for f in format:
+            ax.get_figure().savefig(f'../results/{title}.{f}',bbox_inches=bbox)
+    else:
+        ax.get_figure().savefig(f'../results/{title}.{format}',bbox_inches=bbox)
 
 def shape(data, dimensions):
     return pd.DataFrame(data.shape, index=dimensions, columns=['shape']).T
+
+
+def generate_color_map(colors):
+    cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", colors)
+    return cmap
