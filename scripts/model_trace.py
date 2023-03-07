@@ -1,5 +1,5 @@
-# %load_ext autoreload 
-# %autoreload 2
+%load_ext autoreload 
+%autoreload 2
 
 import sys
 sys.path.append("..")   # fix to import modules from root
@@ -68,10 +68,20 @@ fits, comparisons = modelling_bio.comparison_postprocess(results, amdata)
 comparisons.to_csv('wave3_250_comparisons.csv')
 fits.to_csv('wave3_250_fits.csv')
 fits.r_hat.hist()
+
+fits[fits.r_hat>1.4].index.get_level_values(0).unique()
 comparisons.warning.hist()
+
+fits.xs('bio', level=1)
+fits.r_hat = fits.r_hat-1
+fits['scaled_sd'] = fits['sd']/fits['mean']
+fits.xs('bio', level=1).groupby('param', axis='index')['scaled_sd'].mean().plot.bar()
 
 with open('../exports/results.pk', 'wb') as f:
     pickle.dump(results, f)
+
+with open ('../exports/results.pk', 'rb') as f:
+    results = pickle.load(f)
 
 map_sites = pd.read_csv('../exports/wave3_sites.csv', index_col=0)
 sns.scatterplot(x=map_sites.omega, y=amdata.obs.omega)
@@ -96,24 +106,26 @@ for param in modelling_bio.get_site_params():
 # #####################################
 # ### MODELLING PEOPLE
 
-# # chunk_size = amdata.shape[1]//N_CORES
-# # n_participants = amdata.shape[1]
-# # amdata_chunks = []
-# # for i in range(0, n_participants, chunk_size):
-# #     amdata_chunks.append(amdata[:,i:i+chunk_size])
 
-# # with Pool(N_CORES, maxtasksperchild=1) as p:
-# #     results = list(tqdm(
-# #             iterable= p.imap(
-# #                 func=partial(modelling_bio.person_model, 
-# #                             return_MAP=True, 
-# #                             return_trace=False, 
-# #                             show_progress=True),
-# #                 iterable=amdata_chunks,
-# #                 chunksize=1
-# #                 ), 
-# #             total=len(amdata_chunks)))
-# # person_maps = modelling_bio.concat_maps(results)
+
+# chunk_size = amdata.shape[1]//N_CORES
+# n_participants = amdata.shape[1]
+# amdata_chunks = []
+# for i in range(0, n_participants, chunk_size):
+#     amdata_chunks.append(amdata[:,i:i+chunk_size])
+
+# with Pool(N_CORES, maxtasksperchild=1) as p:
+#     results = list(tqdm(
+#             iterable= p.imap(
+#                 func=partial(modelling_bio.person_model, 
+#                             return_MAP=True, 
+#                             return_trace=False, 
+#                             show_progress=True),
+#                 iterable=amdata_chunks,
+#                 chunksize=1
+#                 ), 
+#             total=len(amdata_chunks)))
+# person_maps = modelling_bio.concat_maps(results)
 
 # person_maps = modelling_bio.person_model(amdata, return_trace=False, 
 #                                     return_MAP=True, show_progress=True)['map']

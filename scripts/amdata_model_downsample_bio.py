@@ -38,8 +38,10 @@ r2_array = pd.Series([amdata.sites.iloc[i].r2 for i in n_sites_grid[1:]], name='
 
 #%%
 # PLOTTING ACCELERATION
-
-ax = plot.row('', scale=8)
+plt.rc('font', size=8) 
+plt.rc('xtick', labelsize=5) 
+sns.despine(top=True, right=False)
+ax = plot.row('', figsize=(3.6,2.6))
 ax1 = ax.twinx()
 df = pd.DataFrame(np.abs(np.diff(accs, axis=1)), index=amdata.participants.index, columns=n_sites_label)
 sns.boxplot(df, color=colors[0], showfliers=False, ax=ax)
@@ -53,7 +55,9 @@ plot.save(ax, 'A_acc_downsampling', format='png')
 #%%
 # PLOTTING BIAS
 
-ax = plot.row('', scale=8)
+plt.rc('font', size=8) 
+plt.rc('xtick', labelsize=5) 
+ax = plot.row('', figsize=(3.6,2.6))
 ax1 = ax.twinx()
 df = pd.DataFrame(np.abs(np.diff(biases, axis=1)), index=amdata.participants.index, columns=n_sites_label)
 sns.boxplot(df, color=colors[0], showfliers=False, ax=ax)
@@ -61,6 +65,7 @@ sns.lineplot(x=n_sites_label, y=r2_array, marker='o', color=colors[1], label='r2
 ax.set_xlabel('Change in the number of methylation sites')
 ax.set_ylabel('Absolute difference in bias')
 
+sns.despine(top=True, right=False)
 plot.save(ax, 'A_bias_downsampling', format='svg')
 plot.save(ax, 'A_bias_downsampling', format='png')
 # %%

@@ -61,6 +61,7 @@ amdata.obs['saturating'] = amdata.obs.saturating_std | amdata.obs.saturating_der
 amdata.write_h5ad('../exports/wave3_all_fitted.h5ad')
 amdata = ad.read_h5ad('../exports/wave3_all_fitted.h5ad')
 
+
 #####################################
 ### MODELLING PEOPLE
 

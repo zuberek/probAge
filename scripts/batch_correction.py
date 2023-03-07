@@ -83,20 +83,46 @@ amdata_wave3.obs['offset'] = maps['offset']
 amdata_wave3= amdata_wave3[amdata_wave3.obs.sort_values('offset').index]
 
 # %% 
+# Histogram of offsets
+fig, ax = plt.subplots(figsize=[3.6, 2.6])
+sns.histplot(data=amdata_wave3.obs, x='offset', ax=ax)
+sns.despine()
+plot.save(ax, 'S2_histogram_hannum_offsets', format=['png', 'svg'])
+
+# %% 
 # Plot the data correction
 # ax = plot.row('Example hannum corrected site')
 ax = plot.row('')
 # site_index = amdata_wave3.obs.index[-1]
 site_index = amdata_wave3.obs.index[0]
-sns.scatterplot(x=wave3.var.age, y=wave3[site_index].X.flatten(), label='Reference',ax=ax)
-sns.scatterplot(x=amdata.var.age, y=amdata[site_index].X.flatten()-amdata_wave3[site_index].obs.offset.values[0], label='Corrected', ax=ax)
-sns.scatterplot(x=amdata.var.age, y=amdata[site_index].X.flatten(), label='Not corrected', ax=ax)
+palette = ['#E64B35FF', '#4DBBD5FF', '#00A087FF']
+
+# t=np.linspace(18,100, 1_00)
+
+# sns.scatterplot(x=wave3.var.age, y=wave3[site_index].X.flatten(), 
+#                     color=colors[1], label='Generation Scotland', alpha=0.2, ax=ax)
+# sns.scatterplot(x=amdata.var.age, y=amdata[site_index].X.flatten(), 
+#                     label='Hannum', color=colors[0], alpha=0.2, ax=ax)
+# sns.lineplot(x=t, y=modelling_bio.bio_model_stats(wave3[site_index], t)[0], 
+#                     color=colors[1], label='Uncorrected mean',ax=ax)
+
+# sns.lineplot(x=t, y=modelling_bio.bio_model_stats(amdata_truth[site_index], t)[0], 
+#                     color=colors[0], label='Retrained mean',ax=ax)
+
+# mean = modelling_bio.bio_model_stats(amdata_wave3[site_index], t)[0]
+# mean = mean+amdata_wave3.obs.offset[site_index]
+# sns.lineplot(x=t, y=mean, color=colors[2], label='Corrected mean',ax=ax)
+
+sns.scatterplot(x=wave3.var.age, color=palette[0], y=wave3[site_index].X.flatten(), label='Reference',ax=ax)
+sns.scatterplot(x=amdata.var.age, color=palette[1], y=amdata[site_index].X.flatten()-amdata_wave3[site_index].obs.offset.values[0], label='Corrected', ax=ax)
+sns.scatterplot(x=amdata.var.age, color=palette[2], y=amdata[site_index].X.flatten(), label='Not corrected', ax=ax)
+
+
 ax.set_ylabel('methylation')
 ax.set_ylim((0,1))
 
-plot.save(ax, '3_hannum_corrected_site', format='png')
-plot.save(ax, '3_hannum_corrected_site', format='svg')
 sns.despine()
+plot.save(ax, '3_hannum_corrected_site', format=['png', 'svg'])
 # ax = plot.row('Top shifted up')
 # sns.scatterplot(x=wave3.var.age, y=wave3[site_index].X.flatten(), label='wave3',ax=ax)
 # sns.scatterplot(x=amdata.var.age, y=amdata[site_index].X.flatten(), label='hannum', ax=ax)
@@ -105,18 +131,25 @@ sns.despine()
 # ax.set_ylim((0,1))
 # %% 
 # Apply the offset and refit acceleration and bias
-offset = np.broadcast_to(amdata_wave3.obs.offset, shape=(amdata_wave3.shape[1], amdata_wave3.shape[0])).T
-amdata_wave3.X = amdata_wave3.X - offset
+# offset = np.broadcast_to(amdata_wave3.obs.offset, shape=(amdata_wave3.shape[1], amdata_wave3.shape[0])).T
+# amdata_wave3.X = amdata_wave3.X - offset
+amdata_wave3.obs.eta_0 = amdata_wave3.obs.eta_0 + amdata_wave3.obs.offset
+amdata_wave3.obs.meth_init  = amdata_wave3.obs.meth_init + amdata_wave3.obs.offset
+
 ab_maps = modelling_bio.person_model(amdata_wave3, return_MAP=True, return_trace=False, show_progress=True)['map']
+
 
 amdata_wave3.var['corr_acc'] = ab_maps['acc']
 amdata_wave3.var['corr_bias'] = ab_maps['bias']
 
-# %% 
-# Plot differences to ground truth
 
 acc_df = pd.concat([amdata_wave3.var[['corr_acc', 'not_corr_acc']], amdata_truth.var['retrained_acc']], axis=1)
 bias_df = pd.concat([amdata_wave3.var[['corr_bias', 'not_corr_bias']], amdata_truth.var['retrained_bias']], axis=1)
+
+
+# %% 
+# Plot differences to ground truth
+
 
 acc_df['corr_acc_diff'] = acc_df.corr_acc - acc_df.retrained_acc
 acc_df['notcorr_acc_diff'] = acc_df.not_corr_acc - acc_df.retrained_acc
@@ -125,23 +158,43 @@ bias_df['notcorr_bias_diff'] = bias_df.not_corr_bias - bias_df.retrained_bias
 df=pd.concat((acc_df, bias_df), axis=1)
 
 g = sns.JointGrid()
-sns.scatterplot(data=df, x='corr_acc_diff', y='corr_bias_diff', label='Corrected', ax=g.ax_joint)
-sns.scatterplot(data=df, x='notcorr_acc_diff', y='notcorr_bias_diff', label='Not Corrected', ax=g.ax_joint)
+sns.scatterplot(data=df, x='corr_acc_diff', y='corr_bias_diff', label='Corrected model', ax=g.ax_joint)
+sns.scatterplot(data=df, x='notcorr_acc_diff', y='notcorr_bias_diff', label='Not corrected model', ax=g.ax_joint)
 sns.kdeplot(data=df, x='corr_acc_diff', ax=g.ax_marg_x)
 sns.kdeplot(data=df, x='notcorr_acc_diff', ax=g.ax_marg_x)
 sns.kdeplot(data=df, y='corr_bias_diff', ax=g.ax_marg_y)
 sns.kdeplot(data=df, y='notcorr_bias_diff', ax=g.ax_marg_y)
 g.refline(y=0, x=0)
 
+g.fig.set_figwidth(3.6)
+g.fig.set_figheight(2.6)
+g.set_axis_labels(xlabel='Difference to retrained accuracy', ylabel='Difference to retrained bias')
+
 g.savefig('../results/3_jointplot_batch_correction_differences.svg')
 g.savefig('../results/3_jointplot_batch_correction_differences.png')
 
 # %% 
 # Plot differences to ground truth
+palette = [
+    '#E64B35FF', 
+    '#00A087FF',
+    '#3C5488FF', 
+    ]
+
 df=acc_df[['corr_acc','not_corr_acc','retrained_acc']].rename(columns={'corr_acc':'Corrected','not_corr_acc':'Not corrected','retrained_acc':'Retrained'}).melt(var_name='type', value_name='acc')
 df['bias'] = bias_df.melt()['value']
 
-g= sns.jointplot(df, x='acc', y='bias', hue='type')
+g = sns.JointGrid()
+sns.scatterplot(data=df, alpha=0.5, x='acc', y='bias', hue='type', palette=palette, ax=g.ax_joint)
+sns.kdeplot(data=df, x='acc', y='bias', hue='type', palette=palette, ax=g.ax_joint)
+sns.kdeplot(data=df, x='acc', hue='type', palette=palette, ax=g.ax_marg_x, legend=False)
+sns.kdeplot(data=df, y='bias', hue='type', palette=palette, ax=g.ax_marg_y, legend=False)
+g.refline(x=0,y=0)
+
+g.fig.set_figwidth(6)
+g.fig.set_figheight(4)
+
+# g= sns.jointplot(df, x='acc', y='bias', hue='type')
 g.savefig('../results/3_jointplot_batch_correction_param_distributions.svg')
 g.savefig('../results/3_jointplot_batch_correction_param_distributions.png')
 # %% 

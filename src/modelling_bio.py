@@ -75,6 +75,8 @@ def linear_sites(amdata, return_MAP=False, return_trace=True, cores=CORES, show_
 
     return res
 
+def bio_site_mean(ages, eta_0, omega, p):
+    return eta_0 + np.exp(-omega*ages)*(p-eta_0)
 
 def bio_sites(amdata, return_MAP=False, return_trace=True, show_progress=False, init_nuts='auto', target_accept=0.9, cores=CORES):
 
@@ -104,6 +106,7 @@ def bio_sites(amdata, return_MAP=False, return_trace=True, show_progress=False, 
         var_term_1 = (1-p)*np.power(eta_0,2) + p*np.power(eta_1,2)
 
         mean = eta_0 + np.exp(-omega*ages)*((p-1)*eta_0 + p*eta_1)
+        # mean = bio_site_mean(ages, eta_0, omega, p)
 
         variance = (var_term_0/N 
                 + np.exp(-omega*ages)*(var_term_1-var_term_0)/N 
@@ -361,6 +364,19 @@ def bio_model_stats_vect(amdata, t, acc=0, bias=0):
             + np.exp(-2*omega*t)*(var_init/np.power(N,2) - var_term_1/N)
         )
     return mean, variance
+
+def get_conf_int(amdata, t=np.linspace(0,100, 1_00)):
+
+    mean, variance = bio_model_stats(amdata, t)
+
+    a = ((1-mean)/variance - 1/mean)*np.power(mean,2)
+    b = a*(1/mean - 1)
+
+    conf_int = np.array(beta.interval(0.95, a, b))
+    low_conf = conf_int[0]
+    upper_conf = conf_int[1]
+
+    return mean, low_conf, upper_conf
 
 def bio_model_plot (amdata, alpha=1, fits=None, ax=None):
     """Plot the evolution of site predicted by bio_model"""
