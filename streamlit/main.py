@@ -1,10 +1,9 @@
-import sys
-sys.path.append("..")   # fix to import modules from root
-from src.general_imports import *
+import numpy as np
+import pandas as pd
+import anndata as ad
 import streamlit as st
 
 from src import modelling_bio
-from functools import partial
 import arviz as az
 import plotly.express as px
 from scipy.stats import f_oneway
@@ -21,7 +20,7 @@ selected_points = []
 use_default = st.checkbox('Use the default downsyndrome dataset')
 
 if use_default:
-    amdata_path = '../exports/downsyndrome.h5ad'
+    amdata_path = '../resources/downsyndrome.h5ad'
 
     @st.cache_data
     def load_amdata():
@@ -39,7 +38,7 @@ tab1, tab2, tab3, tab4 = st.tabs(["Upload", "Compute", "Analyse dset", 'Analyse 
 
 with tab1:
 
-    site_info_path = '../exports/wave3_acc_sites.csv' 
+    site_info_path = '../resources/wave3_acc_sites.csv' 
 
     @st.cache_data
     def load_site_info():
