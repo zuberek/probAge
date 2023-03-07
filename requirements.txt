@@ -1,0 +1,12 @@
+python
+numpy
+pandas
+pymc == 5
+plotly
+matplotlib
+scikit-learn
+statsmodels
+scipy
+seaborn
+anndata
+streamlit
