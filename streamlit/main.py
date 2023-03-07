@@ -1,12 +1,12 @@
 import numpy as np
 import pandas as pd
 import anndata as ad
+import pymc as pm
 
 import sys
 sys.path.append("..")   # fix to import modules from root
 import streamlit as st
 
-from src import modelling_bio
 import arviz as az
 import plotly.express as px
 from scipy.stats import f_oneway
@@ -14,6 +14,89 @@ from streamlit_plotly_events import plotly_events
 
 import plotly.io as pio
 pio.templates.default = "plotly"
+
+CHAINS = 4
+CORES = 1
+SITE_PARAMETERS = {
+    'eta_0':    'eta_0',
+    'omega':    'omega',
+    'p':        'meth_init',
+    'N':        'system_size',
+    'var_init': 'var_init'
+}
+
+def get_site_params():
+    return list(SITE_PARAMETERS.values())
+
+
+def person_model(amdata,
+                         return_trace=True,
+                         return_MAP=False,
+                         show_progress=False,
+                         init_nuts='auto',
+                         cores=CORES,
+                         map_method='L-BFGS-B'):
+
+    if show_progress: print(f'Modelling {amdata.shape[1]} participants')
+
+    # The data has two dimensions: participant and CpG site
+    coords = {"site": amdata.obs.index, "part": amdata.var.index}
+
+    # # create a numpy array of the participants ages
+    # # array of ages needs to be broadcasted into a matrix array for each CpG site
+    omega = np.broadcast_to(amdata.obs.omega, shape=(amdata.shape[1], amdata.shape[0])).T
+    eta_0 = np.broadcast_to(amdata.obs.eta_0, shape=(amdata.shape[1], amdata.shape[0])).T
+    p = np.broadcast_to(amdata.obs.meth_init, shape=(amdata.shape[1], amdata.shape[0])).T
+    var_init = np.broadcast_to(amdata.obs.var_init, shape=(amdata.shape[1], amdata.shape[0])).T
+    N = np.broadcast_to(amdata.obs.system_size, shape=(amdata.shape[1], amdata.shape[0])).T
+
+    age = amdata.var.age.values
+
+
+    # Define Pymc model
+    with pm.Model(coords=coords) as model:
+        
+        # Define model variables
+        acc = pm.Uniform('acc', lower=0.33, upper=3, dims='part')
+        bias = pm.Normal('bias', mu=0, sigma=0.1, dims='part')
+
+        # Useful variables
+        omega = acc*omega
+        eta_1 = 1-eta_0
+        
+        # model mean and variance
+        var_term_0 = eta_0*eta_1
+        var_term_1 = (1-p)*np.power(eta_0,2) + p*np.power(eta_1,2)
+
+
+        # mean = eta_0 + np.exp(-omega*age)*((p-1)*eta_0 + p*eta_1)
+        mean = eta_0 + np.exp(-omega*age)*((p-1)*eta_0 + p*eta_1) + bias
+
+        variance = (var_term_0/N 
+                + np.exp(-omega*age)*(var_term_1-var_term_0)/N 
+                + np.exp(-2*omega*age)*(var_init/np.power(N,2) - var_term_1/N)
+            )
+
+        # Define likelihood
+        obs = pm.Normal("obs",
+                            mu=mean,
+                            sigma = np.sqrt(variance), 
+                            dims=("site", "part"), 
+                            observed=amdata.X)
+
+        res = {}
+        if return_MAP:
+            res['map'] = pm.find_MAP(progressbar=show_progress,
+                                     method=map_method,
+                                     maxeval=10_000)
+            res['map']['acc'] = np.log2(res['map']['acc'])
+
+        if return_trace:
+            res['trace'] = pm.sample(1000, tune=1000, init=init_nuts,
+                                    chains=CHAINS, cores=cores,
+                                    progressbar=show_progress)
+
+    return res    
 
 
 '# ProbAge'
