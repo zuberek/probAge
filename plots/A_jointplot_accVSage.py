@@ -28,7 +28,7 @@ for age_bin in age_bins:
 
 # %%  
 # Run for a our acceleration
-CLOCK = 'Horvath'
+CLOCK = 'acc'
 
 bin_means = participants.groupby('age_bin')[CLOCK].mean().values
 bin_sds = participants.groupby('age_bin')[CLOCK].std().values
@@ -58,7 +58,9 @@ g.fig.subplots_adjust(top=0.7)
 g.savefig('../results/A_jointplot_accVSage1.svg')
 
 # %%  Run for a clock
-CLOCK = 'Horvath'
+CLOCK = 'acc'
+
+plt.rc('font', size=8) 
 
 bin_means = participants.groupby('age_bin')[CLOCK].mean().values
 bin_sds = participants.groupby('age_bin')[CLOCK].std().values
@@ -71,7 +73,7 @@ std_up = mean + 2*std
 std_down = mean - 2*std
 
 
-g = sns.JointGrid()
+g = sns.JointGrid(fontsize=8)
 sns.scatterplot(data=participants, x='age', y=CLOCK, alpha=0.3, hue='age_bin', 
                 palette="rocket",  hue_order=age_bins, ax=g.ax_joint, legend=False)
 sns.lineplot(x=bin_centers.flatten(), color='tab:blue', label='Mean', y=mean, ax=g.ax_joint)
@@ -81,6 +83,10 @@ sns.boxplot(data=participants, y=CLOCK, x=participants.age_bin, hue_order=age_bi
                 ax=g.ax_marg_y, palette="rocket", showfliers=False)
 # sns.kdeplot(data=participants, y='acc', hue=participants.age_bin, hue_order=age_bins, ax=g.ax_marg_y, 
 #                 palette="rocket", legend=False)
-g.fig.suptitle(f'{CLOCK} acceleration distribution in different age bins', y=0.8)
 g.fig.subplots_adjust(top=0.8)
 g.refline(y=0)
+g.set_axis_labels(xlabel='Age (years)', 
+                ylabel='Acceleration')
+plt.rc('font', size=16) 
+g.savefig('../results/A_jointplot_accVSage_our_acc.svg')
+# %%

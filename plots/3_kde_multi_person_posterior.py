@@ -65,7 +65,7 @@ extracted_df.acc = np.log2(extracted_df.acc)
 #                 legend=False, fill=False)
 
 
-maps= participants.loc[person_names].reset_index()[['index','acc', 'bias']]
+maps= participants.loc[person_names][['acc', 'bias']]
 
 g = sns.JointGrid(marginal_ticks=True,)
 sns.scatterplot(data=extracted_df, y='bias', x='acc', ax=g.ax_joint,
@@ -79,6 +79,10 @@ sns.kdeplot(data= extracted_df, y='bias', common_norm=True, legend=False, hue='p
 g.ax_marg_x.vlines(maps.values[:,0], ymin=0, ymax=1, colors=colors)
 g.ax_marg_y.hlines(maps.values[:,1], xmin=0, xmax=20, colors=colors)
 
-plot.save(ax, 'kde_multi_person_posterior', format='svg')
-plot.save(ax, 'kde_multi_person_posterior', format='png')
+g.fig.set_figwidth(6)
+g.fig.set_figheight(4)
+
+g.savefig('../results/kde_multi_person_posterior.svg')
+g.savefig('../results/kde_multi_person_posterior.png')
+
 

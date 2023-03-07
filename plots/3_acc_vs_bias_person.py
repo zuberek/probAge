@@ -1,3 +1,4 @@
+#%%
 %load_ext autoreload 
 %autoreload 2
 
@@ -14,12 +15,15 @@ amdata = ad.read_h5ad('../exports/wave3_acc.h5ad')
 
 mean, variance = modelling_bio.bio_model_stats(amdata[0], t=np.linspace(0,100, 100))
 
-modelling_bio.bio_model_plot(amdata[0])
+# modelling_bio.bio_model_plot(amdata[0])
 
-top_sites = amdata.sites.sort_values('eta_0').iloc[[0, -2]].index.values
+top_sites = amdata.obs.sort_values('eta_0').iloc[[0, -2]].index.values
+
+#%%
 
 fig, axes = plt.subplots(nrows=1, ncols=2)
 legend = [False, True]
+
 
 for i, site_index in enumerate(top_sites):
 
@@ -92,3 +96,5 @@ axes[0].set_ylabel('methylation')
 fig.set_figwidth(10)
 plt.rcParams['svg.fonttype'] = 'none'
 plt.savefig('../results/Modelling/acc_vs_bias.svg')
+
+#%%

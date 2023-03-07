@@ -22,7 +22,7 @@ ps = np.broadcast_to(amdata.obs.meth_init, shape=(xlim[1], amdata.shape[0])).T
 means = modelling_bio.bio_site_mean(t, etas, omegas, ps)
 
 legend_handles = [
-    mpatches.Patch(color=colors[1], label='Saturating Mean'),
+    mpatches.Patch(color=colors[1], label='Saturating SD'),
     mpatches.Patch(color='#F39B7FFF', label='Saturating Derivative'),
     mpatches.Patch(color=colors[0], label='Not Saturating'),
 ]
@@ -30,8 +30,11 @@ legend_handles = [
 #%%
 # PLOTTING ONE
 
+plt.rc('font', size=8) 
+ax = plot.row('', figsize=(3.6,2.6))
+sns.despine()
+
 # Saturating increasing sites
-ax = plot.row('Saturating increasing sites')
 for i, mean in enumerate(means[increasing]):
     color=colors[0]
     if amdata.obs[increasing].iloc[i].saturating_der: color = '#F39B7FFF'
@@ -43,14 +46,18 @@ ax.set_ylim((0,1))
 ax.axhline(y=0.05, color=colors[1], linestyle='dotted')
 ax.axhline(y=0.95, color=colors[1], linestyle='dotted')
 
+ax.set_xlabel('Age (years)')
+ax.set_ylabel('Methylation level (beta values)')
+
 plot.save(ax, 'A_lineplot_filtered_increasing_saturating_means', format='svg')
 plot.save(ax, 'A_lineplot_filtered_increasing_saturating_means', format='png')
 
 #%%
-# PLOTTING TWO
-
 # Saturating decreasing sites
-ax = plot.row('Saturating decreasing sites')
+plt.rc('font', size=8) 
+ax = plot.row('', figsize=(3.6,2.6))
+sns.despine()
+
 for i, mean in enumerate(means[~increasing]):
     color=colors[0]
     if amdata.obs[~increasing].iloc[i].saturating_der: color = '#F39B7FFF'
@@ -66,6 +73,10 @@ ax.legend(handles=legend_handles, loc='right')
 ax.set_ylim((0,1))
 ax.axhline(y=0.05, color='tab:red', linestyle='dotted')
 ax.axhline(y=0.95, color='tab:red', linestyle='dotted')
+
+ax.set_xlabel('Age (years)')
+ax.set_ylabel('Methylation level (beta values)')
+
 
 plot.save(ax, 'A_lineplot_filtered_decreasing_saturating_means', format='svg')
 plot.save(ax, 'A_lineplot_filtered_decreasing_saturating_means', format='png')
