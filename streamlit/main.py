@@ -1,6 +1,9 @@
 import numpy as np
 import pandas as pd
 import anndata as ad
+
+import sys
+sys.path.append("..")   # fix to import modules from root
 import streamlit as st
 
 from src import modelling_bio
