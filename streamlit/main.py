@@ -129,7 +129,7 @@ with tab1:
     @st.cache_data
     def load_site_info():
         site_info = pd.read_csv(site_info_path, index_col=0)
-        params = modelling_bio.get_site_params()
+        params = get_site_params()
         return site_info, params
     site_info, params = load_site_info()
 
@@ -200,7 +200,7 @@ with tab4:
                 
                 @st.cache_data
                 def compute_trace(person_index):
-                    return modelling_bio.person_model(amdata=amdata[:, person_index],
+                    return person_model(amdata=amdata[:, person_index],
                         return_trace=True, return_MAP=False, show_progress=True)['trace']
                 trace=compute_trace(person_index)
 
@@ -214,5 +214,5 @@ with tab4:
 
 # person_index = 'GSM1272194'
 # amdata.var.loc[person_index]
-# trace = modelling_bio.person_model(amdata=amdata[:, person_index],
+# trace = person_model(amdata=amdata[:, person_index],
 #                         return_trace=True, return_MAP=False, show_progress=True)['trace']
