@@ -161,16 +161,16 @@ with tab3:
         fig = px.scatter(data_frame=amdata.var, x='acc', y='bias', color='status', 
                         marginal_x='box', marginal_y='box',hover_name=amdata.var.index)
 
-        st.plotly_chart(fig,theme=None)
+        # st.plotly_chart(fig,theme=None)
 
-        # selected_points = plotly_events(fig)
+        selected_points = plotly_events(fig)
         
         # selected_points
         # selected_points[0]['x']
         if len(selected_points)>0:
             mask = amdata.var['acc']==selected_points[0]['x']
             person_index = amdata.var.iloc[np.nonzero(mask.values)[0][0]].name
-            df=amdata.var.loc[person_index][:5]
+            df=amdata.var.loc[person_index]
             # df[['acc','bias']] = df[['acc','bias']].astype('float').round(2)
             df
     else:
@@ -184,10 +184,10 @@ with tab4:
         'Person index: ', person_index
 
 
-        if st.button('Reset selected person'):
-            person_index = None
+        # if st.button('Reset selected person'):
+        #     person_index = None
 
-        '---'
+        # '---'
 
         selection = st.selectbox(label='Select participant', options=amdata.var.index)
         person_index = selection
