@@ -15,6 +15,8 @@ from streamlit_plotly_events import plotly_events
 import plotly.io as pio
 pio.templates.default = "plotly"
 
+# TODO Provide a list cpg sites to filter out if the uploaded dataset is too big
+
 CHAINS = 4
 CORES = 1
 SITE_PARAMETERS = {
@@ -120,7 +122,7 @@ if use_default:
 
     # amdata
 
-tab1, tab2, tab3, tab4 = st.tabs(["Upload", "Compute", "Analyse dset", 'Analyse person'])
+tab1, tab2, tab3 = st.tabs(["Upload", "Compute", "Analyse"])
 
 with tab1:
 
@@ -167,50 +169,72 @@ with tab3:
         
         # selected_points
         # selected_points[0]['x']
-        if len(selected_points)>0:
-            mask = amdata.var['acc']==selected_points[0]['x']
-            person_index = amdata.var.iloc[np.nonzero(mask.values)[0][0]].name
-            df=amdata.var.loc[person_index]
-            # df[['acc','bias']] = df[['acc','bias']].astype('float').round(2)
-            df
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            if len(selected_points)>0:
+                mask = amdata.var['acc']==selected_points[0]['x']
+                person_index = amdata.var.iloc[np.nonzero(mask.values)[0][0]].name
+                df=amdata.var.loc[person_index]
+                # df[['acc','bias']] = df[['acc','bias']].astype('float').round(2)
+                df
+
+        with col2:
+            if person_index is not None:
+                f'Analysing the person **{person_index}**'
+                # amdata.var.loc[person_index]
+
+                if st.button('Compute the posterior distributtion'):
+                    
+                    @st.cache_data
+                    def compute_trace(person_index):
+                        return person_model(amdata=amdata[:, person_index],
+                            return_trace=True, return_MAP=False, show_progress=True)['trace']
+                    trace=compute_trace(person_index)
+
+                    # trace.posterior.part.values
+
+                    st.pyplot(az.plot_pair(trace,kind='kde').get_figure())
+            
     else:
         'Upload a dataset or use the default downsyndrome dataset'
 
-with tab4:
+# with tab4:
 
-    if amdata is not None:
+#     if amdata is not None:
 
-        if use_default: f'**Using the default downsyndrome dataset of {amdata.shape[1]}**'
-        'Person index: ', person_index
+#         if use_default: f'**Using the default downsyndrome dataset of {amdata.shape[1]}**'
+#         'Person index: ', person_index
 
 
-        # if st.button('Reset selected person'):
-        #     person_index = None
+#         # if st.button('Reset selected person'):
+#         #     person_index = None
 
-        # '---'
+#         # '---'
 
-        selection = st.selectbox(label='Select participant', options=amdata.var.index)
-        person_index = selection
+#         selection = st.selectbox(label='Select participant', options=amdata.var.index)
+#         person_index = selection
 
-        if person_index is not None:
-            f'Analysing the person **{person_index}**'
-            amdata.var.loc[person_index]
+#         if person_index is not None:
+#             f'Analysing the person **{person_index}**'
+#             amdata.var.loc[person_index]
 
-            if st.button('Compute the posterior distributtion'):
+#             if st.button('Compute the posterior distributtion'):
                 
-                @st.cache_data
-                def compute_trace(person_index):
-                    return person_model(amdata=amdata[:, person_index],
-                        return_trace=True, return_MAP=False, show_progress=True)['trace']
-                trace=compute_trace(person_index)
+#                 @st.cache_data
+#                 def compute_trace(person_index):
+#                     return person_model(amdata=amdata[:, person_index],
+#                         return_trace=True, return_MAP=False, show_progress=True)['trace']
+#                 trace=compute_trace(person_index)
 
-                trace.posterior.part.values
+#                 trace.posterior.part.values
 
-                st.pyplot(az.plot_pair(trace,kind='kde').get_figure())
+#                 st.pyplot(az.plot_pair(trace,kind='kde').get_figure())
             
 
-    else:
-        'Upload a dataset or use the default downsyndrome dataset'
+#     else:
+#         'Upload a dataset or use the default downsyndrome dataset'
 
 # person_index = 'GSM1272194'
 # amdata.var.loc[person_index]
