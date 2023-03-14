@@ -1,19 +1,32 @@
+# %% 
+# IMPORTS
 import numpy as np
 import pandas as pd
 import anndata as ad
 import pymc as pm
 
 import sys
-sys.path.append("..")   # fix to import modules from root
+# sys.path.append("..")   # fix to import modules from root
 import streamlit as st
-
+import pathlib
+# sys.path.append(str(pathlib.Path().absolute()).split("/streamlit")[0] + "/src")
 import arviz as az
 import plotly.express as px
 from scipy.stats import f_oneway
 from streamlit_plotly_events import plotly_events
-
+sys.path.append('src')
+# sys.path.append('src')
+sys.path
 import plotly.io as pio
 pio.templates.default = "plotly"
+
+import contextlib 
+
+import src.modelling_bio  as modelling_bio
+# from src.modelling_bio import person_model
+
+site_info_path = 'resources/wave3_acc_sites.csv' 
+
 
 # TODO Provide a list cpg sites to filter out if the uploaded dataset is too big
 
@@ -29,6 +42,12 @@ SITE_PARAMETERS = {
 
 def get_site_params():
     return list(SITE_PARAMETERS.values())
+
+def drop_nans(amdata):
+    nans = np.isnan(amdata.X).sum(axis=1).astype('bool')
+    print(f'There were {nans.sum()} NaNs dropped')
+    # Use the ~ character to flip the boolean
+    return amdata[~nans]
 
 
 def person_model(amdata,
@@ -101,60 +120,191 @@ def person_model(amdata,
     return res    
 
 
-'# ProbAge'
+# %% 
+# LOAD DATA
 amdata = None
 person_index = None
 selected_points = []
+
+@st.cache_data
+def load_site_info():
+    site_info = pd.read_csv(site_info_path, index_col=0)
+    params = get_site_params()
+    return site_info, params
+site_info, params = load_site_info()
+
+@st.cache_data
+def convert_df(site_info):
+    df = site_info.reset_index()['index'].to_frame()
+    df.index.name = 'index'
+    df = df.rename(columns={'index':'name'})
+    return df.to_csv().encode('utf-8')
+
+csv = convert_df(site_info)
+
+# %% 
+# STREAMLIT
+'# ProbBioAge'
+
+
 use_default = st.checkbox('Use the default downsyndrome dataset')
 
 if use_default:
     amdata_path = 'resources/downsyndrome.h5ad'
 
     @st.cache_data
-    def load_amdata():
+    def load_def_amdata():
         amdata = ad.read_h5ad(amdata_path)
         amdata.var.status= amdata.var.status.astype('str')
         amdata.var.loc[amdata.var.status=='Down syndrome', 'status'] = 'disease'
         amdata.var[['acc','bias']] = amdata.var[['acc','bias']].astype('float').round(3)
         return amdata
 
-    amdata = load_amdata()
+    amdata = load_def_amdata()
 
-    # amdata
 
-tab1, tab2, tab3 = st.tabs(["Upload", "Compute", "Analyse"])
 
-with tab1:
+if use_default:
+    tab_default = st.tabs(['**Analyse**'])
+    tab1, tab2, tab3 = contextlib.nullcontext(), contextlib.nullcontext(), contextlib.nullcontext()
+if not use_default:
+    tab_default = contextlib.nullcontext()
+    tab1, tab2, tab3 = st.tabs(['**Upload**', '**Correct**', '**Analyse**'])
 
-    site_info_path = 'resources/wave3_acc_sites.csv' 
 
-    @st.cache_data
-    def load_site_info():
-        site_info = pd.read_csv(site_info_path, index_col=0)
-        params = get_site_params()
-        return site_info, params
-    site_info, params = load_site_info()
 
-    uploaded_file = st.file_uploader(label='Upload control dataset', type=['csv'])
+if not use_default:
+    with tab1:
+        
+        data = None
+        meta = None
 
-    @st.cache_data
-    def load_uploaded():
-        return pd.read_csv(uploaded_file, index_col=0)
-    if uploaded_file is not None:
-        data = load_uploaded()
+        @st.cache_data
+        def load_uploaded(uploaded_file):
+            return pd.read_csv(uploaded_file, index_col=0)
+        
+
+        '**Upload your methylation data**'
+        with st.expander('Expand for more information on the correct format'):
+            st.markdown("""
+                - All methylation values should be converted to beta values
+                - Each row should correspond to a CpG site, each columns to a participant
+                - The first column should be an index column with CpG site names
+                - The first row should be an index row with participant indexes
+                
+                <br>
+                Correctly formated dataset should look like this after loading:
+            """, unsafe_allow_html=True)
+            st.image("streamlit/correct_data_format.png")
+
+        uploaded_file1 = st.file_uploader(label='Upload your dataset',label_visibility='collapsed', type=['csv'])
+        if uploaded_file1 is not None:
+            data = load_uploaded(uploaded_file1)
+            'File dimensions: ', data.shape
+            st.dataframe(data.iloc[:5,:5])
+
+        ''
+        ''
+
+        '**Upload your participant metadata**'
+        with st.expander('Expand for more information on the correct format'):
+            st.markdown("""
+                - Each row should correspond to a participant, each column to distinct information
+                - The first column should be an index column with participant indexes
+                - The file should at least contain columns named exactly 'age' and 'status'
+                    - Other columns are allowed and can be used in the downstream analysis
+                - The 'age' column shoud contain participant age in years (can be a float)
+                - The 'status' should have a value either 'healthy' or 'disease'
+                
+                <br>
+                Correctly formated dataset should look something like this after loading:
+            """, unsafe_allow_html=True)
+            st.image("streamlit/correct_metadata_format.png")
+        uploaded_file2 = st.file_uploader(label='Upload your metadata',label_visibility='collapsed', type=['csv'])
+        if uploaded_file2 is not None:
+            meta = load_uploaded(uploaded_file2)
+            correct = True
+
+            if 'age' not in meta.columns:
+                st.error("The metadata does not have 'age' column!")
+                correct = False
+
+            if 'status' not in meta.columns:
+                st.error("The metadata does not have 'status' column!")
+                correct = False
+
+            if (~meta.status.isin(['disease', 'healthy'])).any():
+                st.error("The metadata 'status' column has values different than 'disease' or 'healthy'!")
+                correct = False
+
+            if correct:
+                'File dimensions: ', meta.shape
+                st.dataframe(meta.iloc[:5,:3])
+            else:
+                meta = None
+
+        ''
+        ''
+
+        'Download a list of required CpG sites to filter your dataset (in case your dataset is too big)'
+        st.download_button(
+            label="⇩ Download CSV (3.6 kB)",
+            data=csv,
+            file_name='ProbBioAge_cpgs.csv',
+            mime='text/csv',
+        )
+
+    with tab2:
+        if data is None or meta is None:
+            st.warning('Upload the data and the metadata to run the batch correction')
+        else:
+
+            if st.button('Run the batch correction'):
+
+                t = st.empty()
+                t.markdown('Reading the data and metadata... ')
+                @st.cache_data
+                def load_amdata(data, meta):
+                    return ad.AnnData(X= data.values,
+                            dtype=np.float32,
+                            obs= pd.DataFrame(index=data.index),
+                            var= meta)
+                try:
+                    amdata = load_amdata(data, meta)
+                    t.markdown('Reading the data and metadata ✅')
+                except Exception as e:
+                    st.error("Error loading the data. Make sure it's in the correct format")
+                    with st.expander('Expand error log'):
+                        e
+                
+                t = st.empty()
+                t.markdown('Preprocessing... ')
+                intersection = site_info.index.intersection(amdata.obs.index)
+                amdata = drop_nans(amdata)
+                amdata.X = np.where(amdata.X == 0, 0.00001, amdata.X)
+                amdata.X = np.where(amdata.X == 1, 0.99999, amdata.X)
+                amdata.obs[params + ['r2']] = site_info[params + ['r2']]
+                t.markdown('Preprocessing ✅')
+
+
+                t = st.empty()
+                t.markdown('Inferring site offsets... ')
+                maps = modelling_bio.site_offsets(amdata, return_MAP=True, return_trace=False, show_progress=True)['map']
+                amdata.obs['offset'] = maps['offset']
+                sns.histplot(amdata.obs.offset)
+                amdata = amdata[amdata.obs.sort_values('offset').index]
+
 
 with tab3:
-
-    'Amdata: ', amdata
+    'Dataset: ', amdata
 
     if amdata is not None:
 
-        # if use_default: f'**Using the default downsyndrome dataset of {amdata.shape[1]}**'
         
         @st.cache_data
         def compute_anova():
             acc_control = amdata[:, amdata.var.status == 'healthy'].var['acc'].values
-            acc_down = amdata[:, amdata.var.status == 'Down syndrome'].var['acc'].values
+            acc_down = amdata[:, amdata.var.status == 'disease'].var['acc'].values
             return f_oneway(acc_control, acc_down)
         anova = compute_anova()
         st.write(f'The ANOVA statistic is {round(anova[0],2)} and pvalue is {round(anova[1],2)}')
@@ -163,6 +313,12 @@ with tab3:
         fig = px.scatter(data_frame=amdata.var, x='acc', y='bias', color='status', 
                         marginal_x='box', marginal_y='box',hover_name=amdata.var.index)
 
+        fig.update_layout(legend=dict(
+            yanchor="top",
+            y=0.99,
+            xanchor="right",
+            x=0.99
+        ))
         # st.plotly_chart(fig,theme=None)
 
         selected_points = plotly_events(fig)
@@ -198,7 +354,21 @@ with tab3:
                     st.pyplot(az.plot_pair(trace,kind='kde').get_figure())
             
     else:
-        'Upload a dataset or use the default downsyndrome dataset'
+        st.warning('Either use the default downsyndrome dataset, or upload the data and the metadata and run the batch correction to analyse the dataset')
+
+
+# Use <br> below to print the lines closer
+''
+
+st.markdown("""
+<br><br><br>
+
+---
+
+For reference, check out our preprint: https://doi.org/10.1101/2023.03.01.530570 <br>
+For code, check out our repository: https://github.com/zuberek/ProbBioAge
+""", unsafe_allow_html=True
+)
 
 # with tab4:
 
