@@ -1,5 +1,6 @@
 numpy==1.24.2
 pandas
+tqdm
 pymc == 5
 plotly
 matplotlib
