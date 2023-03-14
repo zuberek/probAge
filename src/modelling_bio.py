@@ -5,7 +5,7 @@ import numpy as np
 from scipy.stats import norm, beta
 from scipy.optimize import minimize
 # from pymc.sampling_jax import sample_numpyro_nuts
-from pymc.sampling import jax
+# from pymc.sampling import jax
 import pandas as pd
 
 import seaborn as sns
@@ -19,7 +19,7 @@ from operator import attrgetter
 # import color palette
 import sys
 sys.path.append("..") 
-from src.general_imports import sns_colors
+# from src.general_imports import sns_colors
 
 from src.utils import plot
 
