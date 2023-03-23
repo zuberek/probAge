@@ -81,7 +81,7 @@ def bio_site_mean(ages, eta_0, omega, p):
 def bio_sites(amdata, return_MAP=False, return_trace=True, show_progress=False, init_nuts='auto', target_accept=0.9, cores=CORES):
 
     if show_progress: print(f'Modelling {amdata.shape[0]} bio_sites')
-    ages = np.broadcast_to(amdata.participants.age, shape=(amdata.shape[0], amdata.shape[1])).T
+    ages = np.broadcast_to(amdata.var.age, shape=(amdata.shape[0], amdata.shape[1])).T
     coords = {'sites': amdata.obs.index.values,
             'participants': amdata.var.index.values}
 
