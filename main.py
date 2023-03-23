@@ -31,6 +31,7 @@ amdata = None
 person_index = None
 data = None
 meta = None
+site_meta = None
 selected_points = []
 trace = None
 
@@ -239,63 +240,81 @@ if not st.session_state.DEFAULTED:
             You can go to the next tab to infer the participant data.
             """)
 
-            from sklearn.feature_selection import r_regression
+            st.warning("""
+            You can also upload site parameters if you have already trained the model.
+            """)
 
-            @st.cache_data
-            def training(_amdata, r2_threshold):
-
-                t = st.empty()
-                t.markdown('Computing R2 for every site... ')
-                my_bar = st.progress(0)
-                r2_array = []
-                for i, site_index in enumerate(_amdata.obs.index):
-                    my_bar.progress(i/_amdata.n_obs)
-                    r2_array.append(r_regression(_amdata[site_index].X.T, _amdata.var.age)[0]**2)
-                _amdata.obs['r2'] = r2_array
-                my_bar.empty()
-                t.markdown('Computing R2 for every site ✅')
-
-                selected, dropped = (_amdata.obs.r2>r2_threshold).value_counts().values
-                _amdata = _amdata[_amdata.obs.r2>r2_threshold]
-                'Selected ', selected, ' sites based on the r2 threshold (dropped ', dropped, ' sites)'
-
-                t = st.empty()
-                t.markdown('Computing MAPs for site parameters... ')
-                site_maps = modelling_bio.bio_sites(_amdata, return_MAP=True, return_trace=False, show_progress=True)['map']
-                for param in modelling_bio.get_site_params():
-                    _amdata.obs[param] = site_maps[param]
-                t.markdown('Computing MAPs for site parameters ✅')
-
-
-                _amdata.obs['abs_der'] = modelling_bio.mean_abs_derivative_at_point(_amdata, t=90)
-                _amdata.obs['saturating_std'] = modelling_bio.is_saturating_vect(_amdata)
-                _amdata.obs['saturating_der'] = _amdata.obs.abs_der<0.001
-
-                _amdata.obs['saturating'] = _amdata.obs.saturating_std | _amdata.obs.saturating_der
-
-                selected, dropped = _amdata.obs.saturating.value_counts().values
-                'Selected ', selected, ' sites based on the saturation threshold (dropped ', dropped, ' sites)'
-                # amdata = amdata[~amdata.obs.saturating]
-                # 'Selected ', selected, ' sites based on the r2 threshold (dropped ', dropped, ' sites)'
-
-                return _amdata
-
-            r2_threshold = st.slider('R2 threshold for sites that are selected for training', 
-                                     min_value=0.0, max_value=1.0, value=0.2)
-            if st.button('Run the training'):
-                amdata=training(amdata, r2_threshold)
-
-                amdata
-
-                f'Download the learnt site parameters for {amdata.shape[0]} sites'
-                st.download_button(
-                    label="⇩ Download CSV",
-                    data=amdata.obs.to_csv().encode('utf-8'),
-                    file_name='ProbBioAge_sites.csv',
-                    mime='text/csv',
-                )
-
+            uploaded_file3 = st.file_uploader(label='Upload your site parameters',label_visibility='collapsed', type=['csv'])
+            if uploaded_file3 is not None:
+                site_meta = load_uploaded(uploaded_file3)
+                'File dimensions: ', site_meta.shape
+                amdata = amdata[site_meta.index]
+                amdata.obs = site_meta
                 st.session_state.TRAINED = True
+            
+            if not st.session_state.TRAINED:
+
+                '---'
+
+                '### Site model training'
+
+                from sklearn.feature_selection import r_regression
+
+                @st.cache_data
+                def training(_amdata, r2_threshold):
+
+                    t = st.empty()
+                    t.markdown('Computing R2 for every site... ')
+                    my_bar = st.progress(0)
+                    r2_array = []
+                    for i, site_index in enumerate(_amdata.obs.index):
+                        my_bar.progress(i/_amdata.n_obs)
+                        r2_array.append(r_regression(_amdata[site_index].X.T, _amdata.var.age)[0]**2)
+                    _amdata.obs['r2'] = r2_array
+                    my_bar.empty()
+                    t.markdown('Computing R2 for every site ✅')
+
+                    selected, dropped = (_amdata.obs.r2>r2_threshold).value_counts().values
+                    _amdata = _amdata[_amdata.obs.r2>r2_threshold]
+                    'Selected ', selected, ' sites based on the r2 threshold (dropped ', dropped, ' sites)'
+
+                    t = st.empty()
+                    t.markdown('Computing MAPs for site parameters... ')
+                    site_maps = modelling_bio.bio_sites(_amdata, return_MAP=True, return_trace=False, show_progress=True)['map']
+                    for param in modelling_bio.get_site_params():
+                        _amdata.obs[param] = site_maps[param]
+                    t.markdown('Computing MAPs for site parameters ✅')
+
+
+                    _amdata.obs['abs_der'] = modelling_bio.mean_abs_derivative_at_point(_amdata, t=90)
+                    _amdata.obs['saturating_std'] = modelling_bio.is_saturating_vect(_amdata)
+                    _amdata.obs['saturating_der'] = _amdata.obs.abs_der<0.001
+
+                    _amdata.obs['saturating'] = _amdata.obs.saturating_std | _amdata.obs.saturating_der
+
+                    selected, dropped = _amdata.obs.saturating.value_counts().values
+                    'Selected ', selected, ' sites based on the saturation threshold (dropped ', dropped, ' sites)'
+                    # amdata = amdata[~amdata.obs.saturating]
+                    # 'Selected ', selected, ' sites based on the r2 threshold (dropped ', dropped, ' sites)'
+
+                    return _amdata
+
+                r2_threshold = st.slider('R2 threshold for sites that are selected for training', 
+                                        min_value=0.0, max_value=1.0, value=0.2)
+                if st.button('Run the training'):
+                    amdata=training(amdata, r2_threshold)
+
+                    amdata
+
+                    f'Download the learnt site parameters for {amdata.shape[0]} sites'
+                    st.download_button(
+                        label="⇩ Download CSV",
+                        data=amdata.obs.to_csv().encode('utf-8'),
+                        file_name='ProbBioAge_sites.csv',
+                        mime='text/csv',
+                    )
+
+                    st.session_state.TRAINED = True
 
 
     with tab3:
@@ -303,59 +322,66 @@ if not st.session_state.DEFAULTED:
             st.warning('Upload the data and the metadata to run the batch correction.')
         else:
 
-            @st.cache_data
-            def batch_correction(data, meta):
+            def revert_inference():
+                st.session_state.INFERRED=False
+            if st.session_state.TRAINED:
+                st.warning('Select whether you want to refer participant data using the trained model or the batch corrected Generation Scotland model.')
+                status = st.radio(label='Inference type', on_change=revert_inference,
+                                  options=['Run using the trained model','Run using the corrected GS model'],
+                                  label_visibility='collapsed')
+            else:
+                status='Run using the corrected GS model'
 
-                t = st.empty()
-                t.markdown('Reading the data and metadata... ')
-                try:
-                    amdata = ad.AnnData(X= data.values,
-                            dtype=np.float32,
-                            obs= pd.DataFrame(index=data.index),
-                            var= meta)
-                    
-                except Exception as e:
-                    st.error("Error loading the data. Make sure it's in the correct format")
-                    with st.expander('Expand error log'):
-                        e
-                t.markdown('Reading the data and metadata ✅')
+            @st.cache_data
+            def batch_correction(_amdata):
 
                 t = st.empty()
                 t.markdown('Preprocessing... ')
-                intersection = site_info.index.intersection(amdata.obs.index)
-                amdata = amdata[intersection]
-                amdata = preprocess_func.drop_nans(amdata)
-                amdata.X = np.where(amdata.X == 0, 0.00001, amdata.X)
-                amdata.X = np.where(amdata.X == 1, 0.99999, amdata.X)
-                amdata.obs[params + ['r2']] = site_info[params + ['r2']]
+                intersection = site_info.index.intersection(_amdata.obs.index)
+                _amdata = _amdata[intersection]
+                _amdata.obs[params + ['r2']] = site_info[params + ['r2']]
                 t.markdown('Preprocessing ✅')
 
                 t = st.empty()
                 t.markdown('Inferring site offsets... ')
-                maps = modelling_bio.site_offsets(amdata[:,amdata.var.control=='True'], return_MAP=True, return_trace=False, show_progress=True)['map']
-                amdata.obs['offset'] = maps['offset']
-                amdata = amdata[amdata.obs.sort_values('offset').index]
+                maps = modelling_bio.site_offsets(_amdata[:,_amdata.var.control=='True'], return_MAP=True, return_trace=False, show_progress=True)['map']
+                _amdata.obs['offset'] = maps['offset']
+                _amdata = _amdata[_amdata.obs.sort_values('offset').index]
                 t.markdown('Inferring site offsets ✅')
 
                 t = st.empty()
                 t.markdown('Inferring participant accelerations and biases... ')
-                amdata.obs.eta_0 = amdata.obs.eta_0 + amdata.obs.offset
-                amdata.obs.meth_init  = amdata.obs.meth_init + amdata.obs.offset
-                ab_maps = modelling_bio.person_model(amdata, return_MAP=True, return_trace=False, show_progress=True)['map']
-                amdata.var['acc'] = ab_maps['acc']
-                amdata.var['bias'] = ab_maps['bias']
+                _amdata.obs.eta_0 = _amdata.obs.eta_0 + _amdata.obs.offset
+                _amdata.obs.meth_init  = _amdata.obs.meth_init + _amdata.obs.offset
+                ab_maps = modelling_bio.person_model(_amdata, return_MAP=True, return_trace=False, show_progress=True)['map']
+                _amdata.var['acc'] = ab_maps['acc']
+                _amdata.var['bias'] = ab_maps['bias']
                 t.markdown('Inferring participant accelerations and biases ✅')
-                return amdata
+                return _amdata
+            
+            @st.cache_data
+            def inference(_amdata):
+                t = st.empty()
+                t.markdown('Inferring participant accelerations and biases... ')
+                ab_maps = modelling_bio.person_model(_amdata, return_MAP=True, return_trace=False, show_progress=True)['map']
+                _amdata.var['acc'] = ab_maps['acc']
+                _amdata.var['bias'] = ab_maps['bias']
+                t.markdown('Inferring participant accelerations and biases ✅')
+                return _amdata
 
-            if st.button('Run the batch correction'):
+            if st.button('Run the inference'):
 
                 col1, col2 = st.columns(2)
 
                 with col1:
-                    amdata = batch_correction(data, meta)
+                    if status=='Run using the corrected GS model':
+                        amdata = batch_correction(amdata)
+                    if status=='Run using the trained model':
+                        amdata = inference(amdata)
                     'Dataset: ', amdata
                 with col2:
-                    st.pyplot(sns.histplot(amdata.obs.offset).get_figure())
+                    if status=='Run using the corrected GS model':
+                        st.pyplot(sns.histplot(amdata.obs.offset).get_figure())
 
                 '---'
 
