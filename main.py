@@ -117,6 +117,7 @@ if not st.session_state.DEFAULTED:
 if not st.session_state.DEFAULTED:
     with tab1:
 
+        tab1_status = st.container()
 
         @st.cache_data
         def load_uploaded(uploaded_file):
@@ -218,6 +219,10 @@ if not st.session_state.DEFAULTED:
             amdata=load_amdata(data, meta)
             st.session_state.UPLOADED = True
 
+            with tab1_status:
+                st.success('Data is succesfully uploaded. You can move to the next tab', icon="✅")
+
+
         ''
         ''
 
@@ -231,6 +236,9 @@ if not st.session_state.DEFAULTED:
         )
 
     with tab2:
+
+        tab2_status = st.container()
+
         if not st.session_state.UPLOADED:
             st.warning('Upload the data and the metadata to run the training.')
         else:
@@ -251,6 +259,8 @@ if not st.session_state.DEFAULTED:
                 amdata = amdata[site_meta.index]
                 amdata.obs = site_meta
                 st.session_state.TRAINED = True
+                with tab2_status:
+                    st.success('Training finished succesfully. You can move to the next tab', icon="✅")
             
             if not st.session_state.TRAINED:
 
@@ -316,8 +326,15 @@ if not st.session_state.DEFAULTED:
 
                     st.session_state.TRAINED = True
 
+                    with tab2_status:
+                        st.success('Training finished succesfully. You can move to the next tab', icon="✅")
+
+
 
     with tab3:
+
+        tab3_status = st.container()
+
         if not st.session_state.UPLOADED:
             st.warning('Upload the data and the metadata to run the batch correction.')
         else:
@@ -394,6 +411,10 @@ if not st.session_state.DEFAULTED:
                 )
 
                 st.session_state.INFERRED = True
+
+                with tab3_status:
+                    st.success('Inference finished succesfully. You can move to the next tab', icon="✅")
+
 
 
 
