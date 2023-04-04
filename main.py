@@ -87,6 +87,8 @@ def switch_inferred():
 
 '# ProBAge'
 
+st.warning('This is a protype version of the app. There very might be bugs which we are really sorry about! If you find any, please send an email to j.k.dabrowski@ed.ac.uk')
+
 if st.checkbox('Use the default downsyndrome dataset'):
     st.session_state.DEFAULTED = True
     st.session_state.INFERRED = False
