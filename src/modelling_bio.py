@@ -465,7 +465,7 @@ def is_saturating_vect(amdata):
     
     intervals['saturating'] = False
     intervals.loc[intervals[[0,1]].min(axis=1)< 0.05, 'saturating'] = True
-    intervals.loc[intervals[[0,1]].min(axis=1)>0.95, 'saturating'] = True
+    intervals.loc[intervals[[2,3]].max(axis=1)>0.95, 'saturating'] = True
     
     return intervals['saturating']
 
