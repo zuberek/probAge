@@ -4,7 +4,7 @@ import sys
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
 
-from src import modelling
+from src import modelling_old
 import arviz as az
 
 import pickle
@@ -22,7 +22,7 @@ amdata = amdata_src.AnnMethylData('../exports/wave1_linear.h5ad')
 with Pool(15, maxtasksperchild=1) as p:
     results = list(tqdm(
             iterable= p.imap(
-                func=modelling.fit_and_compare,
+                func=modelling_old.fit_and_compare,
                 iterable=amdata[:10], 
                 ), 
             total=amdata.n_obs))
@@ -41,16 +41,16 @@ for i in range(0, n_participants, chunk_size):
 with Pool(maxtasksperchild=1) as p:
     results = list(tqdm(
             iterable= p.imap(
-                func=modelling.person_model,
+                func=modelling_old.person_model,
                 iterable=amdata_chunks, 
                 ), 
             total=len(amdata_chunks)))
 
 traces = results[0]['trace']
-modelling.make_clean_trace(traces)
+modelling_old.make_clean_trace(traces)
 if len(results) > 1:
     for trace in tqdm(results[1:]):
-        modelling.concat_traces(traces, trace['trace'], dim='part')
+        modelling_old.concat_traces(traces, trace['trace'], dim='part')
 
 to_save = ['mean', 'sd', 'hdi_3%', 'hdi_97%']
 to_save_acc = [f'acc_{col}' for col in to_save]
