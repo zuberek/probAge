@@ -39,6 +39,15 @@ SITE_PARAMETERS = {
 def get_site_params():
     return list(SITE_PARAMETERS.values())
 
+def chunkify_sites(amdata, N_CORES=15):
+    chunk_size = (amdata.shape[0]//N_CORES)
+    n_sites = amdata.shape[0]
+    amdata_chunks = []
+    for i in range(0, n_sites, chunk_size):
+        amdata_chunks.append(amdata[i:i+chunk_size].copy())
+    return amdata_chunks
+
+
 def linear_sites(amdata, return_MAP=False, return_trace=True, cores=CORES, show_progress=False):
 
     ages = np.broadcast_to(amdata.participants.age, shape=(amdata.n_sites, amdata.n_participants)).T
@@ -414,8 +423,8 @@ def bio_model_plot (amdata, alpha=1, fits=None, ax=None):
         sns.lineplot(x=[xlim[0],xlim[1]], y=std2_minus, ax=ax, color='tab:orange')
         
     sns.lineplot(x=t, y=mean, color='tab:blue', label='mean',ax=ax)
-    sns.lineplot(x=t, y=low_conf, color='tab:blue', label='2-std',ax=ax)
-    sns.lineplot(x=t, y=upper_conf, color='tab:blue',ax=ax)
+    sns.lineplot(x=t, y=low_conf, color='tab:cyan', label='2-std',ax=ax)
+    sns.lineplot(x=t, y=upper_conf, color='tab:cyan',ax=ax)
 
     ax.set_ylabel('methylation')
     ax.set_xlabel('age')
