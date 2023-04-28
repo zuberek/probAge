@@ -19,13 +19,15 @@ N_CORES = 10
 SITES, PARTICIPANTS = slice(N_SITES), slice(N_PARTS)
 
 
+
 DATA_PATH = '../exports/wave3_meta.h5ad'
+DATA_PATH = '../data/whole_blood_imputed.h5ad'
 
 
 amdata = amdata_src.AnnMethylData(DATA_PATH, backed='r')
 # amdata = amdata[amdata.obs.sort_values('r2', ascending=False)[SITES].index].to_memory()
-amdata = amdata[amdata[amdata.obs.r2>0.2].obs.index].to_memory()
-amdata = amdata_src.AnnMethylData(amdata)
+amdata = amdata[amdata[amdata.obs.r2>0.3].obs.index].to_memory()
+amdata = amdata_src.AnnMethylData(amdata.copy())
 
 #####################################
 ### MODELLING SITES
@@ -48,6 +50,7 @@ with Pool(N_CORES, maxtasksperchild=1) as p:
                 ), 
             total=len(amdata_chunks)))
 
+# site_maps= modelling_bio.bio_sites(amdata, return_MAP=True, return_trace=False, show_progress=True)['map']
 site_maps = modelling_bio.concat_maps(results)
 for param in modelling_bio.get_site_params():
     amdata.obs[param] = site_maps[param].values
@@ -58,8 +61,8 @@ amdata.obs['saturating_der'] = amdata.obs.abs_der<0.001
 
 amdata.obs['saturating'] = amdata.obs.saturating_std | amdata.obs.saturating_der
 
-amdata.write_h5ad('../exports/wave3_all_fitted.h5ad')
-amdata = ad.read_h5ad('../exports/wave3_all_fitted.h5ad')
+amdata.write_h5ad('../exports/ewas_fitted.h5ad')
+amdata = ad.read_h5ad('../exports/ewas_fitted.h5ad')
 
 
 #####################################

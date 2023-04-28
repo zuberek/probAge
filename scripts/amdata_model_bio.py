@@ -20,7 +20,12 @@ N_SITES = slice(10)
 N_PARTS = slice(None)
 N_CORES = 7
 
-amdata = amdata_src.AnnMethylData('../exports/wave3_meta.h5ad', backed='r')
+OPEN_PATH = '../exports/ewas_linear.h5ad'
+SAVE_PATH = '../exports/ewas_model_comparison.h5ad'
+
+
+
+amdata = amdata_src.AnnMethylData(OPEN_PATH, backed='r')
 amdata = amdata[amdata.obs.sort_values('r2', ascending=False).index[N_SITES]].to_memory()
 amdata = amdata_src.AnnMethylData(amdata)
 
@@ -35,6 +40,7 @@ with Pool(N_CORES, maxtasksperchild=1) as p:
 
 print('Exporting site model results')
 fits, comparisons = modelling_bio.comparison_postprocess(results, amdata)
+amdata.write_h5ad(SAVE_PATH)
 # comparisons.to_csv('../exports/comparison_bio.csv')
 # fits.to_csv('../exports/fits_bio.csv')
 
