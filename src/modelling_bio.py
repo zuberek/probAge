@@ -387,7 +387,7 @@ def get_conf_int(amdata, t=np.linspace(0,100, 1_00)):
 
     return mean, low_conf, upper_conf
 
-def bio_model_plot (amdata, alpha=1, fits=None, ax=None):
+def bio_model_plot (amdata, alpha=1, fits=None, ax=None, hue='tab:grey'):
     """Plot the evolution of site predicted by bio_model"""
     xlim=(0,100)
     t = np.linspace(xlim[0],xlim[1], 1_000)
@@ -406,8 +406,8 @@ def bio_model_plot (amdata, alpha=1, fits=None, ax=None):
 
     sns.scatterplot(x=amdata.var.age,
                     y=amdata.X.flatten(),
-                    color='tab:grey',
-                    label='data',
+                    hue=hue,
+                    # label='data',
                     alpha=alpha, ax=ax
                     )
 

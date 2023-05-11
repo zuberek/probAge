@@ -18,7 +18,11 @@ from src import preprocess_func
 # LOAD
 
 EXTERNAL_OPEN_PATH = '../exports/wave1_meta.h5ad'
+EXTERNAL_OPEN_PATH = '../exports/Nelly.h5ad'
+
 EXTERNAL_SAVE_PATH = '../exports/wave1_fitted.h5ad'
+EXTERNAL_SAVE_PATH = '../exports/Nelly.h5ad'
+
 REFERENCE_DATA_PATH = '../exports/ewas_fitted.h5ad'
 
 amdata = ad.read_h5ad(EXTERNAL_OPEN_PATH, backed='r')
@@ -37,11 +41,15 @@ amdata.obs[params + ['r2']] = amdata_ref.obs[params + ['r2']]
 amdata = amdata[amdata.obs.sort_values('r2', ascending=False).index]
 amdata = amdata.copy()
 
+
 # %%
 # BATCH CORRECTION
 
+if 'status' in amdata.var.columns:
+    maps = modelling_bio.site_offsets(amdata[:,amdata.var.status=='control'], return_MAP=True, return_trace=False, show_progress=True)['map']
+else:
+    maps = modelling_bio.site_offsets(amdata, return_MAP=True, return_trace=False, show_progress=True)['map']
 # Infer the offsets
-maps = modelling_bio.site_offsets(amdata, return_MAP=True, return_trace=False, show_progress=True)['map']
 amdata.obs['offset'] = maps['offset']
 sns.histplot(amdata.obs.offset, bins=50)
 # amdata = amdata[amdata.obs.sort_values('offset').index].copy()
