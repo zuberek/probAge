@@ -10,23 +10,15 @@ Apply the model on a external dataset
 import sys
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
+from src import paths
 
 from src import modelling_bio
-from src import preprocess_func
 
 # %%
 # LOAD
 
-EXTERNAL_OPEN_PATH = '../exports/wave1_meta.h5ad'
-EXTERNAL_OPEN_PATH = '../exports/Nelly.h5ad'
-
-EXTERNAL_SAVE_PATH = '../exports/wave1_fitted.h5ad'
-EXTERNAL_SAVE_PATH = '../exports/Nelly.h5ad'
-
-REFERENCE_DATA_PATH = '../exports/ewas_fitted.h5ad'
-
-amdata = ad.read_h5ad(EXTERNAL_OPEN_PATH, backed='r')
-amdata_ref = ad.read_h5ad(REFERENCE_DATA_PATH)
+amdata = ad.read_h5ad(paths.DATA_PROCESSED, backed='r')
+amdata_ref = ad.read_h5ad(paths.DATA_REFERENCE)
 
 amdata_ref = amdata_ref[~amdata_ref.obs.saturating]
 
@@ -39,6 +31,7 @@ amdata = amdata[intersection].to_memory()
 
 amdata.obs[params + ['r2']] = amdata_ref.obs[params + ['r2']]
 amdata = amdata[amdata.obs.sort_values('r2', ascending=False).index]
+amdata = amdata[amdata.obs.sort_values('r2').tail(250).index]
 amdata = amdata.copy()
 
 
@@ -85,9 +78,19 @@ amdata.obs.meth_init  = amdata.obs.meth_init + amdata.obs.offset
 # PERSON MODELLING
 
 ab_maps = modelling_bio.person_model(amdata, return_MAP=True, return_trace=False, show_progress=True)['map']
-amdata.var['acc'] = ab_maps['acc']
-amdata.var['bias'] = ab_maps['bias']
+amdata.var['acc_ewas532'] = ab_maps['acc']
+amdata.var['bias_ewas532'] = ab_maps['bias']
 
-amdata.var.to_csv('wave1_ewas_var.csv')
+amdata.var.to_csv('lbc_var.csv')
 
-amdata.write_h5ad(EXTERNAL_SAVE_PATH)
+ab = ab.rename(columns={'acc':'acc_ewas532', 'bias': 'bias_ewas532'})
+ab['acc_gs250'] = ab_maps['acc']
+ab['bias_gs250'] = ab_maps['bias']
+
+sns.scatterplot(data=ab, x='acc_gs250', y='acc_ewas532')
+ab=ab.set_index('Unnamed: 0')
+ab.index.name = None
+ab.to_csv('ab.csv')
+ab.columns
+
+amdata.write_h5ad(paths.DATA_FITTED)

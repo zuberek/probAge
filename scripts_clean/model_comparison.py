@@ -6,6 +6,7 @@
 import sys
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
+from src import paths
 
 from src import modelling
 from src import modelling_bio
@@ -28,7 +29,7 @@ SAVE_PATH = '../exports/ewas_model_comparison.h5ad'
 # %%
 # LOAD
 
-amdata = amdata_src.AnnMethylData(OPEN_PATH)
+amdata = amdata_src.AnnMethylData(paths.DATA_PROCESSED)
 # amdata = amdata[amdata.obs.sort_values('r2', ascending=False).index[N_SITES]].to_memory()
 # amdata = amdata_src.AnnMethylData(amdata)
 amdata.X = np.where(amdata.X == 0 , 0.0001, amdata.X)

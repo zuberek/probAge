@@ -6,11 +6,15 @@
 import sys
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
+from src import paths
 
-EXTERNAL_OPEN_PATH = '../exports/Nelly.h5ad'
-amdata = ad.read_h5ad(EXTERNAL_OPEN_PATH, backed='r')
+amdata = ad.read_h5ad(paths.DATA_FITTED, backed='r')
 
 # %%
 # IMPORTS
 
-sns.scatterplot(amdata.var, x='acc', y='bias', hue='status')
+sns.scatterplot(amdata[:,amdata.var.status=='test'].var, x='acc', y='bias', hue='age', palette='rocket')
+sns.scatterplot(amdata[:,amdata.var.status=='control'].var, x='acc', y='bias', marker='x', color='tab:green', label='control')
+
+sns.scatterplot(amdata.var, x='age', y='acc')
+sns.scatterplot(amdata.var, x='age', y='bias')

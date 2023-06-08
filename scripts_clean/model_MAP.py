@@ -4,6 +4,7 @@
 import sys
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
+from src import paths
 
 from src import modelling_bio
 
@@ -20,7 +21,7 @@ OPEN_PATH = '../exports/ewas_linear.h5ad'
 SAVE_PATH = '../exports/ewas_fitted.h5ad'
 
 
-amdata = amdata_src.AnnMethylData(OPEN_PATH, backed='r')
+amdata = amdata_src.AnnMethylData(paths.DATA_PROCESSED, backed='r')
 amdata = amdata[amdata[amdata.obs.r2>R2_THRESHOLD].obs.index].to_memory()
 amdata = amdata_src.AnnMethylData(amdata.copy())
 
@@ -59,7 +60,7 @@ amdata.obs['saturating_der'] = amdata.obs.abs_der<0.001
 amdata.obs['saturating'] = amdata.obs.saturating_std | amdata.obs.saturating_der
 
 # store in the same location since we're only adding data
-amdata.write_h5ad(OPEN_PATH) 
+amdata.write_h5ad(paths.DATA_PROCESSED) 
 
 #####################################
 ### MODELLING PEOPLE
@@ -75,4 +76,4 @@ amdata.var['acc'] = person_maps['acc']
 amdata.var['bias'] = person_maps['bias']
 
 
-amdata.write_h5ad(SAVE_PATH)
+amdata.write_h5ad(paths.DATA_FITTED)
