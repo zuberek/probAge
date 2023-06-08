@@ -301,13 +301,13 @@ with tab3:
     if amdata is not None:
 
         
-        @st.cache_data
-        def compute_anova():
-            acc_control = amdata[:, amdata.var.status == 'healthy'].var['acc'].values
-            acc_down = amdata[:, amdata.var.status == 'disease'].var['acc'].values
-            return f_oneway(acc_control, acc_down)
-        anova = compute_anova()
-        st.write(f'The ANOVA statistic is {round(anova[0],2)} and pvalue is {round(anova[1],2)}')
+        # @st.cache_data
+        # def compute_anova():
+        #     acc_control = amdata[:, amdata.var.status == 'healthy'].var['acc'].values
+        #     acc_down = amdata[:, amdata.var.status == 'disease'].var['acc'].values
+        #     return f_oneway(acc_control, acc_down)
+        # anova = compute_anova()
+        # st.write(f'The ANOVA statistic is {round(anova[0],2)} and pvalue is {round(anova[1],2)}')
         
 
         fig = px.scatter(data_frame=amdata.var, x='acc', y='bias', color='status', 
