@@ -131,10 +131,10 @@ if st.session_state.DEFAULTED:
 
 if st.session_state.DEFAULTED:
     tab_default = st.tabs(['**Analyse**'])
-    tab1, tab3, tab4 = contextlib.nullcontext(),  contextlib.nullcontext(), contextlib.nullcontext()
+    tab1, tab2, tab3, tab4 = contextlib.nullcontext(), contextlib.nullcontext(), contextlib.nullcontext(), contextlib.nullcontext()
 if not st.session_state.DEFAULTED:
     # tab_default = contextlib.nullcontext()
-    tab1, tab3, tab4 = st.tabs(['**Upload**', '**Infer**', '**Analyse**'])
+    tab1, tab2, tab3, tab4 = st.tabs(['**Upload**', '**Train**', '**Infer**', '**Analyse**'])
 
 
 
