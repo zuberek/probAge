@@ -44,10 +44,6 @@ amdata.var = amdata.var[['ID', 'cohort', 'WAVE', 'age', 'sex', 'BMI', 'Smoking',
        'DunedinPOA', 'CD8T', 'CD4T', 'NK', 'Bcell', 'Mono',
        'Gran',]]
 
-dates = pd.to_datetime(lbc_meta.date, format="%d_%m_%Y", errors="coerce").fillna(
-    pd.to_datetime(lbc_meta.date, errors="coerce", format="%d/%m/%Y"))
-amdata.var['date']=dates
-
 amdata.X = np.where(amdata.X == 0, 0.00001, amdata.X)
 amdata.X = np.where(amdata.X == 1, 0.99999, amdata.X)
 

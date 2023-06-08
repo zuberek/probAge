@@ -4,7 +4,7 @@ sys.path.append("..")   # fix to import modules from root
 from turtle import color
 from src.general_imports import *
 
-from src import modelling_old
+from src import modelling
 
 # import logging
 # logger = logging.getLogger('pymc')
@@ -31,7 +31,7 @@ n_sites_label = [f'{n_sites_grid[i]}-{n_sites_grid[i+1]}' for i in range(len(n_s
 accs = np.empty((len(n_sites_grid), amdata.n_participants))
 biases = np.empty((len(n_sites_grid), amdata.n_participants))
 for i, n_sites in enumerate(tqdm(n_sites_grid)):
-    map = modelling_old.person_model(amdata[:n_sites], return_MAP=True, return_trace=False)['map']
+    map = modelling.person_model(amdata[:n_sites], return_MAP=True, return_trace=False)['map']
     accs[i] = map['acc']
     biases[i] = map['bias']    
 

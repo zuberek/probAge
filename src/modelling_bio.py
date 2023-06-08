@@ -39,15 +39,6 @@ SITE_PARAMETERS = {
 def get_site_params():
     return list(SITE_PARAMETERS.values())
 
-def chunkify_sites(amdata, N_CORES=15):
-    chunk_size = (amdata.shape[0]//N_CORES)
-    n_sites = amdata.shape[0]
-    amdata_chunks = []
-    for i in range(0, n_sites, chunk_size):
-        amdata_chunks.append(amdata[i:i+chunk_size].copy())
-    return amdata_chunks
-
-
 def linear_sites(amdata, return_MAP=False, return_trace=True, cores=CORES, show_progress=False):
 
     ages = np.broadcast_to(amdata.participants.age, shape=(amdata.n_sites, amdata.n_participants)).T
@@ -90,7 +81,7 @@ def bio_site_mean(ages, eta_0, omega, p):
 def bio_sites(amdata, return_MAP=False, return_trace=True, show_progress=False, init_nuts='auto', target_accept=0.9, cores=CORES):
 
     if show_progress: print(f'Modelling {amdata.shape[0]} bio_sites')
-    ages = np.broadcast_to(amdata.var.age, shape=(amdata.shape[0], amdata.shape[1])).T
+    ages = np.broadcast_to(amdata.participants.age, shape=(amdata.shape[0], amdata.shape[1])).T
     coords = {'sites': amdata.obs.index.values,
             'participants': amdata.var.index.values}
 
@@ -387,7 +378,7 @@ def get_conf_int(amdata, t=np.linspace(0,100, 1_00)):
 
     return mean, low_conf, upper_conf
 
-def bio_model_plot (amdata, alpha=1, fits=None, ax=None, hue='tab:grey'):
+def bio_model_plot (amdata, alpha=1, fits=None, ax=None):
     """Plot the evolution of site predicted by bio_model"""
     xlim=(0,100)
     t = np.linspace(xlim[0],xlim[1], 1_000)
@@ -406,8 +397,8 @@ def bio_model_plot (amdata, alpha=1, fits=None, ax=None, hue='tab:grey'):
 
     sns.scatterplot(x=amdata.var.age,
                     y=amdata.X.flatten(),
-                    hue=hue,
-                    # label='data',
+                    color='tab:grey',
+                    label='data',
                     alpha=alpha, ax=ax
                     )
 
@@ -423,8 +414,8 @@ def bio_model_plot (amdata, alpha=1, fits=None, ax=None, hue='tab:grey'):
         sns.lineplot(x=[xlim[0],xlim[1]], y=std2_minus, ax=ax, color='tab:orange')
         
     sns.lineplot(x=t, y=mean, color='tab:blue', label='mean',ax=ax)
-    sns.lineplot(x=t, y=low_conf, color='tab:cyan', label='2-std',ax=ax)
-    sns.lineplot(x=t, y=upper_conf, color='tab:cyan',ax=ax)
+    sns.lineplot(x=t, y=low_conf, color='tab:blue', label='2-std',ax=ax)
+    sns.lineplot(x=t, y=upper_conf, color='tab:blue',ax=ax)
 
     ax.set_ylabel('methylation')
     ax.set_xlabel('age')
@@ -474,7 +465,7 @@ def is_saturating_vect(amdata):
     
     intervals['saturating'] = False
     intervals.loc[intervals[[0,1]].min(axis=1)< 0.05, 'saturating'] = True
-    intervals.loc[intervals[[2,3]].max(axis=1)>0.95, 'saturating'] = True
+    intervals.loc[intervals[[0,1]].min(axis=1)>0.95, 'saturating'] = True
     
     return intervals['saturating']
 
