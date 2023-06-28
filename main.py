@@ -18,6 +18,7 @@ sys.path.append('src')
 # sys.path.append('src')
 sys.path
 import plotly.io as pio
+from PIL import Image
 pio.templates.default = "plotly"
 
 import contextlib 
