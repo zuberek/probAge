@@ -26,9 +26,6 @@ import contextlib
 import src.modelling_bio  as modelling_bio
 # from src.modelling_bio import person_model
 
-from modules.loading import test_limits, upload_data
-from modules import loading, inferring
-import modules
 
 im = Image.open('streamlit/favicon.ico')
 # site_info_path = 'resources/wave3_acc_sites.csv' 
@@ -36,6 +33,9 @@ site_info_path = 'resources/ewas_fitted_sites.csv'
 st.set_page_config(page_title='ProbBioAge', page_icon=im)
 # st.set_page_config(page_title='ProbBioAge',layout='wide')
 
+from modules.loading import test_limits, upload_data
+from modules import loading, inferring
+import modules
 
 # %% 
 # LOAD DATA
