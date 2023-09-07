@@ -201,9 +201,12 @@ def bio_model(amdata):
 
     return model
 
-def bio_model_fit(model, return_MAP=False, return_trace=True, show_progress=False, init_nuts='auto', target_accept=0.9, cores=CORES):
+def bio_model_fit(amdata_chunk, model, return_MAP=False, return_trace=True, show_progress=False, init_nuts='auto', target_accept=0.8, cores=CORES):
 
     with model:
+
+        pm.set_data({"data": amdata_chunk.X.T})
+
         res = {}
         if return_MAP:
             res['map'] = pm.find_MAP(progressbar=show_progress)
