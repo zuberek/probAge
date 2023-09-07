@@ -6,9 +6,16 @@ from tqdm import tqdm
 from multiprocessing import Pool
 from multiprocessing import cpu_count
 import anndata as ad
+from functools import partial
 import json
 
-from functools import partial
+# progress bar
+from IPython.display import clear_output, DisplayHandle
+def update_patch(self, obj):
+    clear_output(wait=True)
+    self.display(obj)
+DisplayHandle.update = update_patch
+
 # sns.set_theme(style='ticks')
 
 # import custom code
