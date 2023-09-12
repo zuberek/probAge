@@ -57,8 +57,7 @@ amdata.obs.meth_init  = amdata.obs.meth_init + amdata.obs.offset
 # sns.scatterplot(x=amdata_ref.var.age, y=amdata_ref[site_index].X.flatten())
 
 
-# %%
-##################################
+# %% ##################################
 # OPTIONAL DOWNSAMPLING EXPERIMENT
 
 # n_sites_grid = [2**n for n in range(1,11)]
@@ -80,27 +79,19 @@ amdata.obs.meth_init  = amdata.obs.meth_init + amdata.obs.offset
 # ax=sns.boxplot(df, color=colors[0], showfliers=False)
 # ax.set_ylabel('Absolute difference in bias')
 
-# %%
-##################
+# %% ##################
 # PERSON MODELLING  
 
 ab_maps = modelling_bio.person_model(amdata, return_MAP=True, return_trace=False, show_progress=True)['map']
 
-# for i in tqdm(range(10)):
-#     ab_maps = modelling_bio.person_model(amdata[:,i], return_MAP=True, return_trace=False, show_progress=True)['map']
-
 amdata.var['acc_wave4'] = ab_maps['acc']
 amdata.var['bias_wave4'] = ab_maps['bias']
 
-
 amdata.var.to_csv('wave3_participants.csv')
-
 
 amdata.var['acc_ewas532'] = ab_maps['acc']
 amdata.var['bias_ewas532'] = ab_maps['bias']
-import arviz as az
-az.plot_posterior(ab_maps)
-az.summary(ab_maps)
+
 amdata.var.to_csv('lbc_var.csv')
 
 ab = ab.rename(columns={'acc':'acc_ewas532', 'bias': 'bias_ewas532'})
