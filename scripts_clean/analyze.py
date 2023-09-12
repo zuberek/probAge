@@ -18,9 +18,12 @@ sns.scatterplot(amdata[:,amdata.var.status=='control'].var, x='acc', y='bias', m
 
 sns.scatterplot(amdata.var, x='age', y='acc')
 sns.scatterplot(amdata.var, x='age', y='bias')
-
-site_indexes = amdata[amdata[amdata.obs.saturating_std].obs.r2.sort_values().index].obs.tail(12).index
+amdata[amdata[amdata.obs.saturating_der].obs.r2.sort_values().index].obs.tail(12)
+# %%
+site_indexes = amdata[amdata[amdata.obs.saturating_der].obs.omega.sort_values().index].obs.tail(12).index
 axs = plot.tab(site_indexes)
 for i, site_index in enumerate(site_indexes):
-    sns.scatterplot(x=amdata.var.age, y= amdata[site_index].X.flatten(), ax=axs[i])
+    modelling_bio.bio_model_plot(amdata[site_index], ax=axs[i])
+    # sns.scatterplot(x=amdata.var.age, y= amdata[site_index].X.flatten(), ax=axs[i])
     axs[i].set_ylim(0,1)
+# %%
