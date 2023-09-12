@@ -19,7 +19,6 @@ from src import modelling_bio
 
 amdata = ad.read_h5ad(paths.DATA_PROCESSED, backed='r')
 amdata_ref = ad.read_h5ad(paths.DATA_REFERENCE)
-
 amdata_ref = amdata_ref[~amdata_ref.obs.saturating]
 
 # Load intersection of sites in new dataset
@@ -29,14 +28,14 @@ params = modelling_bio.get_site_params()
 intersection = amdata_ref.obs.index.intersection(amdata.obs.index)
 amdata = amdata[intersection].to_memory()
 
-amdata.obs[params + ['r2']] = amdata_ref.obs[params + ['r2']]
-amdata = amdata[amdata.obs.sort_values('r2', ascending=False).index]
-amdata = amdata[amdata.obs.sort_values('r2').tail(250).index]
+amdata.obs[params + ['r2', 'spr2']] = amdata_ref.obs[params + ['r2', 'spr2']]
+amdata = amdata[amdata.obs.sort_values('spr2', ascending=False).index]
+amdata = amdata[amdata.obs.sort_values('spr2').tail(500).index]
 amdata = amdata.copy()
 
 
-# %%
-# BATCH CORRECTION
+# %% #################
+# BATCH (MODEL) CORRECTION
 
 if 'status' in amdata.var.columns:
     maps = modelling_bio.site_offsets(amdata[:,amdata.var.status=='control'], return_MAP=True, return_trace=False, show_progress=True)['map']
@@ -51,8 +50,15 @@ sns.histplot(amdata.obs.offset, bins=50)
 amdata.obs.eta_0 = amdata.obs.eta_0 + amdata.obs.offset
 amdata.obs.meth_init  = amdata.obs.meth_init + amdata.obs.offset
 
+# show the offset applied to data
+# site_index = amdata.obs.offset.abs().sort_values().index[-1]
+# sns.scatterplot(x=amdata.var.age, y=amdata[site_index].X.flatten())
+# sns.scatterplot(x=amdata.var.age, y=amdata[site_index].X.flatten()-amdata[site_index].obs.offset.values)
+# sns.scatterplot(x=amdata_ref.var.age, y=amdata_ref[site_index].X.flatten())
+
 
 # %%
+##################################
 # OPTIONAL DOWNSAMPLING EXPERIMENT
 
 # n_sites_grid = [2**n for n in range(1,11)]
@@ -75,12 +81,26 @@ amdata.obs.meth_init  = amdata.obs.meth_init + amdata.obs.offset
 # ax.set_ylabel('Absolute difference in bias')
 
 # %%
-# PERSON MODELLING
+##################
+# PERSON MODELLING  
 
 ab_maps = modelling_bio.person_model(amdata, return_MAP=True, return_trace=False, show_progress=True)['map']
+
+# for i in tqdm(range(10)):
+#     ab_maps = modelling_bio.person_model(amdata[:,i], return_MAP=True, return_trace=False, show_progress=True)['map']
+
+amdata.var['acc_wave4'] = ab_maps['acc']
+amdata.var['bias_wave4'] = ab_maps['bias']
+
+
+amdata.var.to_csv('wave3_participants.csv')
+
+
 amdata.var['acc_ewas532'] = ab_maps['acc']
 amdata.var['bias_ewas532'] = ab_maps['bias']
-
+import arviz as az
+az.plot_posterior(ab_maps)
+az.summary(ab_maps)
 amdata.var.to_csv('lbc_var.csv')
 
 ab = ab.rename(columns={'acc':'acc_ewas532', 'bias': 'bias_ewas532'})
