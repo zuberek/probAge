@@ -7,6 +7,8 @@ from multiprocessing import Pool
 from multiprocessing import cpu_count
 import anndata as ad
 from functools import partial
+import arviz as az
+
 import json
 
 # progress bar
