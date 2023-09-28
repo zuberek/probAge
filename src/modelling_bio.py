@@ -88,7 +88,7 @@ def linear_sites(amdata, return_MAP=False, return_trace=True, cores=CORES, show_
 def bio_site_mean(ages, eta_0, omega, p):
     return eta_0 + np.exp(-omega*ages)*(p-eta_0)
 
-def bio_sites(amdata, method='MAP', show_progress=True, nuts_sampler='nutpie', init_nuts='auto', target_accept=0.8, cores=CORES):
+def bio_sites(amdata, method='MAP', show_progress=True, nuts_sampler='nutpie', init_nuts='auto', target_accept=0.8, cores=CORES, chains=CHAINS):
 
     if show_progress: print(f'Computing {method} of {amdata.shape[0]} bio_sites')
     ages = np.broadcast_to(amdata.var.age, shape=(amdata.shape[0], amdata.shape[1])).T
@@ -150,7 +150,7 @@ def bio_sites(amdata, method='MAP', show_progress=True, nuts_sampler='nutpie', i
 
         if method=='nuts':
             trace = pm.sample(1000, tune=1000, init=init_nuts,
-                                     chains=CHAINS, cores=cores,
+                                     chains=chains, cores=cores,
                                      progressbar=show_progress,
                                      target_accept=target_accept, 
                                      nuts_sampler=nuts_sampler)
