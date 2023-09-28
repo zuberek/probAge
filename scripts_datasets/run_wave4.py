@@ -64,10 +64,10 @@ amdata.write_h5ad(paths.DATA_PROCESSED)
 # SITE MODELLING
 
 amdata = amdata_src.AnnMethylData(paths.DATA_PROCESSED, backed='r')
-amdata = amdata[amdata.obs.sort_values('r2').tail(1000).index]
+amdata = amdata[amdata.obs.sort_values('spr2').tail(100).index]
 amdata = amdata.to_memory()
 
-chunk_size = 100 // 15 
+chunk_size = 2
 n_sites = amdata.shape[0]
 amdata_chunks = []
 for i in range(0, n_sites, chunk_size):
@@ -86,12 +86,12 @@ with Pool(N_CORES, maxtasksperchild=1) as p:
     results = list(tqdm(
             iterable= p.imap(
                 func=partial(modelling_bio.bio_sites, 
-                            method='advi', 
+                            method='nuts', 
                             show_progress=False),
-                iterable=amdata,
+                iterable=amdata_chunks,
                 chunksize=1
                 ), 
-            total=len(amdata)))
+            total=len(amdata_chunks)))
 
 processed_results = []
 for trace_bio in tqdm(results):    

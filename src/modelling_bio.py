@@ -153,9 +153,9 @@ def bio_sites(amdata, return_MAP=False, return_trace=True, show_progress=False, 
             res['trace'] = trace
     return res
 
-def bio_sites(amdata, method='MAP', show_progress=True, init_nuts='auto', target_accept=0.8, cores=CORES):
+def bio_sites(amdata, method='MAP', show_progress=True, nuts_sampler='nutpie', init_nuts='auto', target_accept=0.8, cores=CORES):
 
-    if show_progress: print(f'Computing {compute} of {amdata.shape[0]} bio_sites')
+    if show_progress: print(f'Computing {method} of {amdata.shape[0]} bio_sites')
     ages = np.broadcast_to(amdata.var.age, shape=(amdata.shape[0], amdata.shape[1])).T
     coords = {'sites': amdata.obs.index.values,
             'participants': amdata.var.index.values}
@@ -182,6 +182,9 @@ def bio_sites(amdata, method='MAP', show_progress=True, init_nuts='auto', target
         var_term_1 = (1-p)*np.power(eta_0,2) + p*np.power(eta_1,2)
 
         mean = eta_0 + np.exp(-omega*ages)*((p-1)*eta_0 + p*eta_1)
+        mean = pm.math.where(mean>1, 0.999, mean)
+        mean = pm.math.where(mean<0, 0.001, mean)
+
         # mean = bio_site_mean(ages, eta_0, omega, p)
 
 
@@ -215,7 +218,7 @@ def bio_sites(amdata, method='MAP', show_progress=True, init_nuts='auto', target
                                      chains=CHAINS, cores=cores,
                                      progressbar=show_progress,
                                      target_accept=target_accept, 
-                                     nuts_sampler='nutpie')
+                                     nuts_sampler=nuts_sampler)
 
             pm.compute_log_likelihood(trace, progressbar=False)
             ppc = pm.sample_posterior_predictive(trace,
