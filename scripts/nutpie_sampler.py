@@ -27,7 +27,6 @@ amdata = amdata[amdata.obs.sort_values('spr2').tail(n_sites).index]
 amdata = amdata.to_memory()
 
 chunk_size = 1
-n_sites = amdata.shape[0]
 amdata_chunks = []
 for i in range(0, n_sites, chunk_size):
     amdata_chunks.append(amdata[i:i+chunk_size])
@@ -81,28 +80,36 @@ def bio_sites(amdata):
             sigma = sigma,
             dims=("participants", "sites"),
             observed = data)
+        
+
 
     return model
 
 # %% ########################
 # MULTIPROCESS
+# define model in pymc
 model = bio_sites(amdata_chunks[0])
+# compile model in nutpie
 compiled_model = nutpie.compile_pymc_model(model)
 
 def nutpie_sample(data, cores=1, chains=3):
-    # print(f'Starting chunk {data.obs.index[0]}')
+    # switching data to compiled nutpie model
     cmodel= compiled_model.with_data(data=data.X.T)
+    # compute trace
     trace = nutpie.sample(cmodel, target_accept=0.9, cores=cores, chains=chains,
-                         progress_bar=False)
+                         progress_bar=True)
+    # compute log_likelihood
     with bio_sites(data):
         pm.compute_log_likelihood(trace)
-        
+
     return trace
 
 with Pool(n_cores, maxtasksperchild=1) as p:
     res = list(tqdm(p.imap(nutpie_sample, amdata_chunks), total=len(amdata_chunks)))
 
-with open(f'../exports/wave4_meta_{n_sites}_fit.pk', 'wb') as f:
+res[0]
+pm.compute_log_likelihood(res[0])
+with open(f'../exports/wave4_traces_{n_sites}.pk', 'wb') as f:
     pickle.dump(res, f)
 
 # %% PROCESS RESULTS IN AMDATA
