@@ -16,13 +16,14 @@ from src import modelling_bio
 
 
 n_cores = 50
+n_sites = 3_000
 
 # %% ########################
 # LOADING
 params = modelling_bio.get_site_params()
 
 amdata = amdata_src.AnnMethylData('../exports/wave4_meta.h5ad', backed='r')
-amdata = amdata[amdata.obs.sort_values('spr2').tail(1000).index]
+amdata = amdata[amdata.obs.sort_values('spr2').tail(n_sites).index]
 amdata = amdata.to_memory()
 
 chunk_size = 1
@@ -91,7 +92,7 @@ compiled_model = nutpie.compile_pymc_model(model)
 def nutpie_sample(data, cores=1, chains=3):
     # print(f'Starting chunk {data.obs.index[0]}')
     cmodel= compiled_model.with_data(data=data.X.T)
-    trace = nutpie.sample(cmodel, target_accept=0.8, cores=cores, chains=chains,
+    trace = nutpie.sample(cmodel, target_accept=0.9, cores=cores, chains=chains,
                          progress_bar=False)
     with bio_sites(data):
         pm.compute_log_likelihood(trace)
@@ -101,7 +102,7 @@ def nutpie_sample(data, cores=1, chains=3):
 with Pool(n_cores, maxtasksperchild=1) as p:
     res = list(tqdm(p.imap(nutpie_sample, amdata_chunks), total=len(amdata_chunks)))
 
-with open('../exports/wave4_meta_1000_fit.pk', 'wb') as f:
+with open(f'../exports/wave4_meta_{n_sites}_fit.pk', 'wb') as f:
     pickle.dump(res, f)
 
 # %% PROCESS RESULTS IN AMDATA
