@@ -75,18 +75,26 @@ ax.set_ylabel('Absolute difference in bias')
 
 # %%
 # Infer accelerations and biases
-ab_maps = modelling_bio.person_model(amdata, return_MAP=True, return_trace=False, show_progress=True)['map']
+ab_maps = modelling_bio.person_model(amdata, method='map', show_progress=True)
 amdata.var['acc'] = ab_maps['acc']
 amdata.var['bias'] = ab_maps['bias']
 
 sns.scatterplot(data=amdata.var, x='acc', y='bias')
 
-
+# %%
+# Some preprocessing for the plots
 person_ids = amdata.var.ID.unique().tolist()
 person_id = amdata.var.ID.unique()[1]
 amdata.var[amdata.var.ID==person_id].acc
 
 # %%
+# Our clock
+for person in person_ids[:50]:
+    sns.lineplot(x=amdata.var.WAVE, y=amdata.var[amdata.var.ID==person].acc)
+
+# %%
+
+# Comparison with other clocks
 clocks = ['DNAmAge', 'DNAmAgeHannum','DNAmPhenoAge','DNAmGrimAge']
 clock_accs = [f'{clock}Acc' for clock in clocks]
 for clock in clocks:
@@ -96,10 +104,9 @@ axs = plot.tab(clocks, ncols=2, row_size=5)
 for i, clock in enumerate(clocks):
     for person in person_ids[:50]:
         sns.lineplot(x=amdata.var.WAVE, y=amdata.var[amdata.var.ID==person][f'{clock}Acc'], ax=axs[i])
-# %%
-for person in person_ids[:50]:
-    sns.lineplot(x=amdata.var.WAVE, y=amdata.var[amdata.var.ID==person].acc)
 
+# %%
+# Boxplots to show mean absolute difference within the clock
 clock_accs = ['acc'] + clock_accs
 amdata.var[clock_accs] = (amdata.var[clock_accs]-np.min(amdata.var[clock_accs]))/(np.max(amdata.var[clock_accs])-np.min(amdata.var[clock_accs]))
 
@@ -114,11 +121,9 @@ for clock_acc in ['acc'] + clock_accs:
     all_diffs = pd.concat([all_diffs, diff])
 
 
-df.T
-df.melt()
 ax=sns.boxplot(all_diffs, x='Mean absolute difference', y='clock', showfliers=False)
 
-
+# %%
 accs = amdata.var[amdata.var.ID==person].acc
 accs = pd.DataFrame({person: amdata.var[amdata.var.ID==person].acc.values}).T
 pd.DataFrame(np.abs(np.diff(accs))
@@ -136,3 +141,28 @@ amdata.var.groupby('ID')['AgeAcc'].var().hist()
 amdata.var.groupby('ID')['AgeHannumAcc'].var().hist()
 amdata.var.groupby('ID')['PhenoAgeAcc'].var().hist()
 amdata.var.groupby('ID')['GrimAgeAcc'].var().hist()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+model = person_model(amdata)
+
+with model:
+    # trace =pm.sample(init='adapt_diag')
+    map = pm.find_MAP()
+
+az.plot_posterior(trace)
+print(map)

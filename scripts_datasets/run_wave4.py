@@ -64,7 +64,7 @@ amdata.write_h5ad(paths.DATA_PROCESSED)
 # SITE MODELLING
 
 amdata = amdata_src.AnnMethylData(paths.DATA_PROCESSED, backed='r')
-amdata = amdata[amdata.obs.sort_values('spr2').tail(100).index]
+amdata = amdata[amdata.obs.sort_values('spr2').tail(1000).index]
 amdata = amdata.to_memory()
 
 chunk_size = 2
@@ -82,17 +82,32 @@ params = modelling_bio.get_site_params()
 amdata_site.obs[params] = az.summary(advi_trace)['mean'].values
 modelling_bio.bio_model_plot(amdata_site, alpha=0.1)
 
+trace_pymc = modelling_bio.bio_sites(amdata_chunks[0], method='nuts', nuts_sampler='pymc', 
+                                show_progress=True, cores=4, chains=1)
+az.plot_trace(trace_nutpie, var_names=params)
+ingest_trace(amdata_chunks[0], trace)
+az.summary(trace, var_names=params)
+amdata_site = amdata_chunks[0][0]
+amdata_site = amdata_site
+modelling_bio.bio_model_plot(amdata_chunks[0][1])
+amdata_chunks[0].obs
+amdata_chunks[1]
+
 with Pool(N_CORES, maxtasksperchild=1) as p:
     results = list(tqdm(
             iterable= p.imap(
                 func=partial(modelling_bio.bio_sites, 
                             method='nuts', 
                             show_progress=False),
-                iterable=amdata_chunks,
+                iterable=amdata_chunks[:16],
                 chunksize=1
                 ), 
-            total=len(amdata_chunks)))
+            total=len(amdata_chunks[:16])))
 
+params = modelling_bio.get_site_params()
+
+
+     
 processed_results = []
 for trace_bio in tqdm(results):    
     bio_fit = az.summary(trace_bio, var_names=params, round_to=5)
@@ -110,6 +125,16 @@ fits.to_csv('wave4_1k_ADVI_fits.csv')
 param_list = fit.xs('bio', level='model').index.get_level_values(level='param')
 for param in params:
     amdata.obs[f'{param}'] = fits.loc[(slice(None),'bio', param)]['mean'].values
+
+def ingest_trace(amdata, trace):
+    bio_fit = az.summary(trace, var_names=params, round_to=5)
+    bio_fit.index = pd.MultiIndex.from_tuples([(index_tuple[1][:-1], 'bio', index_tuple[0]) for index_tuple in bio_fit.index.str.split('[')],
+                            names=['site', 'model', 'param'])
+    param_list = bio_fit.xs('bio', level='model').index.get_level_values(level='param')
+    for param in param_list:
+        amdata.obs[f'{param}'] = bio_fit.loc[(slice(None),'bio', param)]['mean'].values
+
+
 
 # Plot comparison of NUTS ADVI MAP
 # amdata.obs[[f'{param}_MAP' for param in params]].to_csv('ewas_100MAP.csv')

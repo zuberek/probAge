@@ -3,8 +3,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from tqdm import tqdm
-from multiprocessing import Pool
-from multiprocessing import cpu_count
+from multiprocess import Pool
+from multiprocess import cpu_count
 import anndata as ad
 from functools import partial
 import arviz as az
