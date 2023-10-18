@@ -159,7 +159,7 @@ def bio_sites(amdata, method='MAP', show_progress=True, nuts_sampler='nutpie', i
 
 
 
-def person_model(amdata):
+def person_model(amdata, method='map', show_progress=False):
 
     # The data has two dimensions: participant and CpG site
     coords = {"site": amdata.obs.index, "part": amdata.var.index}
@@ -210,9 +210,27 @@ def person_model(amdata):
                     mu=mean,
                     sigma = sigma, 
                     dims=("site", "part"), 
-                    observed=data)
+                    observed=amdata.X)
         
-    return model
+        if method=='map':
+            return pm.find_MAP(progressbar=show_progress)
+
+        if method=='advi':
+            mean_field = pm.fit(method='advi', n=100_000, callbacks=[CheckParametersConvergence()],  progressbar=show_progress)
+            return mean_field.sample(1_000)
+
+        if method=='nuts':
+            trace = pm.sample(1000, tune=1000, init=init_nuts,
+                                     chains=chains, cores=cores,
+                                     progressbar=show_progress,
+                                     target_accept=target_accept, 
+                                     nuts_sampler=nuts_sampler)
+
+            pm.compute_log_likelihood(trace, progressbar=False)
+            ppc = pm.sample_posterior_predictive(trace,
+                    extend_inferencedata=True)
+            return trace
+        
 
 
 def fit_and_compare(amdata, cores=CORES, show_progress=False):
