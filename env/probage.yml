@@ -23,7 +23,9 @@ dependencies:
   - anndata
   - ipywidgets
   - scikit-optimize
+  - multiprocess
   # - jax
   # - numpyro
   # - blackjax
   - nutpie
+  - numba
