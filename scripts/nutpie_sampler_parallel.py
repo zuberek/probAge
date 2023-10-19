@@ -4,6 +4,16 @@
 # %autoreload 2
 
 import sys
+jobname = sys.argv[1]
+num1 = int(sys.argv[2])
+num2 = int(sys.argv[3])
+print(num1)
+print(num2)
+
+#jobname = "EWAS"
+#num1 = 500
+#num2 = 1000
+
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
 from src import paths
@@ -14,16 +24,27 @@ import pickle
 pm.model.make_initial_point_fn = pm.initial_point.make_initial_point_fn
 from src import modelling_bio
 
+import logging
+logger = logging.getLogger('pymc')
+logger.propagate = False
+logger.setLevel(logging.ERROR)
 
-n_cores = 50
-n_sites = 3_000
+n_cores = 10
+n_sites = 100
 
 # %% ########################
 # LOADING
 params = modelling_bio.get_site_params()
 
-amdata = amdata_src.AnnMethylData('../exports/wave4_meta.h5ad', backed='r')
-amdata = amdata[amdata.obs.sort_values('spr2').tail(n_sites).index]
+if jobname == "EWAS":
+    amdata = amdata_src.AnnMethylData('../exports/EWAS/ewasKNN_fitted.h5ad', backed='r')
+elif jobname == "wave4":
+    amdata = amdata_src.AnnMethylData('../exports/wave4/wave4_meta.h5ad', backed='r')
+else:
+    # Handle the case when job name is neither "ewas" nor "wave4"
+    raise ValueError("Invalid job name")
+
+amdata = amdata[amdata.obs.sort_values('spr2', ascending=False).index[num1:num2]]
 amdata = amdata.to_memory()
 
 chunk_size = 1
@@ -92,24 +113,33 @@ model = bio_sites(amdata_chunks[0])
 # compile model in nutpie
 compiled_model = nutpie.compile_pymc_model(model)
 
-def nutpie_sample(data, cores=1, chains=3):
-    # switching data to compiled nutpie model
-    cmodel= compiled_model.with_data(data=data.X.T)
-    # compute trace
-    trace = nutpie.sample(cmodel, target_accept=0.8, cores=cores, chains=chains,
-                         progress_bar=True)
-    # compute log_likelihood
-    with bio_sites(data):
-        pm.compute_log_likelihood(trace)
+def nutpie_sample(data, jobname, cores=1, chains=3):
+    if jobname == "EWAS":
+        return modelling_bio.bio_sites(data, method='nuts', nuts_sampler='pymc', show_progress=False)
+    elif jobname == "wave4":
+        # switching data to compiled nutpie model
+        cmodel = compiled_model.with_data(data=data.X.T)
+        cmodel.coords['site'] = data.obs.index
+        # compute trace
+        trace = nutpie.sample(cmodel, target_accept=0.8, cores=cores, chains=chains, progress_bar=True)
+        # compute log_likelihood
+        with bio_sites(data):
+            pm.compute_log_likelihood(trace)
+        return trace
+    else:
+        raise ValueError("Invalid job name")
 
-    return trace
-
+partial_nutpie_sample = partial(nutpie_sample, jobname=jobname)
 with Pool(n_cores, maxtasksperchild=1) as p:
-    res = list(tqdm(p.imap(nutpie_sample, amdata_chunks), total=len(amdata_chunks)))
+    res = list(tqdm(p.imap(partial_nutpie_sample, amdata_chunks), total=len(amdata_chunks)))
 
-with open(f'../exports/wave4_traces_{n_sites}.pk', 'wb') as f:
+print("res made")
+
+#modelling_bio.bio_model_plot(amdata[0])
+
+with open(f'../exports/{jobname}/{jobname}_traces_{num1}to{num2}.pk', 'wb') as f:
     pickle.dump(res, f)
-
+print("res saved")
 # %% PROCESS RESULTS IN AMDATA
 
 processed_results = []
@@ -131,7 +161,8 @@ for param in params:
 modelling_bio.bio_model_plot(amdata[1])
 
 # save fits information
-fits.to_csv('wave4_fits.csv')
+fits.to_csv(f'../exports/{jobname}/{jobname}_{num1}to{num2}_fits.csv')
+print('fit saved')
 
 amdata.obs['abs_der'] = modelling_bio.mean_abs_derivative_at_point(amdata, t=90)
 amdata.obs['saturating_std'] = modelling_bio.is_saturating_vect(amdata)
@@ -139,6 +170,6 @@ amdata.obs['saturating_der'] = amdata.obs.abs_der<0.001
 amdata.obs['saturating'] = amdata.obs.saturating_std | amdata.obs.saturating_der
 
 # save amdata
-amdata.write_h5ad('../exports/wave4_fitted.h5ad')
+amdata.write_h5ad(f'../exports/{jobname}/{jobname}_{num1}to{num2}_fitted.h5ad')
 
 # %%
