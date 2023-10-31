@@ -25,6 +25,8 @@ import sys
 sys.path.append("..")   # fix to import modules from root
 import src.amdata.amdata as amdata_src
 from src.utils import plot
+from src import paths
+
 plt.rcParams['svg.fonttype'] = 'none'
 
 sns_colors = sns.color_palette().as_hex()
@@ -45,4 +47,10 @@ sns.set_palette(sns.color_palette(colors))
 
 CON_PALLETE = sns.color_palette("blend:#E64B35,#4DBBD5")
 # plt.rc("axes.spines", top=False, right=False)
+
+
+import logging
+logger = logging.getLogger('pymc')
+logger.propagate = False
+logger.setLevel(logging.ERROR)
 
