@@ -16,7 +16,7 @@ N_SITES = 3_000 # number of sites to take in for the final person inferring
 N_PART = 2_000
 
 MULTIPROCESSING = True
-DATASET_NAME = 'ewasKNN'
+DATASET_NAME = 'wave3'
 
 amdata = amdata_src.AnnMethylData(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_meta.h5ad', backed='r')
 
@@ -59,4 +59,4 @@ for param in model.SITE_PARAMETERS.values():
 amdata = model.get_saturation_inplace(amdata)
 
 # save
-amdata.write_h5ad(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_fitted.h5ad')
+amdata.write_h5ad(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_sites_fitted.h5ad')

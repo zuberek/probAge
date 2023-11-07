@@ -14,9 +14,15 @@ N_CORES = 15
 N_SITES = 512 # number of sites to take in for the final person inferring
 
 MULTIPROCESSING = True
-DATASET_NAME = 'wave4'
+DATASET_NAME = 'wave3'
 
-amdata = amdata_src.AnnMethylData(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_fitted.h5ad')
+amdata = amdata_src.AnnMethylData(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_sites_fitted.h5ad')
+participants = pd.read_csv(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_participants.csv', index_col='Basename')
+
+amdata = amdata_src.AnnMethylData(f'{paths.DATA_PROCESSED_DIR}/wave3_MAP_acc.h5ad')
+participants['acc_old'] = amdata.var.acc
+participants['bias_old'] = amdata.var.bias
+
 
 # site_indexes = amdata[~amdata.obs.saturating].obs.sort_values('spr2').tail(100).index
 # axs = plot.tab(site_indexes, ncols=10)
@@ -37,6 +43,38 @@ amdata = amdata[site_indexes].to_memory()
 # %% ########################
 ### MODELLING PEOPLE
 
+ab_maps = model.person_model(amdata, method='map', progressbar=True)
+
+
+
+
+
+
+
+
+
+
+# from pymc.variational.callbacks import CheckParametersConvergence
+# import pymc as pm
+# import arviz as az
+# person_model = model.person_model(amdata[:,:10], method='map', progressbar=True)
+
+# with person_model:
+#     mean_field = pm.fit(method='advi', n=50_000, callbacks=[CheckParametersConvergence()],  progressbar=True)
+
+# with person_model:
+#     trace = pm.sample(progressbar=True)
+
+# with person_model:
+#     maps = pm.find_MAP(progressbar=True)
+
+
+
+# plt.plot(mean_field.hist)
+# trace = mean_field.sample(1_000)
+# az.plot_trace(trace)
+
+
 amdata_chunks = model.make_chunks(amdata.T, chunk_size=15)
 amdata_chunks = [chunk.T for chunk in amdata_chunks]
 
@@ -52,12 +90,28 @@ if MULTIPROCESSING:
 if not MULTIPROCESSING:
     map_chunks = map(model.person_model, amdata_chunks)
 
-# %% ########################
-### SAVING
+# # %% ########################
+# ### SAVING
 
-for param in ['acc', 'bias']:
-    param_data = np.concatenate([map[param] for map in map_chunks])
-    amdata.var[param] = param_data
+# for param in ['acc', 'bias']:
+#     param_data = np.concatenate([map[param] for map in map_chunks])
+#     amdata.var[param] = param_data
+
+amdata.var['acc'] = ab_maps['acc']
+amdata.var['bias'] = ab_maps['bias']
+
+# compute log likelihood for infered parameters to perform quality control
+ab_ll = model.person_model_ll(amdata)
+amdata.var['ll'] = ab_ll
+amdata.var['qc'] = amdata.var.ll < amdata.var.ll.quantile(0.025)
 
 amdata.write_h5ad(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_person_fitted.h5ad')
+
+participants['acc'] = amdata.var['acc']
+participants['bias'] = amdata.var['bias']
+participants['ll'] = amdata.var['ll']
+participants['qc'] = amdata.var['qc']
+
+participants.to_csv(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_participants.csv')
 # %%
+
