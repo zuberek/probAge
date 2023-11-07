@@ -269,7 +269,7 @@ def bio_model_plot (amdata, bio_fit=True, xlim=(0,100), alpha=1, fits=None, ax=N
     return ax
 ############################
 ### PERSON INFERENCE
-def person_model(amdata, method='map', progressbar=False):
+def person_model(amdata, method='map', progressbar=False, map_method='Powell'):
 
     # The data has two dimensions: participant and CpG site
     coords = {"site": amdata.obs.index, "part": amdata.var.index}
@@ -286,11 +286,14 @@ def person_model(amdata, method='map', progressbar=False):
     with pm.Model(coords=coords) as model:
         
         # Define model variables
-        acc = pm.Normal('acc', mu=0, sigma=0.5, dims='part')
-        bias = pm.Normal('bias', mu=0, sigma=0.05, dims='part')
+        acc = pm.Normal('acc', mu=0, sigma=1, dims='part')
+        bias = pm.Normal('bias', mu=0, sigma=0.2, dims='part')
+
+        # acc = pm.Normal('acc', mu=0, sigma=0.5, dims='part')
+        # bias = pm.Normal('bias', mu=0, sigma=0.05, dims='part')
 
         data = pm.MutableData("data", amdata.X)
-        age = pm.MutableData("omega", amdata.var.age)
+        age = pm.MutableData("age", amdata.var.age)
 
         # Useful variables
         omega = np.power(2, acc)*omega
@@ -321,11 +324,64 @@ def person_model(amdata, method='map', progressbar=False):
                     dims=("site", "part"), 
                     observed=data)
         
+        # return model
+        
         if method == 'map':
-            return pm.find_MAP(progressbar=progressbar)
+            return pm.find_MAP(method=map_method, progressbar=progressbar)
 
         if method == 'nuts':
             return pm.sample(1000, tune=1000, progressbar=progressbar)
+        
+def person_model_ll(amdata, acc_name='acc', bias_name='bias'):
+
+    age = np.broadcast_to(amdata.var.age, shape=(amdata.shape))
+    data = amdata.X
+
+    # # create a numpy array of the participants ages
+    # # array of ages needs to be broadcasted into a matrix array for each CpG site
+    omega = np.broadcast_to(amdata.obs.omega, shape=(amdata.shape[1], amdata.shape[0])).T
+    eta_0 = np.broadcast_to(amdata.obs.eta_0, shape=(amdata.shape[1], amdata.shape[0])).T
+    p = np.broadcast_to(amdata.obs.meth_init, shape=(amdata.shape[1], amdata.shape[0])).T
+    var_init = np.broadcast_to(amdata.obs.var_init, shape=(amdata.shape[1], amdata.shape[0])).T
+    N = np.broadcast_to(amdata.obs.system_size, shape=(amdata.shape[1], amdata.shape[0])).T
+
+    acc = np.array(amdata.var[acc_name])
+    bias = np.array(amdata.var[bias_name])
+
+    # Useful variables
+    omega = np.power(2, acc)*omega
+    eta_1 = 1-eta_0
+    
+    # model mean and variance
+    var_term_0 = eta_0*eta_1
+    var_term_1 = (1-p)*np.power(eta_0,2) + p*np.power(eta_1,2)
+
+    # Define mean
+    mean = eta_0 + np.exp(-omega*age)*((p-1)*eta_0 + p*eta_1) + bias
+    mean = np.clip(mean, 0.001, 0.999)
+
+    # Define variance
+    variance = (var_term_0/N 
+            + np.exp(-omega*age)*(var_term_1-var_term_0)/N 
+            + np.exp(-2*omega*age)*(var_init/np.power(N,2) - var_term_1/N)
+        )
+    
+    # Beta function parameter boundaries
+    variance = np.clip(variance, 0, mean*(1-mean))
+
+    k = (mean*(1-mean)/variance)-1
+    a = mean*k
+    b = (1-mean)*k
+
+    return beta.logpdf(data, a=a, b=b).sum(axis=0)
+
+def get_person_fit_quality(amdata, quantile=0.023, acc_name='acc', bias_name='bias'):
+    ab_ll = person_model_ll(amdata)
+    amdata.var['ll'] = ab_ll
+    return amdata.var.ll < amdata.var.ll.quantile(quantile)
+
+        
+        
 
 def site_offsets(amdata, show_progress=False, map_method='Powell'):
     
@@ -347,7 +403,7 @@ def site_offsets(amdata, show_progress=False, map_method='Powell'):
     with pm.Model(coords=coords) as model:
         
         # Define priors
-        offset = pm.Normal("offset",  mu=0, sigma=0.01, dims='site')
+        offset = pm.Normal("offset",  mu=0, sigma=0.1, dims='site')
 
         # Useful variables
         eta_1 = 1-eta_0
