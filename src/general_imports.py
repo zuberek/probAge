@@ -54,3 +54,5 @@ logger = logging.getLogger('pymc')
 logger.propagate = False
 logger.setLevel(logging.ERROR)
 
+import warnings
+warnings.filterwarnings("ignore")
