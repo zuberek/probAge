@@ -89,7 +89,7 @@ def bio_sites(data):
         var_term_0 = eta_0*eta_1
         var_term_1 = (1-p)*np.power(eta_0,2) + p*np.power(eta_1,2)
 
-        mean = eta_0 + np.exp(-omega*ages)*((p-1)*eta_0 + p*eta_1)
+        mean = eta_0 + np.exp(-omega*ages)*(p-eta_0)
 
         variance = (var_term_0/N 
                 + np.exp(-omega*ages)*(var_term_1-var_term_0)/N 
@@ -375,15 +375,14 @@ def person_model_ll(amdata, acc_name='acc', bias_name='bias'):
 
     return beta.logpdf(data, a=a, b=b).sum(axis=0)
 
-def get_person_fit_quality(amdata, quantile=0.023, acc_name='acc', bias_name='bias'):
-    ab_ll = person_model_ll(amdata)
-    amdata.var['ll'] = ab_ll
-    return amdata.var.ll < amdata.var.ll.quantile(quantile)
+def get_person_fit_quality(ab_ll, quantile=0.023):
+    return ab_ll < ab_ll.quantile(quantile)
 
         
         
 
-def site_offsets(amdata, show_progress=False, map_method='Powell'):
+def site_offsets(amdata, show_progress=False, map_method='L-BFGS-B'):
+# def site_offsets(amdata, show_progress=False, map_method='Powell'):
     
     # The data has two dimensions: participant and CpG site
     coords = {"site": amdata.obs.index, "part": amdata.var.index}
@@ -412,7 +411,7 @@ def site_offsets(amdata, show_progress=False, map_method='Powell'):
         var_term_0 = eta_0*eta_1
         var_term_1 = (1-p)*np.power(eta_0,2) + p*np.power(eta_1,2)
 
-        mean = eta_0 + np.exp(-omega*ages)*((p-1)*eta_0 + p*eta_1) + offset
+        mean = eta_0 + np.exp(-omega*ages)*(p-eta_0) + offset
 
         variance = (var_term_0/N 
                 + np.exp(-omega*ages)*(var_term_1-var_term_0)/N 
