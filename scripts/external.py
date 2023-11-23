@@ -1,128 +1,128 @@
-%load_ext autoreload
-%autoreload 2
+'''
+Apply the model on a external dataset
+'''
+
+# %%
+# IMPORTS
+# %load_ext autoreload
+# %autoreload 2
 
 import sys
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
+from src import paths
 
-from src import modelling_bio
-from functools import partial
-import arviz as az
+from src import modelling_bio_beta as model
 
-import pickle
+N_CORES = 15
 
-import logging
-logger = logging.getLogger('pymc')
-logger.propagate = False
-logger.setLevel(logging.ERROR)
+N_SITES = None
+N_PARTICIPANTS = None
 
-external_path = '../exports/hannum.h5ad'
-external_path = '../exports/wave3_meta.h5ad' 
-external_cohort_name = 'hannum'
-
-amdata = amdata_src.AnnMethylData('../exports/wave3_meta.h5ad', backed='r')
-amdata = amdata[amdata.obs.sort_values('r2', ascending=False).index[:50]].to_memory()
-amdata = amdata_src.AnnMethylData(amdata)
-
-params = ['omega', 'eta_0', 'meth_init', 'var_init', 'system_size']
-maps = modelling_bio.bio_sites(amdata, return_MAP=True, return_trace=False, show_progress=True)['map']
-for param in params:
-    amdata.obs[f'{param}'] = maps[param]
-ab_maps = modelling_bio.person_model(amdata, return_trace=False, return_MAP=True, show_progress=True)['map']
-amdata.var['acc'] = ab_maps['acc']
-amdata.var['bias'] = ab_maps['bias']
-
-axs = plot.tab(amdata.sites.index, ncols=5)
-for i, site_index in enumerate(amdata.sites.index):
-    modelling_bio.bio_model_plot(amdata[site_index], ax=axs[i])
+if len(sys.argv)==3:
+    # python external.py wave1 wave3
+    EXT_DSET_NAME = sys.argv[1] # external dataset name
+    REF_DSET_NAME = sys.argv[2] # reference datset name
+else:
+    EXT_DSET_NAME = 'wave3' # external dataset name
+    REF_DSET_NAME = 'wave3' # reference datset name
 
 
-amdata.var.age = amdata.var.age-18
-for param in params:
-    amdata.obs[f'true_{param}'] = amdata.obs[param]
+# %%
+# LOAD
 
-maps = modelling_bio.bio_sites(amdata, return_MAP=True, return_trace=False, show_progress=True)['map']
-for param in params:
-    amdata.obs[param] = maps[param]
-ab_maps = modelling_bio.person_model(amdata, return_trace=False, return_MAP=True, show_progress=True)['map']
-amdata.var['shift_acc'] = ab_maps['acc']
-amdata.var['shift_bias'] = ab_maps['bias']
+print(f'Running {REF_DSET_NAME} model on the {EXT_DSET_NAME} dataset')
+
+# amdata = ad.read_h5ad(f'{paths.DATA_PROCESSED_DIR}/{EXT_DSET_NAME}_fitted.h5ad', backed='r')
+amdata = ad.read_h5ad(f'{paths.DATA_PROCESSED_DIR}/{EXT_DSET_NAME}_meta.h5ad', backed='r')
+participants = pd.read_csv(f'{paths.DATA_PROCESSED_DIR}/{EXT_DSET_NAME}_participants.csv', index_col='Basename')
+amdata_ref = ad.read_h5ad(f'{paths.DATA_PROCESSED_DIR}/{REF_DSET_NAME}_person_fitted.h5ad', backed='r')
 
 
-amdata[:,amdata.var.age<18].var.shift_acc.hist()
+# Load intersection of sites in new dataset
+params = list(model.SITE_PARAMETERS.values())
 
-sns.scatterplot(amdata.var, x='acc', y='shift_acc', hue='age')
-sns.scatterplot(amdata.var, x='bias', y='shift_bias')
+# intersection = site_info.index.intersection(amdata.obs.index)
+intersection = amdata_ref.obs.index.intersection(amdata.obs.index)[:N_SITES]
 
-axs = plot.tab(params, ncols=2)
-for i, param in enumerate(params):
-    sns.scatterplot(amdata.obs, x=f'shift_{param}', y=param, ax=axs[i])
+amdata = amdata[intersection].to_memory()
+amdata.obs[params] = amdata_ref.obs[params]
 
-ab_maps = modelling_bio.person_model(amdata, return_trace=False, return_MAP=True, show_progress=True)['map']
+# amdata = amdata[:, amdata.var.age>18].copy()
+# participants = participants[participants.age>18]
 
 
 
-N_SITES = 2
-N_PARTS = False
-N_CORES = 7
+# %% #################
+# BATCH (MODEL) CORRECTION
 
-# load selected sites for fitting
-with open("../resources/selected_sites.json", "r") as f:
-    sites = json.load(f)
+amdata_chunks = model.make_chunks(amdata, chunk_size=10)
 
-# load external cohort
-amdata = amdata_src.AnnMethylData(external_path, backed='r')
-# filter sites
-amdata = amdata[amdata.sites.index.isin(sites)].to_memory()
-amdata = amdata_src.AnnMethylData(amdata)
+# print('Calculating the offsets...')
+# if 'status' in amdata.var.columns:
+#     offsets_chunks = [model.site_offsets(chunk[:,amdata.var.status=='healthy']) for chunk in tqdm(amdata_chunks)]
+# else:
+#     offsets_chunks = [model.site_offsets(chunk) for chunk in tqdm(amdata_chunks)]
 
-amdata.X = np.where(amdata.X == 0, 0.00001, amdata.X)
-amdata.X = np.where(amdata.X == 1, 0.99999, amdata.X)
+with Pool(N_CORES) as p:
+    offsets_chunks = list(tqdm(p.imap(model.site_offsets, amdata_chunks), total=len(amdata_chunks)))
+                     
 
-if N_SITES is not False:
-    amdata = amdata[:N_SITES]
+offsets = np.concatenate([chunk['offset'] for chunk in offsets_chunks])
 
-with Pool(N_CORES, maxtasksperchild=1) as p:
-    results = list(tqdm(
-            iterable= p.imap(
-                func=modelling_bio.bio_fit,
-                iterable=amdata,
-                chunksize=1
-                ), 
-            total=amdata.n_obs))
+# # Infer the offsets
+amdata.obs['offset'] = offsets
+amdata.obs.eta_0 = amdata.obs.eta_0 + amdata.obs.offset
+amdata.obs.meth_init  = amdata.obs.meth_init + amdata.obs.offset
+# sns.histplot(amdata.obs.offset, bins=100)
 
-fits = modelling_bio.bio_fit_post(results,  amdata)
+# %% #################
+# show the offset applied to data
 
-fits.to_csv('../exports/fits_' + external_cohort_name + '.csv')
+# site_index = amdata.obs.offset.abs().sort_values().index[-1]
+# sns.scatterplot(x=amdata.var.age, y=amdata[site_index].X.flatten(), label=EXT_DSET_NAME)
+# sns.scatterplot(x=amdata_ref.var.age, y=amdata_ref[site_index].X.flatten(), label=REF_DSET_NAME)
+# sns.scatterplot(x=amdata.var.age, y=amdata[site_index].X.flatten()-amdata[site_index].obs.offset.values)
 
-# Fitting acceleration and bias
-print('Acceleration and bias model fitting')
-if N_PARTS is not False:
-    amdata = amdata[:, :N_PARTS]
+# %% ##################
+# PERSON MODELLING  
+print('Calculating person parameters (acceleration and bias)...')
 
-# create amdata chunks to vectorize acc and bias over participants
-chunk_size = 10
-n_participants = amdata.shape[1]
-amdata_chunks = []
-for i in range(0, n_participants, chunk_size):
-    amdata_chunks.append(amdata[:,i:i+chunk_size])
+# ab_maps = model.person_model(amdata, method='map', progressbar=True, map_method=None)
 
-# Modify fitting function to return only MAP
-person_model = partial(modelling_bio.person_model, return_MAP=True, return_trace=False)
+amdata_chunks = model.make_chunks(amdata.T, chunk_size=15)
+amdata_chunks = [chunk.T for chunk in amdata_chunks]
+with Pool(N_CORES) as p:
+    map_chunks = list(tqdm(p.imap(model.person_model, amdata_chunks)
+                            ,total=len(amdata_chunks)))
+for param in ['acc', 'bias']:
+    param_data = np.concatenate([map[param] for map in map_chunks])
+    amdata.var[f'{param}_{REF_DSET_NAME}'] = param_data
 
-results = []
-for chunk in tqdm(amdata_chunks):
-    results.append(
-        person_model(chunk
-        )
-    )
+# if ab_maps['acc'].sum() == 0:
+#     print('Fitting error. Try different map method, for example Powell')
 
-# Append acc and bias to amdata object
-acc = np.concatenate([r['map']['acc'] for r in results])
-bias = np.concatenate([r['map']['bias'] for r in results])
+participants[f'acc_{REF_DSET_NAME}'] = amdata.var[f'acc_{REF_DSET_NAME}']
+participants[f'bias_{REF_DSET_NAME}'] = amdata.var[f'bias_{REF_DSET_NAME}']
 
-amdata.var['acc_mean'] = acc
-amdata.var['bias_mean'] = bias
+# amdata.var[f'acc_{REF_DSET_NAME}'] = ab_maps['acc']
+# amdata.var[f'bias_{REF_DSET_NAME}'] = ab_maps['bias']
+participants[f'll_{REF_DSET_NAME}'] = model.person_model_ll(amdata, 
+                                                            acc_name=f'acc_{REF_DSET_NAME}', 
+                                                            bias_name=f'bias_{REF_DSET_NAME}')
 
-# Export amdata object
-amdata.write_h5ad('../exports/' + external_cohort_name +'_acc_bio.h5ad')
+# compute log likelihood for infered parameters to perform quality control
+participants[f'qc_{REF_DSET_NAME}'] = model.get_person_fit_quality(
+    participants[f'll_{REF_DSET_NAME}'])
+
+participants.to_csv(f'{paths.DATA_PROCESSED_DIR}/{EXT_DSET_NAME}_participants.csv')
+
+# sns.scatterplot(x=participants.age, y=participants.bias_wave3, hue=participants.status)
+# %%
+
+# import plotly.express as px
+
+# participants.acc_wave3.mean()
+# participants['status_binary'] = (participants.status=='healthy')*1
+# px.scatter(x=participants.status_binary, y=participants.acc_wave3, color=participants.sex, trendline='ols')
+# px.scatter(x=participants.acc_wave3, y=participants.bias_wave3, color=participants.status, marginal_x='histogram' , marginal_y='histogram')

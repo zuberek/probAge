@@ -1,8 +1,9 @@
 import numpy as np
 
-def drop_nans(amdata):
+def drop_nans(amdata, verbose=False):
     nans = np.isnan(amdata.X).sum(axis=1).astype('bool')
-    print(f'There were {nans.sum()} NaNs dropped')
+    if verbose:
+        print(f'There were {nans.sum()} NaNs dropped')
     # Use the ~ character to flip the boolean
     return amdata[~nans]
 
