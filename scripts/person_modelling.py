@@ -1,8 +1,8 @@
 # %% ########################
 ### LOADING
 
-%load_ext autoreload 
-%autoreload 2
+# %load_ext autoreload 
+# %autoreload 2
 
 import sys
 sys.path.append("..")   # fix to import modules from root
@@ -16,7 +16,8 @@ N_SITES = 1024 # number of sites to take in for the final person inferring
 MULTIPROCESSING = True
 DATASET_NAME = 'wave3'
 
-amdata = amdata_src.AnnMethylData(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_sites_fitted.h5ad')
+amdata = amdata_src.AnnMethylData(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_sites_fitted_YOUNG.h5ad')
+amdata2 = amdata_src.AnnMethylData(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_sites_fitted.h5ad')
 participants = pd.read_csv(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_participants.csv', index_col='Basename')
 
 # site_indexes = amdata[~amdata.obs.saturating].obs.sort_values('spr2').tail(100).index
@@ -38,7 +39,7 @@ amdata = amdata[site_indexes].to_memory()
 # %% ########################
 ### MODELLING PEOPLE
 
-ab_maps = model.person_model(amdata, method='map', progressbar=True)
+# ab_maps = model.person_model(amdata, method='map', progressbar=True)
 
 # from pymc.variational.callbacks import CheckParametersConvergence
 # import pymc as pm
@@ -83,9 +84,6 @@ for param in ['acc', 'bias']:
     param_data = np.concatenate([map[param] for map in map_chunks])
     amdata.var[param] = param_data
 
-amdata.var['acc'] = ab_maps['acc']
-amdata.var['bias'] = ab_maps['bias']
-
 # compute log likelihood for infered parameters to perform quality control
 ab_ll = model.person_model_ll(amdata)
 amdata.var['ll'] = ab_ll
@@ -93,13 +91,13 @@ participants['qc'] = model.get_person_fit_quality(
     participants['ll'])
 
 
-amdata.write_h5ad(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_person_fitted.h5ad')
+amdata.write_h5ad(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_person_fitted_YOUNG.h5ad')
 
 participants['acc'] = amdata.var['acc']
 participants['bias'] = amdata.var['bias']
 participants['ll'] = amdata.var['ll']
 participants['qc'] = amdata.var['qc']
 
-participants.to_csv(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_participants.csv')
+participants.to_csv(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_participants_YOUNG.csv')
 # %%
 
