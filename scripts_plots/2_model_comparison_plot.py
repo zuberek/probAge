@@ -4,7 +4,7 @@
 import sys
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
-from src import modelling_bio
+from src import modelling_bio_beta as modelling_bio
 
 amdata = ad.read_h5ad('../exports/wave3_acc.h5ad')
 amdata = amdata[amdata.obs.sort_values('r2', ascending=False).index]
@@ -35,7 +35,7 @@ loo_full_plot.write_image('../results/Modelling/loo_full.svg', height=200, width
 
 a = loo_full_plot.get_subplot
 
-import plotly.graphs_objs as go
+import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 fig = make_subplots(rows=2, cols=1, row_heights=[0.1, 0.9])
 

@@ -4,10 +4,10 @@ import sys
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
 
-from src import modelling_bio
+from src import modelling_bio_beta as modelling_bio
 import matplotlib.patches as mpatches
 
-amdata = ad.read_h5ad('../exports/wave3_all_fitted.h5ad')
+amdata = ad.read_h5ad('../exports/wave3_person_fitted.h5ad')
 increasing = amdata.obs.eta_0>amdata.obs.meth_init
 
 #%%
@@ -19,7 +19,9 @@ omegas = np.broadcast_to(amdata.obs.omega, shape=(xlim[1], amdata.shape[0])).T
 etas = np.broadcast_to(amdata.obs.eta_0, shape=(xlim[1], amdata.shape[0])).T
 ps = np.broadcast_to(amdata.obs.meth_init, shape=(xlim[1], amdata.shape[0])).T
 
-means = modelling_bio.bio_site_mean(t, etas, omegas, ps)
+def bio_site_mean(ages, eta_0, omega, p):
+    return eta_0 + np.exp(-omega*ages)*(p-eta_0)
+means = bio_site_mean(t, etas, omegas, ps)
 
 legend_handles = [
     mpatches.Patch(color=colors[1], label='Saturating SD'),
@@ -48,7 +50,7 @@ ax.axhline(y=0.95, color=colors[1], linestyle='dotted')
 
 ax.set_xlabel('Age (years)')
 ax.set_ylabel('Methylation level (beta values)')
-
+#%%
 plot.save(ax, 'A_lineplot_filtered_increasing_saturating_means', format='svg')
 plot.save(ax, 'A_lineplot_filtered_increasing_saturating_means', format='png')
 

@@ -12,7 +12,7 @@ age_bins = np.sort(amdata.var.age_bin.unique())
 
 var_df = pd.DataFrame()
 for age_bin in age_bins:
-    bin = pd.DataFrame(amdata[:,amdata.var.age_bin == age_bin].X.var(axis=1).toarray(), columns=['variance'])
+    bin = pd.DataFrame(amdata[:,amdata.var.age_bin == age_bin].X.var(axis=1).tolist(), columns=['variance'])
     bin['bin'] = age_bin
     var_df= pd.concat((var_df, bin), axis=0)
    

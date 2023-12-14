@@ -23,7 +23,6 @@ sm.set_array([])
 ax.get_legend().remove()
 ax.figure.colorbar(sm)
 
-ax.
 
 #%%
 site_indexes =['cg05575921','cg09067967','cg24090911']

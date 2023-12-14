@@ -2,7 +2,7 @@ import sys
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
 
-DATA_PATH = '../exports/wave3_acc.h5ad'
+DATA_PATH = '../exports/wave3_person_fitted.h5ad'
 amdata = ad.read_h5ad(DATA_PATH)
 
 

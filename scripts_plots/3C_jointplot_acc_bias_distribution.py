@@ -1,11 +1,13 @@
+
+#%%
 import sys
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
 
-from src import modelling_bio
+from src import modelling_bio_beta as modelling_bio
 import arviz as az
 
-amdata = ad.read_h5ad('../exports/wave3_acc.h5ad')
+amdata = ad.read_h5ad('../exports/wave3_person_fitted_ALL.h5ad', backed='r')
 
 participants = amdata.var
 participants['data'] = 'Every participant'

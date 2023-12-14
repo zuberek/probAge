@@ -3,7 +3,7 @@
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
 
-from src import modelling_bio
+from src import modelling_bio_beta as modelling_bio
 import arviz as az
 
 amdata = ad.read_h5ad('../exports/wave3_acc.h5ad')
@@ -41,8 +41,8 @@ person_names = [
 #%% compoute traces
 traces = []
 for person_index in person_names:
-    traces.append(modelling_bio.person_model(amdata[:,participants.loc[person_index]['index']], return_trace=True, cores=4,
-                            return_MAP=False, show_progress=True, )['trace'])
+    traces.append(modelling_bio.person_model(amdata[:,participants.loc[person_index]['index']], 
+                                             method='nuts', progressbar=True))
 
 extracted_df = pd.DataFrame()
 for trace in traces:

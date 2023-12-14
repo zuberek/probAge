@@ -3,7 +3,7 @@ import sys
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
 
-from src import modelling_bio
+from src import modelling_bio_beta as modelling_bio
 import arviz as az
 
 from sklearn.linear_model import LinearRegression
