@@ -109,7 +109,7 @@ def bio_sites(data):
         
     return model
 
-def parallel_site_MAP (data_chunk, progressbar=False):
+def site_MAP(data_chunk, progressbar=False):
     """Create a function for  parallel inference of MAP
     given a data_chunk"""
 
@@ -243,7 +243,7 @@ def bio_model_plot (amdata, bio_fit=True, xlim=(0,100), alpha=1, fits=None, ax=N
     if bio_fit is True:
         t = np.linspace(xlim[0],xlim[1], 1_000)
 
-        mean, variance = bio_model(amdata, t)
+        mean, variance = bio_model_stats(amdata, t)
 
         k = (mean*(1-mean)/variance)-1
         a = mean*k
