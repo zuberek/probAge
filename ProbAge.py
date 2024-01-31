@@ -40,18 +40,15 @@ amdata = modules.loading.create_anndata(data, meta)
 
 if st.button("Run Inference"):
     
-    amdata_ref = ad.read_h5ad(f'exports/wave3_person_fitted.h5ad', backed='r')
-
-
+    sites_ref = pd.read_csv('streamlit/wave3_sites.csv')
 
     # Load intersection of sites in new dataset
     params = list(modelling.SITE_PARAMETERS.values())
 
-    intersection = amdata_ref.obs.index.intersection(amdata.obs.index)
-    amdata.obs[params] = amdata_ref.obs[params]
+    intersection = sites_ref.index.intersection(amdata.obs.index)
+    amdata.obs[params] = sites_ref[params]
 
     amdata = amdata[intersection].to_memory()
-    amdata.obs[params] = amdata_ref.obs[params]
 
     t = st.empty()
     t.markdown('Inferring site offsets... ')
