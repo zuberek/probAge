@@ -11,7 +11,7 @@ dependencies:
   - pandas
   - pymc = 5.7
   - plotly
-  # - python-kaleido
+  - python-kaleido
   - matplotlib
   - scikit-learn
   - statsmodels
@@ -28,3 +28,4 @@ dependencies:
   - blackjax
   - nutpie
   - multiprocess
+  - streamlit
