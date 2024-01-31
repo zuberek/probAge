@@ -40,7 +40,8 @@ amdata = modules.loading.create_anndata(data, meta)
 
 if st.button("Run Inference"):
     
-    sites_ref = pd.read_csv('streamlit/wave3_sites.csv')
+    sites_ref = pd.read_csv('streamlit/wave3_sites.csv', index_col=0)
+    # amdata = ad.read_h5ad('resources/downsyndrome.h5ad')
 
     # Load intersection of sites in new dataset
     params = list(modelling.SITE_PARAMETERS.values())
