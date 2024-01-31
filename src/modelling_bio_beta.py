@@ -24,7 +24,7 @@ SITE_PARAMETERS = {
     'var_init': 'var_init'
 }
 
-PARAMS = ['eta_0','omega','p','N','var_init']
+PARAMS = ['eta_0','omega','meth_init','system_size','var_init']
 
 def sample_to_uniform_age(amdata, n_part):
     """Sample participants from amdata uniformly between
