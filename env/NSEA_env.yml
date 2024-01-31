@@ -9,9 +9,9 @@ dependencies:
   - r-anndata
   - numpy
   - pandas
-  - pymc = 5
+  - pymc = 5.7
   - plotly
-  # - python-kaleido
+  - python-kaleido
   - matplotlib
   - scikit-learn
   - statsmodels
@@ -26,3 +26,6 @@ dependencies:
   - jax
   - numpyro
   - blackjax
+  - nutpie
+  - multiprocess
+  - streamlit
