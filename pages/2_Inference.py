@@ -52,7 +52,8 @@ else:
             df
 
     with col2:
-        if person_index is not None:
+        if st.session_state.SELECTED is not False:
+            person_index = st.session_state.SELECTED
             f'Analysing the person **{person_index}**'
             # amdata.var.loc[person_index]
 
