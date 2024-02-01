@@ -4,7 +4,8 @@ import sys
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
 
-df = pd.read_csv('../exports/results_for_jan.csv', index_col=0)
+df = pd.read_csv(f'{paths.DATA_PROCESSED_DIR}/results_for_jan.csv', index_col=0)
+
 
 #%% 
 # prepping
@@ -31,7 +32,7 @@ g.set_ylabels("Smoking \n association \n (beta)")
 
 #%% 
 # saving
-g.savefig('../results/1B_facetgrid_clocks.svg')
-g.savefig('../results/1B_facetgrid_clocks.png')
+g.savefig(f'{paths.FIGURES_DIR}/1B_facetgrid_clocks.svg')
+g.savefig(f'{paths.FIGURES_DIR}/1B_facetgrid_clocks.png')
 
 # %%
