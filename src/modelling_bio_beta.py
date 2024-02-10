@@ -331,6 +331,7 @@ def person_model(amdata, method='map', progressbar=False, map_method='Powell'):
 
         if method == 'nuts':
             return pm.sample(1000, tune=1000, progressbar=progressbar)
+            # return pm.sample(1000, tune=1000, init_nuts='adapt_diag', progressbar=progressbar)
         
 def person_model_ll(amdata, acc_name='acc', bias_name='bias'):
 

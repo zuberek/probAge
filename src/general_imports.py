@@ -45,7 +45,9 @@ colors = [
 ]
 sns.set_palette(sns.color_palette(colors))
 
+
 CON_PALLETE = sns.color_palette("blend:#E64B35,#4DBBD5")
+CON_PALLETE2 = sns.color_palette("blend:#4DBBD5FF,#E64B35FF", as_cmap=True)
 # plt.rc("axes.spines", top=False, right=False)
 
 

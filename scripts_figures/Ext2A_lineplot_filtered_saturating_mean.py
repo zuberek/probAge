@@ -7,8 +7,10 @@ from src.general_imports import *
 from src import modelling_bio_beta as modelling_bio
 import matplotlib.patches as mpatches
 
-amdata = ad.read_h5ad('../exports/wave3_person_fitted.h5ad')
+amdata = ad.read_h5ad('../exports/wave3_sites_fitted.h5ad')
 increasing = amdata.obs.eta_0>amdata.obs.meth_init
+
+
 
 #%%
 # DATA PREP
@@ -40,7 +42,7 @@ sns.despine()
 for i, mean in enumerate(means[increasing]):
     color=colors[0]
     if amdata.obs[increasing].iloc[i].saturating_der: color = '#F39B7FFF'
-    if amdata.obs[increasing].iloc[i].saturating_std: color = colors[1] 
+    if amdata.obs[increasing].iloc[i].saturating_sd: color = colors[1] 
     sns.lineplot(x=t, y=mean, color=color, alpha=0.2, ax=ax)
 
 ax.legend(handles=legend_handles, loc='right')
@@ -50,9 +52,9 @@ ax.axhline(y=0.95, color=colors[1], linestyle='dotted')
 
 ax.set_xlabel('Age (years)')
 ax.set_ylabel('Methylation level (beta values)')
-#%%
-plot.save(ax, 'A_lineplot_filtered_increasing_saturating_means', format='svg')
-plot.save(ax, 'A_lineplot_filtered_increasing_saturating_means', format='png')
+#%%()
+ax.get_figure().savefig(f'{paths.FIGURES_DIR}/Ext2A_lineplot_filtered_increasing_saturating_means.png')
+ax.get_figure().savefig(f'{paths.FIGURES_DIR}/Ext2A_lineplot_filtered_increasing_saturating_means.svg')
 
 #%%
 # Saturating decreasing sites
@@ -63,7 +65,7 @@ sns.despine()
 for i, mean in enumerate(means[~increasing]):
     color=colors[0]
     if amdata.obs[~increasing].iloc[i].saturating_der: color = '#F39B7FFF'
-    if amdata.obs[~increasing].iloc[i].saturating_std: color = colors[1] 
+    if amdata.obs[~increasing].iloc[i].saturating_sd: color = colors[1] 
     sns.lineplot(x=t, y=mean, color=color, alpha=0.2, ax=ax)
 
 handles = [
@@ -79,8 +81,8 @@ ax.axhline(y=0.95, color='tab:red', linestyle='dotted')
 ax.set_xlabel('Age (years)')
 ax.set_ylabel('Methylation level (beta values)')
 
-
-plot.save(ax, 'A_lineplot_filtered_decreasing_saturating_means', format='svg')
-plot.save(ax, 'A_lineplot_filtered_decreasing_saturating_means', format='png')
+#%%
+ax.get_figure().savefig(f'{paths.FIGURES_DIR}/Ext2A_lineplot_filtered_decreasing_saturating_means.png')
+ax.get_figure().savefig(f'{paths.FIGURES_DIR}/Ext2A_lineplot_filtered_decreasing_saturating_means.svg')
 
 # %%

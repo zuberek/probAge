@@ -6,12 +6,12 @@ import sys
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
 
-from src import modelling_bio
+from src import modelling_bio_beta as modelling_bio
 import arviz as az
 
 import pickle
 
-amdata = ad.read_h5ad('../exports/wave3_acc.h5ad')
+amdata = ad.read_h5ad('../exports/wave3_person_fitted.h5ad')
 
 mean, variance = modelling_bio.bio_model_stats(amdata[0], t=np.linspace(0,100, 100))
 
@@ -29,10 +29,10 @@ for i, site_index in enumerate(top_sites):
 
     non_biased = set(np.where(np.abs(amdata.var.bias)<0.005)[0])
     biased = set(np.where(amdata.var.bias>0.03)[0])
-    non_acc = set(np.where(np.abs(amdata.var.acc)<0.02)[0])
+    non_acc = set(np.where(np.abs(amdata.var.acc)<0.1)[0])
     acc = set(np.where(amdata.var.acc > 0.4)[0])
 
-
+    amdata.var.acc.hist()
     acc_non_biased_index = list(acc.intersection(non_biased))[3]
     biased_non_acc_index = list(biased.intersection(non_acc))[0]
 
@@ -92,6 +92,7 @@ for i, site_index in enumerate(top_sites):
                     ax=axes[i])
 axes[0].set_ylabel('methylation')
 
+#%%
 # # Adjusting the sub-plots
 fig.set_figwidth(10)
 plt.rcParams['svg.fonttype'] = 'none'

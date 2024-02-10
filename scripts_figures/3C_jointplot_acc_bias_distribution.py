@@ -7,16 +7,10 @@ from src.general_imports import *
 from src import modelling_bio_beta as modelling_bio
 import arviz as az
 
-amdata = ad.read_h5ad('../exports/wave3_person_fitted_ALL.h5ad', backed='r')
+amdata = ad.read_h5ad('../exports/wave3_person_fitted.h5ad', backed='r')
 
 participants = amdata.var
 participants['data'] = 'Every participant'
-
-g=sns.jointplot(data=participants, x='acc', y='bias', hue='data',
-                    palette=['tab:grey'], marker='.', alpha=0.3, legend=False,
-                    marginal_ticks=True)
-g.plot_joint(sns.kdeplot, color="r", zorder=1, levels=6, legend=False)
-g.refline(y=0, x=0)
 
 #%%
 g = sns.JointGrid()
@@ -29,6 +23,7 @@ g.refline(x=0,y=0)
 g.fig.set_figwidth(6)
 g.fig.set_figheight(4)
 
-g.savefig('../results/3_jointplot_acc_bias_distribution.svg')
-g.savefig('../results/3_jointplot_acc_bias_distribution.png')
+# %% saving
+g.savefig(f'{paths.FIGURES_DIR}/3C_jointplot_accbias_distribution.svg')
+g.savefig(f'{paths.FIGURES_DIR}/3C_jointplot_accbias_distribution.png')
 #%%

@@ -8,13 +8,16 @@ sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
 from src import modelling_bio_beta as model
 
-DATASET_NAME = 'ewasKNN'
+DATASET_NAME = 'wave3'
 N_PART = 1_000
+
+n_sites_grid = [2**n for n in range(1,11)]
+n_sites_label = [f'{n_sites_grid[i]}-{n_sites_grid[i+1]}' for i in range(len(n_sites_grid))[:-1]]
 
 
 # %% ########################
 # LOADING
-amdata = amdata_src.AnnMethylData(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_fitted.h5ad',backed='r')
+amdata = amdata_src.AnnMethylData(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_sites_fitted.h5ad',backed='r')
 amdata = amdata[~amdata.obs.saturating].to_memory()
 # Sort sites by spr2
 amdata = amdata[amdata.obs.sort_values('spr2', ascending=False).index]
@@ -23,10 +26,9 @@ amdata = amdata[amdata.obs.sort_values('spr2', ascending=False).index]
 part_indexes = model.sample_to_uniform_age(amdata, N_PART)
 amdata = amdata[:, part_indexes].copy()
 
+
 # %% ########################
 # DOWNSAMPLING
-n_sites_grid = [2**n for n in range(1,11)]
-n_sites_label = [f'{n_sites_grid[i]}-{n_sites_grid[i+1]}' for i in range(len(n_sites_grid))[:-1]]
 accs = np.empty((len(n_sites_grid), amdata.shape[1]))
 biases = np.empty((len(n_sites_grid), amdata.shape[1]))
 for i, n_sites in enumerate(tqdm(n_sites_grid)):
@@ -43,7 +45,9 @@ biases.to_csv(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_biases.csv')
 # PLOTTING
 accs = pd.read_csv(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_accs.csv', index_col=0)
 biases = pd.read_csv(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_biases.csv', index_col=0)
+accs.iloc[:100]
 
+model.person_model(amdata[:, '202933790026_R01C01'])
 df = pd.DataFrame(np.abs(np.diff(accs, axis=1)), index=amdata.var.index, columns=n_sites_label)
 ax = plot.row('', figsize=(7.5,3))
 sns.boxplot(df, color=colors[0], showfliers=False, ax=ax)

@@ -12,7 +12,7 @@ from sklearn.linear_model import LinearRegression
 
 amdata = amdata_src.AnnMethylData(f'{paths.DATA_PROCESSED_DIR}/wave3_meta.h5ad', backed='r')
 wave3_participants = pd.read_csv(f'{paths.DATA_PROCESSED_DIR}/wave3_participants.csv', index_col='Basename')
-amdata.var.age.
+
 N_BINS = 5
 
 participants = wave3_participants
@@ -24,16 +24,16 @@ age_bins = np.sort(participants.age_bin.unique())
 bin_size = participants.groupby('age_bin')['Sample_Name'].count()
 bin_centers = participants.groupby('age_bin')['age'].mean().values[:,np.newaxis]
 
-var_df = pd.DataFrame()
-for age_bin in tqdm(age_bins):
-    bin = pd.DataFrame(amdata[:,participants.age_bin == age_bin].X.var(axis=1).tolist(), columns=['variance'])
-    bin['bin'] = age_bin
-    var_df= pd.concat((var_df, bin), axis=0)
+# var_df = pd.DataFrame()
+# for age_bin in tqdm(age_bins):
+#     bin = pd.DataFrame(amdata[:,participants.age_bin == age_bin].X.var(axis=1).tolist(), columns=['variance'])
+#     bin['bin'] = age_bin
+#     var_df= pd.concat((var_df, bin), axis=0)
 
 
 # %%  
 # Run for a our acceleration
-CLOCK = 'acc_wave3'
+CLOCK = 'Horvath'
 
 bin_means = participants.groupby('age_bin')[CLOCK].mean().values
 bin_sds = participants.groupby('age_bin')[CLOCK].std().values
@@ -56,11 +56,16 @@ sns.lineplot(ax=g.ax_joint, x=bin_centers.flatten(), color='tab:blue', label='2*
 sns.lineplot(ax=g.ax_joint, x=bin_centers.flatten(), color='tab:blue', y=std_down)
 
 
-sns.boxplot(data=participants, y=CLOCK, x=participants.age_bin, hue_order=age_bins, 
-                ax=g.ax_marg_y, palette=CON_PALLETE, showfliers=False)
+# sns.boxplot(ax=g.ax_marg_y, data=participants, y=CLOCK, x=participants.age_bin, hue_order=age_bins, palette=CON_PALLETE, showfliers=False)
 # sns.pointplot(data=var_df, x="bin", y="variance", ax=g.ax_marg_x)
 g.refline(y=0)
+g.ax_marg_x.remove()
+g.ax_marg_y.remove()
 g.fig.subplots_adjust(top=0.7)
+
+# %% saving
+ax.get_figure().savefig(f'{paths.FIGURES_DIR}/1G_global_bias_problem.svg')
+ax.get_figure().savefig(f'{paths.FIGURES_DIR}/1G_global_bias_problem.png')
 
 # %%  
 # # g = sns.JointGrid(ylim=(-20,20))

@@ -3,13 +3,13 @@ import sys
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
 
-from src import modelling_bio_beta as modelling_bio
+from src import modelling_bio_beta as modelling
 import arviz as az
 
 from sklearn.linear_model import LinearRegression
 
-amdata = ad.read_h5ad('../exports/wave3_meta.h5ad', backed='r')
-amdata_bio = ad.read_h5ad('../exports/wave3_acc.h5ad')
+amdata = ad.read_h5ad('../exports/wave3_person_fitted.h5ad')
+# amdata_bio = ad.read_h5ad('../exports/wave3_acc.h5ad')
 
 horvath_coef = pd.read_csv('../resources/Horvath_coef.csv', index_col=0)
 intersection = amdata.obs.index.intersection(horvath_coef.index)
@@ -25,7 +25,7 @@ horvath_data = horvath_data - ages
 horvath_data['Horvath'].hist()
 
 # %%
-clocks = ['Horvath', 'SkinClock', 'Hannum']
+clocks = ['Horvath', 'Hannum', 'acc']
 # clocks = ['Hannum','SkinClock','Horvath']
 offsets=[0.01,0.02,0.03,0.04,0.05,0.15]
 offsets=[0.02,0.05]
@@ -58,16 +58,23 @@ ax.axhline(y=0, dashes=[5,3], color='tab:grey')
 sns.boxplot(data=df, x='offset', y='age acceleration', hue='clock',  showfliers=False, ax=ax)
 sns.despine()
 
-plot.save(ax, '1_clock_global_offset_problem', format=['png','svg'])
+# %% saving
+ax.get_figure().savefig(f'{paths.FIGURES_DIR}/1G_global_bias_problem.svg')
+ax.get_figure().savefig(f'{paths.FIGURES_DIR}/1G_global_bias_problem.png')
+
+# plot.save(ax, '1_clock_global_offset_problem', format=['png','svg'])
 # %%
 
 accs =[]
 
 for offset in tqdm(all_offsets):
-    amdata_bio_offset = amdata_bio.copy()
-    amdata_bio_offset.X = amdata_bio.X+offset
-    maps = modelling_bio.person_model(amdata_bio_offset, return_trace=False, return_MAP=True, show_progress=False, cores=4)['map']
-    accs.append(maps['acc'])
+    amdata_offset = amdata.copy()
+    amdata_offset.X = amdata.X+offset
+    amdata_offset.X = np.where(amdata_offset.X <= 0, 0.00001, amdata_offset.X)
+    amdata_offset.X = np.where(amdata_offset.X >= 1, 0.99999, amdata_offset.X)
+    map = modelling.person_model(amdata_offset,  method="map", map_method='L-BFGS-B')
+    accs.append(map['acc'])
+
 
 accs = pd.DataFrame(accs, index=np.round(all_offsets,2)).T
 accs.mean(axis=0)
@@ -83,25 +90,39 @@ accs = accs-shifts
 
 
 accs_df=accs.melt(var_name='offset', value_name='acc').assign(type='acc')
+accs_df['std'] = accs_df.groupby('offset')['acc'].transform('std')
+accs_df['normalised_acc'] = accs_df.acc/accs_df['std']
+
 # %%
 horvaths_df = all_clock_data[all_clock_data.clock=='Horvath'].copy()
 horvaths_df=horvaths_df[all_offsets].melt(var_name='offset', value_name='acc').assign(type='horvath')
-accs_df['std'] = accs_df.groupby('offset')['acc'].transform('std')
-accs_df['normalised_acc'] = accs_df.acc/accs_df['std']
 horvaths_df['std'] = horvaths_df.groupby('offset')['acc'].transform('std')
 horvaths_df['normalised_acc'] = horvaths_df.acc/horvaths_df['std']
 
-df = pd.concat((accs_df, horvaths_df), axis=0)
+Hannums_df = all_clock_data[all_clock_data.clock=='Hannum'].copy()
+Hannums_df=Hannums_df[all_offsets].melt(var_name='offset', value_name='acc').assign(type='Hannum')
+Hannums_df['std'] = Hannums_df.groupby('offset')['acc'].transform('std')
+Hannums_df['normalised_acc'] = Hannums_df.acc/Hannums_df['std']
+
+Hannums_df.normalised_acc = Hannums_df.normalised_acc - Hannums_df.normalised_acc.mean()
+horvaths_df.normalised_acc = horvaths_df.normalised_acc - horvaths_df.normalised_acc.mean()
+accs_df.normalised_acc = accs_df.normalised_acc - accs_df.normalised_acc.mean()
+
+df = pd.concat((accs_df, horvaths_df, Hannums_df), axis=0)
 df = df[['type','offset','normalised_acc']]
 df.loc[df.type=='acc', 'type'] = 'Acceleration'
 df.loc[df.type=='horvath', 'type'] = 'Horvath (2013)'
+df.loc[df.type=='Hannum', 'type'] = 'Hannum (2013)'
+
+df.to_csv('../exports/wave3_acc_global_offsets_problem.csv')
+
 # %% plot
 
-plt.rc('font', size=8) 
-ax = plot.row('', figsize=(3.6,2.6))
+ax = plot.row(figsize=(9.5, 6))
+plot.fonts(8)
 sns.despine()
 
-ax=sns.boxplot(data=df, x='offset', 
+ax=sns.boxplot(data=df, x='offset', hue_order=['Acceleration', 'Horvath (2013)', 'Hannum (2013)'],
                 y='normalised_acc', hue='type', showfliers=False)
 ax.axhline(y=0, dashes=[5,3], color='tab:grey')
 
@@ -109,8 +130,11 @@ ax.set_xlabel('Offset')
 ax.set_ylabel('Normalised acceleration')
 ax.legend(title='Clock')
 
-# #%% save
-plot.save(ax, 'A_clock_global_offset_problem_horvathVSacc', bbox='tight', format=['png','svg'])
+plt.tight_layout()
+
+# %% save
+ax.get_figure().savefig(f'{paths.FIGURES_DIR}/Ext3D_global_bias_problem.png')
+ax.get_figure().savefig(f'{paths.FIGURES_DIR}/Ext3D_global_bias_problem.svg')
 
 
 

@@ -6,4 +6,4 @@ DATA_RAW_DIR = '/disk/scratch/methylation'
 DATA_PROCESSED_DIR = '../exports'
 
 # Figures
-FIGURES_DIR = '../results'
+FIGURES_DIR = '../figures'
