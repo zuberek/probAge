@@ -318,7 +318,7 @@ def person_model(amdata, method='map', progressbar=False, map_method='Powell'):
         sigma = np.sqrt(variance)
 
         # # Define likelihood
-        obs = pm.Beta("obs",
+        obs = pm.Normal("obs",
                     mu=mean,
                     sigma = sigma, 
                     dims=("site", "part"), 

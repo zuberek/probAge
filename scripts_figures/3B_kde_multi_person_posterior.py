@@ -1,12 +1,14 @@
 #%% imports
-# import sys
+import sys
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
 
 from src import modelling_bio_beta as modelling_bio
 import arviz as az
 
-amdata = ad.read_h5ad('../exports/wave3_acc.h5ad')
+import pickle
+
+amdata = ad.read_h5ad('../exports/wave3_person_fitted.h5ad')
 
 participants = amdata.var
 participants = participants.reset_index().set_index('name')
@@ -44,6 +46,12 @@ for person_index in person_names:
     traces.append(modelling_bio.person_model(amdata[:,participants.loc[person_index]['index']], 
                                              method='nuts', progressbar=True))
 
+with open('../exports/traces/6_person_traces.idata', 'wb') as file:
+    pickle.dump(traces, file)
+
+#%% extract traces
+with open('../exports/traces/6_person_traces.idata', 'rb') as file:
+    traces = pickle.load(file)
 extracted_df = pd.DataFrame()
 for trace in traces:
     tempdf = pd.DataFrame()
@@ -82,6 +90,7 @@ g.ax_marg_y.hlines(maps.values[:,1], xmin=0, xmax=20, colors=colors)
 g.fig.set_figwidth(6)
 g.fig.set_figheight(4)
 
+#%% plot
 g.savefig('../results/kde_multi_person_posterior.svg')
 g.savefig('../results/kde_multi_person_posterior.png')
 

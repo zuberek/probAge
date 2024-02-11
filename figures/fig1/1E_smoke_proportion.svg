@@ -33,7 +33,7 @@
      inkscape:window-x="0"
      inkscape:window-y="32"
      inkscape:window-maximized="1"
-     inkscape:current-layer="svg197024" />
+     inkscape:current-layer="axes_1" />
   <metadata
      id="metadata196805">
     <rdf:RDF>
@@ -1254,7 +1254,7 @@
              x="24.110937"
              y="174.528"
              transform="matrix(0,-1,0.999996,0,-150.417,198.639)"
-             id="text135829">Smoking</text>
+             id="text135829">Smoking association</text>
         </g>
       </g>
       <g
@@ -1424,7 +1424,7 @@
              x="315.32812"
              y="59.730282"
              id="text135893"
-             transform="translate(5.82703e-4,-8.05482e-5)">Smoking</text>
+             transform="translate(5.82703e-4,-8.05482e-5)">Smoking association</text>
         </g>
       </g>
       <text

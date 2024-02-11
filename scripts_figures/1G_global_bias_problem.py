@@ -59,7 +59,7 @@ sns.boxplot(data=df, x='offset', y='age acceleration', hue='clock',  showfliers=
 sns.despine()
 
 ax.set_ylabel('Clock acceleration')
-ax.set_xlabel('Applied global bias')
+ax.set_xlabel('Applied global methylation bias')
 ax.get_figure().tight_layout()
 
 # %% saving

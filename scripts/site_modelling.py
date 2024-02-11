@@ -1,8 +1,8 @@
 # %% ########################
 ### LOADING
 
-# %load_ext autoreload 
-# %autoreload 2
+%load_ext autoreload 
+%autoreload 2
 
 import sys
 sys.path.append("..")   # fix to import modules from root
