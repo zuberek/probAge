@@ -1,0 +1,31 @@
+name: probage
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python
+  # - r-base
+  # - r-anndata
+  - numpy
+  - pandas
+  - pymc = 5.7
+  - plotly
+  # - python-kaleido
+  - matplotlib
+  - scikit-learn
+  - statsmodels
+  - tqdm
+  - ipykernel
+  - nbformat
+  - scipy
+  - seaborn
+  - anndata
+  - ipywidgets
+  - scikit-optimize
+  - multiprocess
+  # - jax
+  # - numpyro
+  # - blackjax
+  - nutpie
+  - numba

@@ -3,12 +3,21 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from tqdm import tqdm
-from multiprocessing import Pool
-from multiprocessing import cpu_count
+from multiprocess import Pool
+from multiprocess import cpu_count
 import anndata as ad
+from functools import partial
+import arviz as az
+
 import json
 
-from functools import partial
+# progress bar
+from IPython.display import clear_output, DisplayHandle
+def update_patch(self, obj):
+    clear_output(wait=True)
+    self.display(obj)
+DisplayHandle.update = update_patch
+
 # sns.set_theme(style='ticks')
 
 # import custom code
@@ -16,6 +25,8 @@ import sys
 sys.path.append("..")   # fix to import modules from root
 import src.amdata.amdata as amdata_src
 from src.utils import plot
+from src import paths
+
 plt.rcParams['svg.fonttype'] = 'none'
 
 sns_colors = sns.color_palette().as_hex()
@@ -34,6 +45,16 @@ colors = [
 ]
 sns.set_palette(sns.color_palette(colors))
 
+
 CON_PALLETE = sns.color_palette("blend:#E64B35,#4DBBD5")
+CON_PALLETE2 = sns.color_palette("blend:#4DBBD5FF,#E64B35FF", as_cmap=True)
 # plt.rc("axes.spines", top=False, right=False)
 
+
+import logging
+logger = logging.getLogger('pymc')
+logger.propagate = False
+logger.setLevel(logging.ERROR)
+
+import warnings
+warnings.filterwarnings("ignore")

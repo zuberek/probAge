@@ -121,7 +121,7 @@ class AnnMethylData(ad.AnnData):
             end = start+chunksize
             end = end if end <= self.n_sites else self.n_sites
             assert start<=end
-            chunks.append(self[range(start,end)].sites.index)
+            chunks.append(self[range(start,end)])
 
         return chunks
 

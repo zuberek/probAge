@@ -5,7 +5,7 @@ import sys
 import streamlit as st
 
 from modules.loading import test_limits, upload_data
-from modules import loading, inferring
+from modules import loading
 import modules
 
 from src import modelling_bio_beta as modelling
@@ -25,7 +25,7 @@ site_info_path = 'resources/ewas_fitted_sites.csv'
 if 'SITE_INFO' not in st.session_state:
     st.session_state.SITE_INFO = pd.read_csv(site_info_path, index_col=0)
 if 'PARAMS'  not in st.session_state:
-    st.session_state.PARAMS = modelling.PARAMS
+    st.session_state.PARAMS = list(modelling.SITE_PARAMETERS.values())
 
 
 st.warning('Put the paper here')

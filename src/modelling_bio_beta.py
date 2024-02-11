@@ -24,8 +24,6 @@ SITE_PARAMETERS = {
     'var_init': 'var_init'
 }
 
-PARAMS = ['eta_0','omega','meth_init','system_size','var_init']
-
 def sample_to_uniform_age(amdata, n_part):
     """Sample participants from amdata uniformly between
     min and max age in the cohort"""
@@ -404,7 +402,7 @@ def site_offsets(amdata, show_progress=False, map_method='L-BFGS-B'):
     with pm.Model(coords=coords) as model:
         
         # Define priors
-        offset = pm.Normal("offset",  mu=0, sigma=0.01, dims='site')
+        offset = pm.Normal("offset",  mu=0, sigma=0.1, dims='site')
 
         # Useful variables
         eta_1 = 1-eta_0
@@ -425,10 +423,11 @@ def site_offsets(amdata, show_progress=False, map_method='L-BFGS-B'):
         variance = pm.math.clip(variance, 0, mean*(1-mean))
 
         # Define likelihood
-        obs = pm.Normal("obs", mu=mean,
+        obs = pm.Beta("obs", mu=mean,
                             #   sigma = 0.1, 
                                 sigma = np.sqrt(variance), 
                                 dims=("part", "site"),     
                                 observed=amdata.X.T)
 
         return pm.find_MAP(progressbar=show_progress, method=map_method, maxeval=10_000)
+
