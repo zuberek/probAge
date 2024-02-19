@@ -16,7 +16,7 @@ N_SITES = 1024 # number of sites to take in for the final person inferring
 MULTIPROCESSING = True
 DATASET_NAME = 'wave3'
 
-amdata = amdata_src.AnnMethylData(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_sites_fitted_YOUNG.h5ad')
+amdata = amdata_src.AnnMethylData(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_sites_fitted.h5ad')
 amdata2 = amdata_src.AnnMethylData(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_sites_fitted.h5ad')
 participants = pd.read_csv(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_participants.csv', index_col='Basename')
 
@@ -91,13 +91,13 @@ participants['qc'] = model.get_person_fit_quality(
     participants['ll'])
 
 
-amdata.write_h5ad(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_person_fitted_YOUNG.h5ad')
+amdata.write_h5ad(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_person_fitted.h5ad')
 
 participants['acc'] = amdata.var['acc']
 participants['bias'] = amdata.var['bias']
 participants['ll'] = amdata.var['ll']
 participants['qc'] = amdata.var['qc']
 
-participants.to_csv(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_participants_YOUNG.csv')
+participants.to_csv(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_participants.csv')
 # %%
 

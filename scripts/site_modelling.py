@@ -43,12 +43,12 @@ amdata_chunks = model.make_chunks(amdata, chunk_size=15)
 
 # single process
 if not MULTIPROCESSING:
-    map_chunks = [model.parallel_site_MAP(chunk) for chunk in tqdm(amdata_chunks)]
+    map_chunks = [model.site_MAP(chunk) for chunk in tqdm(amdata_chunks)]
 
 # multiprocessing
 if MULTIPROCESSING:
     with Pool(N_CORES) as p:
-        map_chunks = list(tqdm(p.imap(model.parallel_site_MAP, amdata_chunks), total=len(amdata_chunks)))
+        map_chunks = list(tqdm(p.imap(model.site_MAP, amdata_chunks), total=len(amdata_chunks)))
 
 
 

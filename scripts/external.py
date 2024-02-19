@@ -4,8 +4,8 @@ Apply the model on a external dataset
 
 # %%
 # IMPORTS
-# %load_ext autoreload
-# %autoreload 2
+%load_ext autoreload
+%autoreload 2
 
 import sys
 sys.path.append("..")   # fix to import modules from root
@@ -13,6 +13,7 @@ from src.general_imports import *
 from src import paths
 
 from src import modelling_bio_beta as model
+from src import batch_correction as bc
 
 N_CORES = 15
 
@@ -24,7 +25,7 @@ if len(sys.argv)==3:
     EXT_DSET_NAME = sys.argv[1] # external dataset name
     REF_DSET_NAME = sys.argv[2] # reference datset name
 else:
-    EXT_DSET_NAME = 'wave3' # external dataset name
+    EXT_DSET_NAME = 'hannum' # external dataset name
     REF_DSET_NAME = 'wave3' # reference datset name
 
 
@@ -35,19 +36,10 @@ print(f'Running {REF_DSET_NAME} model on the {EXT_DSET_NAME} dataset')
 
 # amdata = ad.read_h5ad(f'{paths.DATA_PROCESSED_DIR}/{EXT_DSET_NAME}_fitted.h5ad', backed='r')
 amdata = ad.read_h5ad(f'{paths.DATA_PROCESSED_DIR}/{EXT_DSET_NAME}_meta.h5ad', backed='r')
-participants = pd.read_csv(f'{paths.DATA_PROCESSED_DIR}/{EXT_DSET_NAME}_participants.csv', index_col='Basename')
+participants = pd.read_csv(f'{paths.DATA_PROCESSED_DIR}/{EXT_DSET_NAME}_participants.csv', index_col=0)
 amdata_ref = ad.read_h5ad(f'{paths.DATA_PROCESSED_DIR}/{REF_DSET_NAME}_person_fitted.h5ad', backed='r')
 
-
-# Load intersection of sites in new dataset
-params = list(model.SITE_PARAMETERS.values())
-
-# intersection = site_info.index.intersection(amdata.obs.index)
-intersection = amdata_ref.obs.index.intersection(amdata.obs.index)[:N_SITES]
-
-amdata = amdata[intersection].to_memory()
-amdata.obs[params] = amdata_ref.obs[params]
-
+amdata = bc.merge_external(amdata, amdata_ref)
 # amdata = amdata[:, amdata.var.age>18].copy()
 # participants = participants[participants.age>18]
 
@@ -65,7 +57,7 @@ amdata_chunks = model.make_chunks(amdata, chunk_size=10)
 #     offsets_chunks = [model.site_offsets(chunk) for chunk in tqdm(amdata_chunks)]
 
 with Pool(N_CORES) as p:
-    offsets_chunks = list(tqdm(p.imap(model.site_offsets, amdata_chunks), total=len(amdata_chunks)))
+    offsets_chunks = list(tqdm(p.imap(bc.site_offsets, amdata_chunks), total=len(amdata_chunks)))
                      
 
 offsets = np.concatenate([chunk['offset'] for chunk in offsets_chunks])
@@ -95,6 +87,7 @@ amdata_chunks = [chunk.T for chunk in amdata_chunks]
 with Pool(N_CORES) as p:
     map_chunks = list(tqdm(p.imap(model.person_model, amdata_chunks)
                             ,total=len(amdata_chunks)))
+    
 for param in ['acc', 'bias']:
     param_data = np.concatenate([map[param] for map in map_chunks])
     amdata.var[f'{param}_{REF_DSET_NAME}'] = param_data
@@ -115,9 +108,10 @@ participants[f'll_{REF_DSET_NAME}'] = model.person_model_ll(amdata,
 participants[f'qc_{REF_DSET_NAME}'] = model.get_person_fit_quality(
     participants[f'll_{REF_DSET_NAME}'])
 
-participants.to_csv(f'{paths.DATA_PROCESSED_DIR}/{EXT_DSET_NAME}_participants.csv')
+amdata.write_h5ad(f'{paths.DATA_PROCESSED_DIR}/{EXT_DSET_NAME}_person_fitted.h5ad')
 
-# sns.scatterplot(x=participants.age, y=participants.bias_wave3, hue=participants.status)
+participants.to_csv(f'{paths.DATA_PROCESSED_DIR}/{EXT_DSET_NAME}_participants.csv')
+participants.qc_wave3.value_counts()
 # %%
 
 # import plotly.express as px
