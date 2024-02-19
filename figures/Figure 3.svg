@@ -26,15 +26,15 @@
      showgrid="true"
      showguides="true"
      inkscape:guide-bbox="true"
-     inkscape:zoom="0.96455942"
-     inkscape:cx="208.3853"
-     inkscape:cy="554.65738"
+     inkscape:zoom="1"
+     inkscape:cx="208"
+     inkscape:cy="501"
      inkscape:window-width="1920"
      inkscape:window-height="1011"
      inkscape:window-x="0"
      inkscape:window-y="32"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer1">
+     inkscape:current-layer="g295963">
     <inkscape:grid
        type="xygrid"
        id="grid259640"
@@ -188,48 +188,48 @@
            y="29.02043" /></text>
       <text
          xml:space="preserve"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:5.29167px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:5.29167px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
          x="9.5194092"
          y="94.020432"
          id="text288512-9-8-8"
          inkscape:label="sub C"><tspan
            sodipodi:role="line"
-           id="tspan298484"
+           id="tspan110400"
            x="9.5194092"
-           y="94.020432">c</tspan></text>
+           y="94.020432">b</tspan></text>
       <text
          xml:space="preserve"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:5.29167px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:5.29167px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
          x="104.51941"
          y="94.020432"
          id="text288512-9-8"
          inkscape:label="sub D"><tspan
            sodipodi:role="line"
-           id="tspan298504"
+           id="tspan110420"
            x="104.51941"
-           y="94.020432">d</tspan></text>
+           y="94.020432">c</tspan></text>
       <text
          xml:space="preserve"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:5.29167px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:5.29167px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
          x="9.7622881"
          y="159.02043"
          id="text288512-9-8-1"
          inkscape:label="sub E"><tspan
            sodipodi:role="line"
-           id="tspan298647"
+           id="tspan110440"
            x="9.7622881"
-           y="159.02043">e</tspan></text>
+           y="159.02043">d</tspan></text>
       <text
          xml:space="preserve"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:5.29167px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:5.29167px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
          x="104.89923"
          y="159.02043"
          id="text288512-9-8-1-3"
          inkscape:label="sub F"><tspan
            sodipodi:role="line"
-           id="tspan298700"
+           id="tspan110460"
            x="104.89923"
-           y="159.02043">f</tspan></text>
+           y="159.02043">e</tspan></text>
       <text
          xml:space="preserve"
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:5.29167px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
@@ -294,5 +294,25 @@
        id="image21505"
        x="105"
        y="160" />
+    <image
+       preserveAspectRatio="none"
+       inkscape:svg-dpi="96"
+       width="93.826538"
+       height="59.036922"
+       style="image-rendering:optimizeQuality"
+       xlink:href="fig3/3C_jointplot_accbias_distribution.svg"
+       id="image53322"
+       x="105"
+       y="95" />
+    <image
+       preserveAspectRatio="none"
+       inkscape:svg-dpi="96"
+       width="94.208595"
+       height="59.36668"
+       style="image-rendering:optimizeQuality"
+       xlink:href="fig3/3B_kde_multi_person_posterior.svg"
+       id="image108970"
+       x="10"
+       y="94.999992" />
   </g>
 </svg>

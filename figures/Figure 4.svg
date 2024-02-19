@@ -26,9 +26,9 @@
      showgrid="true"
      showguides="true"
      inkscape:guide-bbox="true"
-     inkscape:zoom="0.71802242"
-     inkscape:cx="332.85869"
-     inkscape:cy="480.48639"
+     inkscape:zoom="0.83718325"
+     inkscape:cx="361.92793"
+     inkscape:cy="459.87542"
      inkscape:window-width="1920"
      inkscape:window-height="1011"
      inkscape:window-x="0"
@@ -189,48 +189,15 @@
            y="29.02043">b</tspan></text>
       <text
          xml:space="preserve"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:5.29167px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:5.29167px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
          x="9.7622881"
          y="159.02043"
          id="text288512-9-8-1"
          inkscape:label="sub E"><tspan
            sodipodi:role="line"
-           id="tspan298647"
+           id="tspan4605"
            x="9.7622881"
-           y="159.02043">e</tspan></text>
-      <text
-         xml:space="preserve"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:5.29167px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
-         x="104.89923"
-         y="159.02043"
-         id="text288512-9-8-1-3"
-         inkscape:label="sub F"><tspan
-           sodipodi:role="line"
-           id="tspan298700"
-           x="104.89923"
-           y="159.02043">f</tspan></text>
-      <text
-         xml:space="preserve"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:5.29167px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
-         x="9.7622881"
-         y="224.3215"
-         id="text288512-9-8-1-3-4"
-         inkscape:label="sub G"><tspan
-           sodipodi:role="line"
-           id="tspan298793"
-           x="9.7622881"
-           y="224.3215">g</tspan></text>
-      <text
-         xml:space="preserve"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:5.29167px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
-         x="104.55558"
-         y="224.02043"
-         id="text288512-9-8-1-3-44"
-         inkscape:label="sub H"><tspan
-           sodipodi:role="line"
-           id="tspan298830"
-           x="104.55558"
-           y="224.02043">h</tspan></text>
+           y="159.02043">c</tspan></text>
       <text
          xml:space="preserve"
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
@@ -271,7 +238,17 @@
          xlink:href="fig4/allclock_cat.svg"
          id="image7932"
          x="105.00002"
-         y="29.999977" />
+         y="26.295807" />
+      <image
+         preserveAspectRatio="none"
+         inkscape:svg-dpi="96"
+         width="94.999969"
+         height="30.000046"
+         style="image-rendering:optimizeQuality"
+         xlink:href="fig4/legend.svg"
+         id="image3775"
+         x="105"
+         y="157.3542" />
     </g>
   </g>
 </svg>
