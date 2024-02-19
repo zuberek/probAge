@@ -8,9 +8,10 @@
    version="1.1"
    id="svg259636"
    inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
-   sodipodi:docname="figure_template.svg"
+   sodipodi:docname="Figure 4.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <sodipodi:namedview
@@ -25,15 +26,15 @@
      showgrid="true"
      showguides="true"
      inkscape:guide-bbox="true"
-     inkscape:zoom="1.8116734"
-     inkscape:cx="258.32471"
-     inkscape:cy="182.15204"
+     inkscape:zoom="0.71802242"
+     inkscape:cx="332.85869"
+     inkscape:cy="480.48639"
      inkscape:window-width="1920"
      inkscape:window-height="1011"
      inkscape:window-x="0"
      inkscape:window-y="32"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer1">
+     inkscape:current-layer="g295963">
     <inkscape:grid
        type="xygrid"
        id="grid259640"
@@ -189,28 +190,6 @@
       <text
          xml:space="preserve"
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:5.29167px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
-         x="9.5194092"
-         y="94.020432"
-         id="text288512-9-8-8"
-         inkscape:label="sub C"><tspan
-           sodipodi:role="line"
-           id="tspan298484"
-           x="9.5194092"
-           y="94.020432">c</tspan></text>
-      <text
-         xml:space="preserve"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:5.29167px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
-         x="104.51941"
-         y="94.020432"
-         id="text288512-9-8"
-         inkscape:label="sub D"><tspan
-           sodipodi:role="line"
-           id="tspan298504"
-           x="104.51941"
-           y="94.020432">d</tspan></text>
-      <text
-         xml:space="preserve"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:5.29167px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
          x="9.7622881"
          y="159.02043"
          id="text288512-9-8-1"
@@ -254,16 +233,45 @@
            y="224.02043">h</tspan></text>
       <text
          xml:space="preserve"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
          x="8.9613066"
          y="18.040827"
          id="text267830"
          inkscape:label="Figure Title"><tspan
            sodipodi:role="line"
-           id="tspan267828"
-           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:10.5833px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+           id="tspan72"
            x="8.9613066"
-           y="18.040827">Figure X</tspan></text>
+           y="18.040827">Figure 4</tspan></text>
+      <image
+         preserveAspectRatio="none"
+         inkscape:svg-dpi="96"
+         width="94.999969"
+         height="125.00002"
+         style="image-rendering:optimizeQuality"
+         xlink:href="fig4/allclock_con.svg"
+         id="image9163"
+         x="10"
+         y="30" />
+      <image
+         preserveAspectRatio="none"
+         inkscape:svg-dpi="96"
+         width="94.999969"
+         height="30.000046"
+         style="image-rendering:optimizeQuality"
+         xlink:href="fig4/allclock_surv.svg"
+         id="image7740"
+         x="10"
+         y="160" />
+      <image
+         preserveAspectRatio="none"
+         inkscape:svg-dpi="96"
+         width="94.999969"
+         height="125.00002"
+         style="image-rendering:optimizeQuality"
+         xlink:href="fig4/allclock_cat.svg"
+         id="image7932"
+         x="105.00002"
+         y="29.999977" />
     </g>
   </g>
 </svg>

@@ -36,7 +36,7 @@ g.ax_marg_y.set_frame_on(True)
 # g.ax_joint.spines[['right']].set_visible(True)
 
 g.ax_joint.set_ylabel('Methylation level \n(beta value)')
-g.ax_joint.set_xlabel('Age')
+g.ax_joint.set_xlabel('Age (years)')
 # sns.despine(g.fig)
 # g.ax_marg_y.legend(title='Smoker', loc='lower right', labels=['Heavy', 'None'])
 # statistical annotation

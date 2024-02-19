@@ -33,8 +33,8 @@ sns.despine()
 ax.set_xlabel('Age bin')
 ax.set_ylabel('Methylation variance in bin')
 
-ax=sns.pointplot(data=var_df, x="bin", y="variance", 
-                 errorbar='ci', capsize=.3, linewidth=1.5)
+sns.pointplot(ax=ax, data=var_df, x="bin", y="variance", 
+                 errorbar='ci', capsize=.3, linewidth=1)
 
 ax.get_figure().tight_layout()
 # %%
