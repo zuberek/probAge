@@ -8,7 +8,6 @@ from src import modelling_bio_beta as modelling
 import pickle
 import arviz as az
 import pymc as pm
-cpgs = pd.read_csv('../resources/final_CpGs.csv')
 
 amdata = ad.read_h5ad('../exports/wave3_person_fitted.h5ad')
 
@@ -61,8 +60,8 @@ df.loc[df.param=='system_size', 'param'] = 'S'
 df.loc[df.param=='var_init', 'param'] = 'c'
 # %%
 # plot
-ax = plot.row(figsize=(9.5, 6))
 plot.fonts(8)
+ax = plot.row(figsize=(9.5, 6))
 sns.despine()
 sns.boxplot(ax=ax, data=r_hats, x='param', y='r_hat', showfliers=False)
 
@@ -74,4 +73,6 @@ plt.tight_layout()
 
 # %%
 # save
+ax.get_figure().savefig(f'{paths.FIGURES_DIR}/ext2/Ext2B_boxplot_rhats.png')
+ax.get_figure().savefig(f'{paths.FIGURES_DIR}/ext2/Ext2B_boxplot_rhats.svg')
 

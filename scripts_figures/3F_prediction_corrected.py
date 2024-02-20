@@ -39,8 +39,14 @@ hannum_external.var['wrong_bias'] = maps['bias']
 
 # retrain a new model from scratch on hannum
 params = list(modelling.SITE_PARAMETERS.values())
-site_maps = modelling.site_MAP(hannum[:10], progressbar=True)
-hannum.obs[params] = site_maps[params]
+site_maps = []
+for site in tqdm(hannum.obs.index):
+    site_maps.append(modelling.site_MAP(hannum[site], progressbar=False))
+
+for param in  params:
+    hannum.obs[param] = site_maps[param]
+
+hannum.obs[params] = [site_maps[param] for param in params]
 person_maps = modelling.person_model(hannum)
 
 # np.sum(hannum.X>1)

@@ -27,7 +27,6 @@ pm.sample_posterior_predictive(trace, model=model, extend_inferencedata=True, )
 
 # %%
 
-#new plot
 ax = plot.row(figsize=(9.5, 6))
 plot.fonts(8)
 sns.despine()
@@ -50,6 +49,7 @@ plt.plot(ys_mean[:,0], ys_mean[:,1], label='mean', color=colors[1], alpha=0.5)
 plt.plot(ys_upper[:,0], ys_upper[:,1], label='std', color=colors[1], dashes=[5,3], alpha=0.5)
 plt.plot(ys_upper[:,0], ys_lower[:,1], color=colors[1], dashes=[5,3], alpha=0.5)
 plt.legend()
+plt.tight_layout()
 # %%
 ax.get_figure().savefig(f'{paths.FIGURES_DIR}/ext2/Ext2C_predictive_posterior.png')
 ax.get_figure().savefig(f'{paths.FIGURES_DIR}/ext2/Ext2C_predictive_posterior.svg')

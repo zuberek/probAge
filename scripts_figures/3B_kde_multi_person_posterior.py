@@ -46,11 +46,11 @@ for person_index in person_names:
     traces.append(modelling_bio.person_model(amdata[:,participants.loc[person_index]['index']], 
                                              method='nuts', progressbar=True))
 
-with open('../exports/traces/6_person_traces.idata', 'wb') as file:
+with open('../exports/6_person_traces.idata', 'wb') as file:
     pickle.dump(traces, file)
 
 #%% extract traces
-with open('../exports/traces/6_person_traces.idata', 'rb') as file:
+with open('../exports/6_person_traces.idata', 'rb') as file:
     traces = pickle.load(file)
 extracted_df = pd.DataFrame()
 for trace in traces:
@@ -60,8 +60,7 @@ for trace in traces:
     tempdf['person'] = trace.posterior.part.values[0]
     extracted_df =pd.concat([extracted_df, tempdf], axis=0)
 
-extracted_df.acc = np.log2(extracted_df.acc)
-
+extracted_df.person.value_counts()
 #%% plot
 # colour plot
 # ax = plot.row('Example participants acceleration and bias posteriors')
@@ -74,24 +73,27 @@ extracted_df.acc = np.log2(extracted_df.acc)
 
 
 maps= participants.loc[person_names][['acc', 'bias']]
-
+plot.fonts(8)
 g = sns.JointGrid(marginal_ticks=True,)
-sns.scatterplot(data=extracted_df, y='bias', x='acc', ax=g.ax_joint,
-                marker='.', alpha=0.3, hue='person', legend=False)
-sns.scatterplot(data=participants.loc[person_names].reset_index(), x='acc', y='bias', 
-                hue='index', legend=False, ax=g.ax_joint)                
-sns.kdeplot(data=extracted_df, y='bias', x='acc', hue='person', 
+# sns.scatterplot(data=extracted_df, y='bias', x='acc', ax=g.ax_joint,
+#                 marker='.', alpha=0.3, hue='person', legend=False)
+# sns.scatterplot(data=participants.loc[person_names].reset_index(), x='acc', y='bias', 
+#                 hue='index', legend=False, ax=g.ax_joint)                
+sns.kdeplot(data=extracted_df, levels=5, y='bias', x='acc', hue='person', 
                 ax=g.ax_joint, thresh=0.25, legend=False, fill=False)
-sns.kdeplot(data=extracted_df,  x='acc', common_norm=True, legend=False, hue='person',ax=g.ax_marg_x)
-sns.kdeplot(data= extracted_df, y='bias', common_norm=True, legend=False, hue='person',ax=g.ax_marg_y)
-g.ax_marg_x.vlines(maps.values[:,0], ymin=0, ymax=1, colors=colors)
-g.ax_marg_y.hlines(maps.values[:,1], xmin=0, xmax=20, colors=colors)
+sns.kdeplot(data=extracted_df, levels=5,  x='acc', common_norm=True, legend=False, hue='person',ax=g.ax_marg_x)
+sns.kdeplot(data= extracted_df, levels=5, y='bias', common_norm=True, legend=False, hue='person',ax=g.ax_marg_y)
+# g.ax_marg_x.vlines(maps.values[:,0], ymin=0, ymax=1, colors=colors)
+# g.ax_marg_y.hlines(maps.values[:,1], xmin=0, xmax=20, colors=colors)
 
-g.fig.set_figwidth(6)
-g.fig.set_figheight(4)
+g.ax_joint.set_ylabel('Bias (global beta)')
+g.ax_joint.set_xlabel('Acceleration (beta/year)')
+
+g.figure.set_size_inches((plot.cm2inch(9.5),plot.cm2inch(6)))
+g.figure.tight_layout()
 
 #%% plot
-g.savefig('../results/kde_multi_person_posterior.svg')
-g.savefig('../results/kde_multi_person_posterior.png')
+g.savefig('../figures/fig3/3B_kde_multi_person_posterior.svg')
+g.savefig('../figures/fig3/3B_kde_multi_person_posterior.png')
 
 

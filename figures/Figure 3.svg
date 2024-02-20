@@ -28,13 +28,13 @@
      inkscape:guide-bbox="true"
      inkscape:zoom="1"
      inkscape:cx="208"
-     inkscape:cy="501"
+     inkscape:cy="889"
      inkscape:window-width="1920"
      inkscape:window-height="1011"
      inkscape:window-x="0"
      inkscape:window-y="32"
      inkscape:window-maximized="1"
-     inkscape:current-layer="g295963">
+     inkscape:current-layer="layer1">
     <inkscape:grid
        type="xygrid"
        id="grid259640"
@@ -90,7 +90,7 @@
        orientation="0,-1"
        id="guide261972" />
     <sodipodi:guide
-       position="89.999998,7.000001"
+       position="135,12.000001"
        orientation="0,-1"
        id="guide261974" />
   </sodipodi:namedview>
@@ -273,6 +273,16 @@
          id="image36624"
          x="10"
          y="30" />
+      <image
+         preserveAspectRatio="none"
+         inkscape:svg-dpi="96"
+         width="94.999969"
+         height="60.000092"
+         style="image-rendering:optimizeQuality"
+         xlink:href="fig3/3F_results_corrected.svg"
+         id="image108254"
+         x="10"
+         y="225" />
     </g>
     <image
        width="95"
