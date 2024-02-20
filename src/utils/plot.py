@@ -29,7 +29,7 @@ def axes(cols, axes=None, figure=None, rows=1, scale=6, figsize=None):
         return fig, axs
     return axs 
 
-def tab(subtitles=None, title=None, ncols=3, row_size=4, col_size=6):
+def tab(subtitles=None, title=None, figsize=None, size_unit='cm', ncols=3, row_size=4, col_size=6):
     if subtitles is None:
         subtitles=''
         
@@ -38,7 +38,13 @@ def tab(subtitles=None, title=None, ncols=3, row_size=4, col_size=6):
 
     full_rows = len(subtitles)//ncols
     nrows = full_rows if len(subtitles)/ncols<=full_rows else full_rows+1
-    figsize=(col_size*ncols, row_size*nrows)
+
+    if figsize is None:
+        figsize=(col_size*ncols, row_size*nrows)
+    if figsize is not None:
+            if size_unit == 'cm':
+                  # centimeters in inches
+                figsize = (cm2inch(figsize[0]), cm2inch(figsize[1]))
 
     fig, axs = plt.subplots(ncols=ncols, nrows=nrows, figsize=figsize)
     axs = axs.flatten()
@@ -62,7 +68,7 @@ def row(subtitles=None, figure=None, scale=6, figsize=None, size_unit='cm'):
     if figsize is None:
         figsize=(scale*ncols,4)
     if figsize is not None:
-            if size_unit is 'cm':
+            if size_unit == 'cm':
                   # centimeters in inches
                 figsize = (cm2inch(figsize[0]), cm2inch(figsize[1]))
     fig, axs = plt.subplots(ncols=ncols, nrows=1, figsize=figsize)
