@@ -54,19 +54,20 @@ for name in tqdm(sites):
 # %%
 # prep df
 df = r_hats.copy()
-df.loc[df.param=='eta_0', 'param'] = 'eta'
-df.loc[df.param=='meth_init', 'param'] = 'p'
-df.loc[df.param=='system_size', 'param'] = 'S'
-df.loc[df.param=='var_init', 'param'] = 'c'
+df.loc[df.param=='eta_0', 'param'] = '$\eta_0$'
+df.loc[df.param=='omega', 'param'] = '$\omega$'
+df.loc[df.param=='meth_init', 'param'] = '$p$'
+df.loc[df.param=='system_size', 'param'] = '$S$'
+df.loc[df.param=='var_init', 'param'] = '$c$'
 # %%
 # plot
 plot.fonts(8)
 ax = plot.row(figsize=(9.5, 6))
 sns.despine()
-sns.boxplot(ax=ax, data=r_hats, x='param', y='r_hat', showfliers=False)
+sns.boxplot(ax=ax, data=df, x='param', y='r_hat', showfliers=False)
 
 ax.set_xlabel('Site parameter')
-ax.set_ylabel('R_hat distribution')
+ax.set_ylabel('$\hat{R}$')
 
 plt.tight_layout()
 

@@ -109,13 +109,13 @@ def bio_sites(data):
         
     return model
 
-def site_MAP(data_chunk, progressbar=False):
+def site_MAP(data_chunk, map_method='L-BFGS-B', maxeval=5_000, progressbar=False):
     """Create a function for  parallel inference of MAP
     given a data_chunk"""
 
     model = bio_sites(data_chunk)
     with model:
-        map = pm.find_MAP(progressbar=progressbar)
+        map = pm.find_MAP(method=map_method, maxeval=maxeval, progressbar=progressbar)
     
     return map
 
@@ -296,8 +296,8 @@ def person_model(amdata, method='map', progressbar=False, map_method='Powell'):
     with pm.Model(coords=coords) as model:
         
         # Define model variables
-        acc = pm.Normal('acc', mu=0, sigma=1, dims='part')
-        bias = pm.Normal('bias', mu=0, sigma=0.2, dims='part')
+        acc = pm.Normal('acc', mu=0, sigma=10, dims='part')
+        bias = pm.Normal('bias', mu=0, sigma=2, dims='part')
 
         # acc = pm.Normal('acc', mu=0, sigma=0.5, dims='part')
         # bias = pm.Normal('bias', mu=0, sigma=0.05, dims='part')

@@ -29,11 +29,11 @@ g.ax_joint.set_title(SITE_NAME)
 df = df.sort_values('units', ascending=True)
 # df = df.sample(len(df))
 sns.scatterplot(ax=g.ax_joint, data=df, x='age', y='value', hue='units',
-                 palette=CON_PALLETE2, alpha=0.7, linewidth=0, legend=True)
+                 palette=CON_PALLETE2, alpha=0.7, linewidth=0, s=10, legend=True)
 g.ax_joint.legend(title='Units')
 sns.boxplot(ax=g.ax_marg_y, data=df, y='value', x='status',
             palette=[colors[0], colors[1]],showfliers=False, legend=True)
-g.fig.subplots_adjust(top=0.7)
+
 g.ax_marg_x.remove()
 g.ax_marg_y.set_frame_on(True)
 g.ax_joint.set_ylabel('Methylation level (beta value)')
@@ -43,12 +43,17 @@ y, h, col = df['value'].max() , 0.01, 'k'
 g.ax_marg_y.plot([x1, x1, x2, x2], [y, y+h, y+h, y], lw=1, c=col)
 g.ax_marg_y.text((x1+x2)*.5, y+h, "*", ha='center', va='bottom', color=col)
 
-g.ax_joint.set_ylabel('Methylation level \n(beta value)')
-g.ax_joint.set_xlabel('Age')
-
+g.ax_joint.set_ylabel('Methylation level \n' + r'($\beta$-value)')
+g.ax_joint.set_xlabel('Age (years)')
 plot.fonts(8)
-g.fig.set_size_inches((plot.cm2inch(9.5),plot.cm2inch(6)))
-g.fig.tight_layout()
+
+g.figure.set_size_inches((plot.cm2inch(9.5),plot.cm2inch(6)))
+g.figure.tight_layout()
+
+legend = g.ax_joint.legend(title='Units intake',loc='upper right')
+for handle in legend.legendHandles:
+    handle.set_alpha(1)
+    handle.set_markersize(5)
 
 # %% saving
 g.savefig(f'{paths.FIGURES_DIR}/fig1/1D_drinking_CpG.svg')

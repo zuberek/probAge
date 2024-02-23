@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
    class="svglite"
-   width="9.5cm"
+   width="10.5cm"
    height="3cm"
-   viewBox="0 0 269.29135 85.039373"
+   viewBox="0 0 297.63781 85.039373"
    version="1.1"
    id="svg939"
    sodipodi:docname="legend.svg"
@@ -24,15 +24,20 @@
      showgrid="false"
      units="cm"
      width="9.5cm"
-     inkscape:zoom="2.005912"
-     inkscape:cx="147.06528"
-     inkscape:cy="134.10359"
+     inkscape:zoom="1.8873455"
+     inkscape:cx="263.86266"
+     inkscape:cy="6.3581364"
      inkscape:window-width="1920"
      inkscape:window-height="1011"
      inkscape:window-x="0"
      inkscape:window-y="32"
      inkscape:window-maximized="1"
-     inkscape:current-layer="g1593" />
+     inkscape:current-layer="g1584"
+     showguides="true">
+    <inkscape:grid
+       type="xygrid"
+       id="grid21378" />
+  </sodipodi:namedview>
   <defs
      id="defs4">
     <style
@@ -185,23 +190,34 @@
   <g
      id="g1584"
      transform="translate(-743.369,-129.474)">
+    <g
+       id="patch_5"
+       style="display:inline;stroke-width:0.734884px;stroke-linecap:butt;stroke-linejoin:round"
+       transform="matrix(1.0415613,0,0,1,639.38936,368.138)">
+      <path
+         d="M 113.23256,-165.52927 H 369.7578 q 4.3925,0 4.3925,-2.00341 v -58.08965 q 0,-2.00342 -4.3925,-2.00342 H 113.23256 q -4.3925,0 -4.3925,2.00342 v 58.08965 q 0,2.00341 4.3925,2.00341 z"
+         style="opacity:0.8;fill:#ffffff;stroke:#cccccc;stroke-width:0.734884px;stroke-linejoin:miter"
+         id="path9090" />
+    </g>
     <text
-       x="997.08002"
-       y="183.3"
-       style="font-size:11px;font-family:'DejaVu Sans';white-space:pre"
-       textLength="46.740002"
+       x="764.198"
+       y="155.0728"
+       style="font-size:9px;font-family:'DejaVu Sans';white-space:pre;stroke-width:0.75px"
        lengthAdjust="spacingAndGlyphs"
-       id="text871"
-       transform="translate(-246.757,-31.633732)">Measure</text>
+       id="text871"><tspan
+         style="font-weight:bold;font-size:9px"
+         id="tspan25328">Measure</tspan></text>
     <g
        id="g1642"
-       transform="translate(134.49501,14.812574)">
+       transform="translate(137.495,19.3126)"
+       style="stroke-width:0.75px">
       <g
          id="g698"
-         transform="translate(0,14.173229)">
+         transform="translate(0,14.1732)"
+         style="stroke-width:0.75px">
         <polygon
-           points="1008.88,200.39 1002.56,200.39 1005.72,194.91 "
-           style="fill:#d2b833;stroke:none;stroke-width:0.43;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10"
+           points="1005.72,194.91 1008.88,200.39 1002.56,200.39 "
+           style="fill:#d2b833;stroke:none;stroke-width:0.75px;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10"
            id="polygon875"
            transform="translate(-253.711,-45.8075)" />
         <line
@@ -209,24 +225,22 @@
            y1="159.66254"
            x2="752.00909"
            y2="145.84253"
-           style="fill:none;stroke:#d2b833;stroke-width:1.07;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10"
+           style="fill:none;stroke:#d2b833;stroke-width:0.75px;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10"
            id="line877" />
         <text
-           x="1019.84"
-           y="201.77"
-           style="font-size:8.8px;font-family:'DejaVu Sans';white-space:pre"
-           textLength="44.27"
+           x="760.64203"
+           y="155.6709"
+           style="font-size:8px;font-family:'DejaVu Sans';white-space:pre;stroke-width:0.75px"
            lengthAdjust="spacingAndGlyphs"
-           id="text909"
-           transform="translate(-253.711,-45.8075)">PhenoAge</text>
+           id="text909">PhenoAge</text>
       </g>
       <g
          id="g703"
-         transform="matrix(0.99988921,0,0,1,0.08296396,-20.114644)"
-         style="stroke-width:1.00006">
+         transform="matrix(0.999889,0,0,1,0.082964,-20.1146)"
+         style="stroke-width:0.750042px">
         <polygon
-           points="1008.88,217.67 1002.56,217.67 1005.72,212.19 "
-           style="fill:#f3b77f;stroke:none;stroke-width:0.430024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10"
+           points="1005.72,212.19 1008.88,217.67 1002.56,217.67 "
+           style="fill:#f3b77f;stroke:none;stroke-width:0.750042px;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10"
            id="polygon881"
            transform="translate(-253.711,-45.8075)" />
         <line
@@ -234,27 +248,27 @@
            y1="176.94254"
            x2="752.00909"
            y2="163.12253"
-           style="fill:none;stroke:#f3b77f;stroke-width:1.07006;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10"
+           style="fill:none;stroke:#f3b77f;stroke-width:0.750042px;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10"
            id="line883" />
         <text
-           x="1019.84"
-           y="219.05"
-           style="font-size:8.8px;font-family:'DejaVu Sans';white-space:pre;stroke-width:1.00006"
-           textLength="38.470001"
+           x="760.37714"
+           y="172.9509"
+           style="font-size:8px;font-family:'DejaVu Sans';white-space:pre;stroke-width:0.750042px"
            lengthAdjust="spacingAndGlyphs"
-           id="text911"
-           transform="translate(-253.711,-45.8075)">GrimAge</text>
+           id="text911">GrimAge</text>
       </g>
     </g>
     <g
        id="g1632"
-       transform="translate(75.036511,-12.247438)">
+       transform="translate(81.0365,-7.74744)"
+       style="stroke-width:0.75px">
       <g
          id="g670"
-         transform="translate(0,6.6732287)">
+         transform="translate(0,6.67323)"
+         style="stroke-width:0.75px">
         <polygon
-           points="1008.06,235.47 1008.06,230.77 1003.37,230.77 1003.37,235.47 "
-           style="fill:#006bc2;stroke:none;stroke-width:0.43;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10"
+           points="1008.06,230.77 1003.37,230.77 1003.37,235.47 1008.06,235.47 "
+           style="fill:#006bc2;stroke:none;stroke-width:0.75px;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10"
            id="polygon887"
            transform="translate(-253.711,-45.8075)" />
         <line
@@ -262,23 +276,22 @@
            y1="194.22253"
            x2="752.00909"
            y2="180.40254"
-           style="fill:none;stroke:#006bc2;stroke-width:1.07;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10"
+           style="fill:none;stroke:#006bc2;stroke-width:0.75px;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10"
            id="line889" />
         <text
-           x="1019.84"
-           y="236.33"
-           style="font-size:8.8px;font-family:'DejaVu Sans';white-space:pre"
-           textLength="35.240002"
+           x="760.31586"
+           y="190.2309"
+           style="font-size:8px;font-family:'DejaVu Sans';white-space:pre;stroke-width:0.75px"
            lengthAdjust="spacingAndGlyphs"
-           id="text913"
-           transform="translate(-253.711,-45.8075)">Horvath</text>
+           id="text913">Horvath</text>
       </g>
       <g
          id="g693"
-         transform="translate(0,-27.614645)">
+         transform="translate(0,-27.6146)"
+         style="stroke-width:0.75px">
         <polygon
-           points="1008.06,248.05 1003.37,248.05 1003.37,252.75 1008.06,252.75 "
-           style="fill:#36bedc;stroke:none;stroke-width:0.43;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10"
+           points="1003.37,248.05 1003.37,252.75 1008.06,252.75 1008.06,248.05 "
+           style="fill:#36bedc;stroke:none;stroke-width:0.75px;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10"
            id="polygon893"
            transform="translate(-253.711,-45.8075)" />
         <line
@@ -286,124 +299,130 @@
            y1="211.50253"
            x2="752.00909"
            y2="197.68254"
-           style="fill:none;stroke:#36bedc;stroke-width:1.07;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10"
+           style="fill:none;stroke:#36bedc;stroke-width:0.75px;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10"
            id="line895" />
         <text
-           x="1019.84"
-           y="253.61"
-           style="font-size:8.8px;font-family:'DejaVu Sans';white-space:pre"
-           textLength="37.299999"
+           x="760.32501"
+           y="207.51089"
+           style="font-size:8px;font-family:'DejaVu Sans';white-space:pre;stroke-width:0.75px"
            lengthAdjust="spacingAndGlyphs"
-           id="text915"
-           transform="translate(-253.711,-45.8075)">Hannum</text>
+           id="text915">Hannum</text>
       </g>
     </g>
     <g
        id="g1622"
-       transform="translate(-120.11079,-2.6755206)">
+       transform="translate(-105.111,1.82448)"
+       style="stroke-width:0.75px">
       <g
          id="g1611"
-         transform="translate(121.422,-51.6319)">
+         transform="translate(121.422,-51.6319)"
+         style="stroke-width:0.75px">
         <g
            id="g660"
-           transform="translate(0,-20.114645)">
+           transform="translate(0,-20.1146)"
+           style="stroke-width:0.75px">
           <circle
              cx="752.00909"
              cy="239.15253"
              r="2.3499999"
-             style="fill:#f30b07;stroke:none;stroke-width:0.43;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10"
+             style="fill:#f30b07;stroke:none;stroke-width:0.75px;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10"
              id="circle905" />
           <line
              x1="752.00909"
              y1="246.06253"
              x2="752.00909"
              y2="232.24252"
-             style="fill:none;stroke:#f30b07;stroke-width:1.07;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10"
+             style="fill:none;stroke:#f30b07;stroke-width:0.75px;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10"
              id="line907" />
           <text
-             x="1019.84"
-             y="288.17001"
-             style="font-size:8.8px;font-family:'DejaVu Sans';white-space:pre"
-             textLength="54.68"
+             x="759.61505"
+             y="242.07091"
+             style="font-size:8px;font-family:'DejaVu Sans';white-space:pre;stroke-width:0.75px"
              lengthAdjust="spacingAndGlyphs"
-             id="text919"
-             transform="translate(-253.711,-45.8075)">Acceleration</text>
+             id="text919">Acceleration</text>
         </g>
         <g
            id="g665"
-           transform="translate(0,14.173229)">
+           transform="translate(0,14.1732)"
+           style="stroke-width:0.75px">
           <circle
              cx="752.00909"
              cy="221.87253"
              r="2.3499999"
-             style="fill:#96a4c9;stroke:none;stroke-width:0.43;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10"
+             style="fill:#96a4c9;stroke:none;stroke-width:0.75px;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10"
              id="circle899" />
           <line
              x1="752.00909"
              y1="228.78253"
              x2="752.00909"
              y2="214.96252"
-             style="fill:none;stroke:#96a4c9;stroke-width:1.07;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10"
+             style="fill:none;stroke:#96a4c9;stroke-width:0.75px;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10"
              id="line901" />
           <text
-             x="1019.84"
-             y="270.89001"
-             style="font-size:8.8px;font-family:'DejaVu Sans';white-space:pre"
-             textLength="18.459999"
+             x="758.8949"
+             y="224.79091"
+             style="font-size:8px;font-family:'DejaVu Sans';white-space:pre;stroke-width:0.75px"
              lengthAdjust="spacingAndGlyphs"
-             id="text917"
-             transform="translate(-253.711,-45.8075)">Bias</text>
+             id="text917">Bias</text>
         </g>
       </g>
     </g>
     <g
        id="g1593"
-       transform="translate(4.83655,-1.6224801)">
+       transform="translate(24.3366,4.37752)"
+       style="stroke-width:0.75px">
       <text
-         x="997.08002"
-         y="324.67999"
-         style="font-size:11px;font-family:'DejaVu Sans';white-space:pre"
-         textLength="58.060001"
+         x="942.5813"
+         y="151.03299"
+         style="font-size:9px;font-family:'DejaVu Sans';white-space:pre;stroke-width:0.75px"
          lengthAdjust="spacingAndGlyphs"
-         id="text923"
-         transform="translate(-51.9147,-171.05286)">Significant</text>
+         id="text923"><tspan
+           style="font-weight:bold;font-size:9px"
+           id="tspan23652">Significant</tspan></text>
       <g
          id="g707"
-         transform="translate(0,-3.1164491)">
+         transform="translate(0,-3.11645)"
+         style="stroke-width:0.75px">
         <line
-           x1="953.8053"
-           y1="176.37936"
-           x2="953.8053"
-           y2="162.55939"
-           style="fill:none;stroke:#000000;stroke-width:1.07;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10"
+           x1="946.89532"
+           y1="169.46938"
+           x2="960.71527"
+           y2="169.46938"
+           style="fill:none;stroke:#000000;stroke-width:0.75px;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10"
            id="line927" />
+        <line
+           x1="946.90729"
+           y1="187.32979"
+           x2="952.5766"
+           y2="187.32979"
+           style="fill:none;stroke:#000000;stroke-width:0.75px;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10"
+           id="line927-1" />
+        <line
+           x1="955.03668"
+           y1="187.33061"
+           x2="960.70599"
+           y2="187.33061"
+           style="fill:none;stroke:#000000;stroke-width:0.75px;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10"
+           id="line927-1-1" />
         <text
            x="1019.84"
            y="343.16"
-           style="font-size:8.8px;font-family:'DejaVu Sans';white-space:pre"
-           textLength="23.48"
+           style="font-size:8px;font-family:'DejaVu Sans';white-space:pre;stroke-width:0.75px"
            lengthAdjust="spacingAndGlyphs"
            id="text933"
-           transform="translate(-51.9147,-170.481)">TRUE</text>
+           transform="translate(-50.8469,-170.773)">TRUE</text>
       </g>
       <g
          id="g711"
-         transform="translate(0,-3.3885731)">
-        <line
-           x1="953.8053"
-           y1="193.65939"
-           x2="953.8053"
-           y2="179.83939"
-           style="fill:none;stroke:#000000;stroke-width:1.07;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:5.69, 5.69"
-           id="line931" />
+         transform="translate(0,-3.38857)"
+         style="stroke-width:0.75px">
         <text
            x="1019.84"
            y="360.44"
-           style="font-size:8.8px;font-family:'DejaVu Sans';white-space:pre"
-           textLength="26.32"
+           style="font-size:8px;font-family:'DejaVu Sans';white-space:pre;stroke-width:0.75px"
            lengthAdjust="spacingAndGlyphs"
            id="text935"
-           transform="translate(-51.9147,-170.481)">FALSE</text>
+           transform="translate(-50.7182,-170.773)">FALSE</text>
       </g>
     </g>
   </g>

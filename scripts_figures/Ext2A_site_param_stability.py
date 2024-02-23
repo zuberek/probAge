@@ -33,9 +33,12 @@ with open(f'{paths.DATA_PROCESSED_DIR}/wave3_{SITE_NAME}_trace.pickle',"rb") as 
 params = list(modelling.SITE_PARAMETERS.values())
 
 # %%
+params_latex=['$\eta_0$', '$\omega$', '$p$', '$S$', '$c$']
+
+# %%
 params = list(modelling.SITE_PARAMETERS.values())
 plot.fonts(8)
-axes = plot.tab(subtitles=params, ncols=3, figsize=[19,12.5])
+axes = plot.tab(subtitles=params_latex, ncols=3, figsize=[19,12.5])
 summary   = az.summary(trace)
 summary = summary.set_index(pd.Series(summary.index.values.astype('str')).str.split('[', expand=True)[0])
 # left, right = summary.loc[param][['hdi_3%', 'hdi_97%']]

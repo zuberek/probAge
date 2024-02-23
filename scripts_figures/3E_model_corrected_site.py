@@ -20,8 +20,7 @@ REF_DSET_NAME = 'wave3' # reference datset name
 
 # %%
 # LOADING
-hannum_external = ad.read_h5ad(f'{paths.DATA_PROCESSED_DIR}/{EXT_DSET_NAME}_person_fitted.h5ad', backed='r')
-
+external = ad.read_h5ad(f'{paths.DATA_PROCESSED_DIR}/{EXT_DSET_NAME}_person_fitted.h5ad', backed='r')
 # %%
 # Optional: calculate offsets for all the sites to select the most interesting one
 # offset_map = bc.site_offsets(amdata, show_progress=True, map_method='Powell')
@@ -31,7 +30,8 @@ hannum_external = ad.read_h5ad(f'{paths.DATA_PROCESSED_DIR}/{EXT_DSET_NAME}_pers
 # %%
 # Select the interesting site (top offset in Hannum) 
 SITE_NAME = 'cg00048759'
-site_data = hannum_external[SITE_NAME].to_memory()
+
+site_data = external[SITE_NAME].to_memory()
 
 # %%
 # Optional: Compute offsets if you didn't run the external script
@@ -59,7 +59,7 @@ mean_truth, _ = modelling.bio_model_stats(site_data, t)
 ax = plot.row(figsize=(9.5, 6))
 plot.fonts(8)
 sns.despine()
-ax.set_ylabel('Methylation level \n(beta value)')
+ax.set_ylabel('Methylation level \n' + r'($\beta$-value)')
 ax.set_xlabel('Age (years)')
 sns.scatterplot(ax=ax, x=site_data.var.age, y=site_data.X[0].flatten(), 
                 color='tab:grey', alpha=0.3 )

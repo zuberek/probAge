@@ -26,9 +26,9 @@
      showgrid="true"
      showguides="true"
      inkscape:guide-bbox="true"
-     inkscape:zoom="1.8116734"
-     inkscape:cx="336.70528"
-     inkscape:cy="227.41406"
+     inkscape:zoom="1.2810465"
+     inkscape:cx="362.20386"
+     inkscape:cy="259.94372"
      inkscape:window-width="1920"
      inkscape:window-height="1011"
      inkscape:window-x="0"
@@ -208,6 +208,16 @@
          xlink:href="ext4/ext4A_corrected_site.svg"
          id="image83318"
          x="10"
+         y="30" />
+      <image
+         preserveAspectRatio="none"
+         inkscape:svg-dpi="96"
+         width="93.174873"
+         height="58.385075"
+         style="image-rendering:optimizeQuality"
+         xlink:href="ext4/Ext4B_corrected_VS_retrained.svg"
+         id="image92397"
+         x="105"
          y="30" />
     </g>
   </g>

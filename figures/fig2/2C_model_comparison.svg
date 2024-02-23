@@ -24,15 +24,15 @@
      inkscape:document-units="mm"
      showgrid="false"
      units="cm"
-     inkscape:zoom="1.5341717"
-     inkscape:cx="259.42337"
-     inkscape:cy="211.8407"
+     inkscape:zoom="1.1890335"
+     inkscape:cx="-4.205096"
+     inkscape:cy="238.00843"
      inkscape:window-width="1920"
      inkscape:window-height="1011"
      inkscape:window-x="0"
      inkscape:window-y="32"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer1" />
+     inkscape:current-layer="g6003" />
   <defs
      id="defs278565">
     <clipPath
@@ -1081,13 +1081,21 @@
          id="path8376" />
       <text
          text-anchor="end"
-         x="11.814909"
-         y="10.768737"
-         transform="scale(0.98582196,1.0143819)"
+         x="9.1310205"
+         y="9.203743"
+         transform="scale(0.985822,1.0143819)"
          style="font-size:2.70233px;font-family:sans-serif;text-align:center;text-anchor:middle;white-space:pre;opacity:1;fill:#242424;fill-opacity:1;stroke-width:0.396877px;stroke-linecap:butt;stroke-linejoin:round"
          id="text8378"
          xml:space="preserve"
-         sodipodi:role="line">All sites</text>
+         sodipodi:role="line"><tspan
+           sodipodi:role="line"
+           id="tspan2418"
+           x="9.1310205"
+           y="9.203743">All training</tspan><tspan
+           sodipodi:role="line"
+           id="tspan2420"
+           x="9.1310205"
+           y="12.581656">sites</tspan></text>
       <path
          data-index="0"
          fill-rule="evenodd"
@@ -1099,10 +1107,10 @@
       <path
          class="scatterpts"
          d="M 23,0 C 23,1.21339 22.2691,2.3073 21.1481,2.77164 20.027,3.23598 18.7367,2.97931 17.8787,2.12132 17.0207,1.26333 16.764,-0.0270271 17.2284,-1.14805 17.6927,-2.26907 18.7866,-3 20,-3 c 0.7956,0 1.5587,0.31607 2.1213,0.87868 C 22.6839,-1.55871 23,-0.795649 23,0 Z"
-         style="display:inline;opacity:1;fill:#4dbbd5;fill-opacity:1;stroke-width:1.86767px;stroke-linecap:butt;stroke-linejoin:round"
+         style="display:inline;opacity:1;fill:#4dbbd5;fill-opacity:1;stroke-width:0.793752px;stroke-linecap:butt;stroke-linejoin:round"
          id="path8454"
          clip-path="url(#clipPath10)"
-         transform="matrix(0.20948436,0,0,0.21555235,59.300317,2.306423)" />
+         transform="matrix(0.4999933,0,0,0.4999928,54.361687,2.1999884)" />
       <rect
          class="legendtoggle"
          x="0"
@@ -1127,35 +1135,35 @@
          class="legendtext"
          text-anchor="start"
          x="72.852196"
-         y="3.2682023"
+         y="3.0389638"
          style="font-size:2.70232px;font-family:sans-serif;text-align:center;text-anchor:middle;white-space:pre;display:inline;opacity:1;fill:#242424;fill-opacity:1;stroke-width:0.396874px;stroke-linecap:butt;stroke-linejoin:round"
          id="text8448"
-         transform="scale(0.98582408,1.0143798)"
+         transform="scale(0.98582406,1.0143798)"
          xml:space="preserve"
          sodipodi:role="line">Linear</text>
       <text
          class="legendtitletext"
          text-anchor="start"
          x="40.901424"
-         y="3.0819874"
+         y="3.0389638"
          style="font-size:2.70232px;font-family:sans-serif;text-align:center;text-anchor:middle;white-space:pre;display:inline;opacity:1;fill:#242424;fill-opacity:1;stroke-width:0.396874px;stroke-linecap:butt;stroke-linejoin:round"
          id="text8426"
-         transform="scale(0.98582408,1.0143798)"
+         transform="scale(0.98582406,1.0143798)"
          xml:space="preserve"
          sodipodi:role="line">Model</text>
       <text
          class="legendtext"
          text-anchor="start"
          x="57.399612"
-         y="3.0132051"
+         y="3.0389638"
          style="font-size:2.70232px;font-family:sans-serif;text-align:center;text-anchor:middle;white-space:pre;display:inline;opacity:1;fill:#242424;fill-opacity:1;stroke-width:0.396874px;stroke-linecap:butt;stroke-linejoin:round"
          id="text8428"
-         transform="scale(0.98582408,1.0143798)"
+         transform="scale(0.98582406,1.0143798)"
          xml:space="preserve"
          sodipodi:role="line">Bio</text>
       <path
          class="scatterpts"
-         d="m 50.925862,2.0477493 c 0,0.2615491 -0.153111,0.4973439 -0.387944,0.5974335 -0.234853,0.1000896 -0.505151,0.044764 -0.684887,-0.140178 -0.179738,-0.1849417 -0.233513,-0.4630813 -0.136229,-0.7047204 0.09726,-0.2416385 0.326419,-0.3991921 0.580607,-0.3991921 0.166666,0 0.326524,0.06813 0.444379,0.1894015 0.117857,0.1212719 0.184074,0.2857515 0.184074,0.4572555 z"
+         d="m 52.668936,2.1999882 c 0,0.6066863 -0.365443,1.1536332 -0.925939,1.3858 C 51.182455,3.8179549 50.537313,3.6896223 50.108322,3.2606329 49.679327,2.8316442 49.550977,2.1864747 49.783173,1.6259713 50.015312,1.0654695 50.562264,0.70001 51.168955,0.70001 c 0.397796,0 0.779342,0.15803347 1.060636,0.4393335 0.281299,0.2813009 0.439345,0.6628259 0.439345,1.0606447 z"
          style="display:inline;opacity:1;fill:#e64b35;fill-opacity:1;stroke-width:0.396874px;stroke-linecap:butt;stroke-linejoin:round"
          id="path8434" />
       <rect

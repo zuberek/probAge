@@ -26,16 +26,20 @@ g.ax_joint.set_title(SITE_NAME)
 # amdata = amdata[:, np.random.shuffle(amdata.var.index)].copy()
 df = df.sort_values('weighted_smoke', ascending=True)
 sns.scatterplot(ax=g.ax_joint, data=df, x='age', y='value', hue='weighted_smoke',
-                 palette=CON_PALLETE2, alpha=1, linewidth=0, legend=True)
-g.ax_joint.legend(title='Smoking\n(weighted)')
+                 palette=CON_PALLETE2, alpha=1, linewidth=0, legend=True, s=10)
+legend = g.ax_joint.legend(title='Smoking\n(weighted)',loc='best')
+
+for handle in legend.legendHandles:
+    handle.set_alpha(1)
+    handle.set_markersize(5)
 sns.boxplot(ax=g.ax_marg_y, data=df, y='value', x='status',
             palette=[colors[0], colors[1]],showfliers=False, legend=True)
-g.fig.subplots_adjust(top=0.7)
+# g.figure.subplots_adjust(top=0.7)
 g.ax_marg_x.remove()
 g.ax_marg_y.set_frame_on(True)
 # g.ax_joint.spines[['right']].set_visible(True)
 
-g.ax_joint.set_ylabel('Methylation level \n(beta value)')
+g.ax_joint.set_ylabel('Methylation level \n' + r'($\beta$-value)')
 g.ax_joint.set_xlabel('Age (years)')
 # sns.despine(g.fig)
 # g.ax_marg_y.legend(title='Smoker', loc='lower right', labels=['Heavy', 'None'])
@@ -48,9 +52,8 @@ g.ax_marg_y.plot([x1, x1, x2, x2], [y, y+h, y+h, y], lw=1, c=col)
 g.ax_marg_y.text((x1+x2)*.5, y+h, "*", ha='center', va='bottom', color=col)
 
 plot.fonts(8)
-g.fig.set_size_inches((plot.cm2inch(9.5),plot.cm2inch(6)))
-g.fig.tight_layout()
-
+g.figure.set_size_inches((plot.cm2inch(9.5),plot.cm2inch(6)))
+g.figure.tight_layout()
 
 # %% saving
 g.savefig(f'{paths.FIGURES_DIR}/fig1/1C_smoking_CpG.svg', bbox_inches='tight')
@@ -58,20 +61,11 @@ g.savefig(f'{paths.FIGURES_DIR}/fig1/1C_smoking_CpG.png')
 
 
 # %% STATISTICS
-f_oneway(amdata['cg24090911', amdata.var.heavy_smoker==True].X.flatten(),
-         amdata['cg24090911', amdata.var.heavy_smoker==False].X.flatten())
 
-f_oneway(amdata['cg24090911', amdata.var.heavy_smoker==False].X.flatten(),
-         amdata['cg24090911', amdata.var.heavy_smoker==True].X.flatten())
+from scipy.stats import ttest_ind
 
 ttest_ind(amdata['cg24090911', amdata.var.heavy_smoker==True].X.flatten(),
          amdata['cg24090911', amdata.var.heavy_smoker==False].X.flatten())
-
-from scipy.stats import linregress
-
-linregress(amdata['cg24090911'].X.flatten(), amdata.var.age)
-
-
 
 # %%
 import statsmodels.formula.api as smf
@@ -81,7 +75,3 @@ df = amdata.to_df().T
 df[['age', 'heavy_smoker', 'weighted_smoke']] = amdata.var[['age', 'heavy_smoker', 'weighted_smoke']]
 df['age_scaled'] = df.age / df.age.max()
 smf.ols("cg24090911 ~   scale(weighted_smoke) + scale(age)", df).fit().summary()
-
-
-smf.ols("heavy_smoker ~ age", df).fit().summary()
-

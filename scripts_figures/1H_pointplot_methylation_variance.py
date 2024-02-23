@@ -9,6 +9,7 @@ amdata = ad.read_h5ad('../exports/wave3_meta.h5ad', backed='r')
 N_BINS = 5
 # amdata.var['age_bin'] = pd.cut(amdata.var.age, N_BINS).astype('str')
 amdata.var['age_bin'] = pd.qcut(amdata.var.age, N_BINS)
+amdata.var.age_bin.value_counts().mean()
 amdata.var['age_bin'] = amdata.var['age_bin'].apply(
     lambda x: f'({int(round(x.left))}, {int(round(x.right))}]')
 age_bins = np.sort(amdata.var.age_bin.unique())
@@ -30,12 +31,13 @@ var_df['sd'] = np.sqrt(var_df.variance)
 ax = plot.row(figsize=(9.5, 6))
 plot.fonts(8)
 sns.despine()
-ax.set_xlabel('Age bin')
-ax.set_ylabel('Methylation variance in bin')
+ax.set_xlabel('Age bin (years)' )
+ax.set_ylabel('Methylation variance \n' + r'($\beta$-value)' )
 
 sns.pointplot(ax=ax, data=var_df, x="bin", y="variance", 
                  errorbar='ci', capsize=.3, linewidth=1)
-
+# ax.ticklabel_format(style='sci')
+ax.ticklabel_format(axis='y', style='scientific', scilimits=(0, 0))
 ax.get_figure().tight_layout()
 # %%
 ax.get_figure().savefig(f'{paths.FIGURES_DIR}/fig1/1H_pointplot_methylation_variance.png')

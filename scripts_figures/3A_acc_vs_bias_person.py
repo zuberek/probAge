@@ -17,7 +17,6 @@ mean, variance = modelling_bio.bio_model_stats(amdata[0], t=np.linspace(0,100, 1
 
 # modelling_bio.bio_model_plot(amdata[0])
 
-top_sites = amdata.obs.sort_values('eta_0').iloc[[0, -2]].index.values
 top_sites = amdata.obs.sort_values('spr').iloc[[0, -1]].index.values
 
 #%%
@@ -60,6 +59,7 @@ def get_stats_for_site(site_index):
 def get_plot_for_site(site_index, ax=None, legend=True):
 
     mean, acc, bias = get_stats_for_site(site_index)
+    t = np.linspace(20, 90, 100)
 
     if ax is None:
         ax = plot.row(figsize=(9.5, 6))
@@ -67,34 +67,46 @@ def get_plot_for_site(site_index, ax=None, legend=True):
         sns.despine()
 
     sns.scatterplot(ax=ax, x=amdata.var.age,y=amdata[site_index].X.flatten(),
-                    color='tab:grey', alpha=0.1, label='data', legend=legend)
+                    color='tab:grey', alpha=0.1, label='Individual', legend=False)
     sns.lineplot(ax=ax, x=t, y=mean, 
-                 color='tab:grey', label='cohort mean', legend=legend)
+                 color='tab:grey', label='Cohort\nmean', legend=False)
 
     sns.lineplot(ax=ax, x=t, y=acc, 
-                 color=colors[1], label='acc_trajectory', legend=legend)
+                 color=colors[1], label='Accelerated\ntrajectory', legend=False)
     sns.lineplot(ax=ax, x=t, y=bias, 
-                 color=colors[0], label='biased trajectory', legend=legend)
+                 color=colors[0], label='Biased\ntrajectory', legend=False)
 
-    sns.scatterplot(ax=ax, x=[acc_data.var.age[0]], y=acc_data[site_index].X.flatten(), 
+    sns.scatterplot(legend=False, ax=ax, x=[acc_data.var.age[0]], y=acc_data[site_index].X.flatten(), 
                     s=30, color=colors[1])
-    sns.scatterplot(ax=ax, x=[bias_data.var.age[0]], y=bias_data[site_index].X.flatten(), 
+    sns.scatterplot(legend=False, ax=ax, x=[bias_data.var.age[0]], y=bias_data[site_index].X.flatten(), 
                     s=30, color=colors[0])
-    
+
 
     return ax
 
 #%%
-ax1, ax2 = plot.row(['Increasing site', 'Decreasing site'], 
+top_sites = ['cg14620941', 'cg24724428']
+ax1, ax2 = plot.row([f'Decreasing site\n{top_sites[0]}', 
+                     f'Increasing site\n{top_sites[1]}'], 
                     figsize=(9.5*2, 6))
 plot.fonts(8)
 sns.despine()
 
+# amdata.obs['etap'] = amdata.obs.eta_0 - amdata.obs.meth_init
+# top_sites = amdata.obs.sort_values('etap').iloc[[6, -5]].index.values
+
 get_plot_for_site(top_sites[0], ax=ax1)
 get_plot_for_site(top_sites[1], ax=ax2)
 
-ax1.set_ylabel('Methylation level \n(beta values)')
-ax2.set_ylabel('Methylation level \n(beta values)')
+    
+legend = ax2.legend(bbox_to_anchor=(1,1), loc='best')
+for handle in legend.legendHandles:
+    handle.set_alpha(1)
+
+ax1.set_ylabel('Methylation level\n' + r'($\beta$-values)')
+ax2.set_ylabel(None)
+ax1.set_ylim([0,0.5])
+ax2.set_ylim([0,0.5])
 ax1.set_xlabel('Age (years)')
 ax2.set_xlabel('Age (years)')
 
@@ -148,7 +160,7 @@ for i, site_index in enumerate(top_sites):
                     y=amdata[site_index].X.flatten(),
                     color='tab:grey',
                     alpha=0.1,
-                    label='data',
+                    label='Participants',
                     legend=False,
                     # ax= axes[i],
                     )

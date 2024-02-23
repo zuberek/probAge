@@ -67,7 +67,7 @@ def row(subtitles=None, figure=None, scale=6, figsize=None, size_unit='cm'):
     ncols=len(subtitles)
     if figsize is None:
         figsize=(scale*ncols,4)
-    if figsize is not None:
+    elif figsize is not None:
             if size_unit == 'cm':
                   # centimeters in inches
                 figsize = (cm2inch(figsize[0]), cm2inch(figsize[1]))

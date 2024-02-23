@@ -26,12 +26,12 @@ g.map_dataframe(sns.scatterplot, x="age_r2",  y='abs_smoke_beta',
                 alpha=0.3, size=0.2, linewidth = 0, color='tab:grey')
 
 g.set_titles('{col_name}')
-g.set_xlabels("Age association (r2)")
-g.set_ylabels("Smoking \n association \n (beta)")
+g.set_xlabels("Age association ($R^2$)")
+g.set_ylabels("Smoking \n association \n" + r"($\beta$-coeff)")
 
 plot.fonts(8)
-g.fig.set_size_inches((plot.cm2inch(9.5),plot.cm2inch(6)))
-g.fig.tight_layout()
+g.figure.set_size_inches((plot.cm2inch(9.5),plot.cm2inch(6)))
+g.figure.tight_layout()
 
 # g.axes[0,0].set_xlabel('axes label 1')
 # g.axes[0,1].set_xlabel('axes label 2')

@@ -8,7 +8,7 @@
    version="1.1"
    id="svg259636"
    inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
-   sodipodi:docname="Figure 4.svg"
+   sodipodi:docname="Figure4.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -26,15 +26,15 @@
      showgrid="true"
      showguides="true"
      inkscape:guide-bbox="true"
-     inkscape:zoom="0.83718325"
-     inkscape:cx="361.92793"
-     inkscape:cy="459.87542"
+     inkscape:zoom="1.2217154"
+     inkscape:cx="459.19041"
+     inkscape:cy="564.77965"
      inkscape:window-width="1920"
      inkscape:window-height="1011"
      inkscape:window-x="0"
      inkscape:window-y="32"
      inkscape:window-maximized="1"
-     inkscape:current-layer="g295963">
+     inkscape:current-layer="layer1">
     <inkscape:grid
        type="xygrid"
        id="grid259640"
@@ -66,7 +66,7 @@
        orientation="1,0"
        id="guide259652" />
     <sodipodi:guide
-       position="115,207.00001"
+       position="35,182"
        orientation="0,-1"
        id="guide259654" />
     <sodipodi:guide
@@ -160,6 +160,36 @@
   <g
      inkscape:label="Layer 1"
      id="layer1">
+    <image
+       preserveAspectRatio="none"
+       inkscape:svg-dpi="96"
+       width="94.999969"
+       height="125.00002"
+       style="image-rendering:optimizeQuality"
+       xlink:href="fig4/allclock_cat.svg"
+       id="image7932"
+       x="105.00002"
+       y="30" />
+    <image
+       preserveAspectRatio="none"
+       inkscape:svg-dpi="96"
+       width="105.39839"
+       height="30.000046"
+       style="image-rendering:optimizeQuality"
+       xlink:href="fig4/legend.svg"
+       id="image9326"
+       x="100.05418"
+       y="156.29588" />
+    <image
+       preserveAspectRatio="none"
+       inkscape:svg-dpi="96"
+       width="94.999443"
+       height="124.99975"
+       style="image-rendering:optimizeQuality"
+       xlink:href="fig4/allclock_con.svg"
+       id="image2043"
+       x="5.7666678"
+       y="28.120834" />
     <g
        id="g295963"
        inkscape:label="Figure annotations"
@@ -209,46 +239,16 @@
            id="tspan72"
            x="8.9613066"
            y="18.040827">Figure 4</tspan></text>
-      <image
-         preserveAspectRatio="none"
-         inkscape:svg-dpi="96"
-         width="94.999969"
-         height="125.00002"
-         style="image-rendering:optimizeQuality"
-         xlink:href="fig4/allclock_con.svg"
-         id="image9163"
-         x="10"
-         y="30" />
-      <image
-         preserveAspectRatio="none"
-         inkscape:svg-dpi="96"
-         width="94.999969"
-         height="30.000046"
-         style="image-rendering:optimizeQuality"
-         xlink:href="fig4/allclock_surv.svg"
-         id="image7740"
-         x="10"
-         y="160" />
-      <image
-         preserveAspectRatio="none"
-         inkscape:svg-dpi="96"
-         width="94.999969"
-         height="125.00002"
-         style="image-rendering:optimizeQuality"
-         xlink:href="fig4/allclock_cat.svg"
-         id="image7932"
-         x="105.00002"
-         y="26.295807" />
-      <image
-         preserveAspectRatio="none"
-         inkscape:svg-dpi="96"
-         width="94.999969"
-         height="30.000046"
-         style="image-rendering:optimizeQuality"
-         xlink:href="fig4/legend.svg"
-         id="image3775"
-         x="105"
-         y="157.3542" />
     </g>
+    <image
+       preserveAspectRatio="none"
+       inkscape:svg-dpi="96"
+       width="79.999413"
+       height="30.000311"
+       style="image-rendering:optimizeQuality"
+       xlink:href="fig4/allclock_surv.svg"
+       id="image4512"
+       x="20.766663"
+       y="160" />
   </g>
 </svg>

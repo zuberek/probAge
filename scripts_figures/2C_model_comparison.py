@@ -18,7 +18,6 @@ amdata = ad.read_h5ad('../exports/wave3_person_fitted.h5ad')
 with open('../exports/comparison.pickle', 'rb') as f:
     data = pickle.load(f)
 
-data[0]
 
 # %% ########################
 # PROCESSING
@@ -70,7 +69,7 @@ full_fig.update_layout(
     yaxis = dict(
         tickmode = 'array',
         tickvals = [0],
-        ticktext = ['All sites'])
+        ticktext = ['All training \n sites'])
     )
 # %% saving
 fig.write_image(f'{paths.FIGURES_DIR}/2CA_model_comparison.svg')
