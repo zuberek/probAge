@@ -424,11 +424,18 @@ def site_offsets(amdata, show_progress=False, map_method='L-BFGS-B'):
         variance = pm.math.clip(variance, 0, mean*(1-mean))
 
         # Define likelihood
-        obs = pm.Beta("obs", mu=mean,
+        # obs = pm.Beta("obs", mu=mean,
+        #                     #   sigma = 0.1, 
+        #                         sigma = np.sqrt(variance), 
+        #                         dims=("part", "site"),     
+        #                         observed=amdata.X.T)
+
+        obs = pm.Normal("obs", mu=mean,
                             #   sigma = 0.1, 
                                 sigma = np.sqrt(variance), 
                                 dims=("part", "site"),     
                                 observed=amdata.X.T)
+        
 
         return pm.find_MAP(progressbar=show_progress, method=map_method, maxeval=10_000)
 
