@@ -18,7 +18,9 @@ amdata.var['heavy_smoker'] = amdata.var.weighted_smoke > amdata.var.weighted_smo
 
 df = amdata[SITE_NAME].to_df().T.rename(columns={SITE_NAME:"value"})
 df['weighted_smoke'] = amdata.var.weighted_smoke
-df['status']  = amdata.var.weighted_smoke > amdata.var.weighted_smoke.std()
+# df['status']  = amdata.var.weighted_smoke > amdata.var.weighted_smoke.std()
+# df['status']  = amdata.var.weighted_smoke > (amdata.var.weighted_smoke.mean() + amdata.var.weighted_smoke.std())
+df['status']  = amdata.var.weighted_smoke > amdata.var.weighted_smoke.quantile(0.85)
 df['age'] = amdata.var.age
 
 
@@ -53,15 +55,31 @@ g.figure.set_size_inches((plot.cm2inch(9.5),plot.cm2inch(6)))
 g.figure.tight_layout()
 
 # %% saving
-g.savefig(f'{paths.FIGURES_DIR}/fig1/1F_super_smoking_cpg.svg')
-g.savefig(f'{paths.FIGURES_DIR}/fig1/1F_super_smoking_cpg.png')
+g.savefig(f'{paths.FIGURES_DIR}/fig1/1F_super_smoking_cpg.svg', transparent=True)
+g.savefig(f'{paths.FIGURES_DIR}/fig1/1F_super_smoking_cpg.png', transparent=True)
 
 
 
 # %% STATISTICS
 
-from scipy.stats import ttest_ind
+from scipy.stats import ttest_ind, f_oneway
+
 
 ttest_ind(amdata['cg05575921', amdata.var.heavy_smoker==True].X.flatten(),
          amdata['cg05575921', amdata.var.heavy_smoker==False].X.flatten())
+
+
+# %%
+f_oneway(amdata['cg05575921', amdata.var.heavy_smoker==True].X.flatten(),
+         amdata['cg05575921', amdata.var.heavy_smoker==False].X.flatten())
+
+
+# %%
+
+from scipy.stats import linregress
+
+values = np.argwhere(~np.isnan(amdata.var.weighted_smoke)).flatten()
+
+res = linregress(amdata.X.flatten()[values], amdata.var.weighted_smoke.iloc[values])
+res.rvalue**2
 

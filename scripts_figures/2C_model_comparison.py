@@ -15,9 +15,13 @@ import pickle
 
 amdata = ad.read_h5ad('../exports/wave3_person_fitted.h5ad')
 
-with open('../exports/comparison.pickle', 'rb') as f:
+with open('../exports/comparison_new.pickle', 'rb') as f:
+    dataa = pickle.load(f)
+with open('../exports/comparison_new1000.pickle', 'rb') as f:
     data = pickle.load(f)
-
+dataaa = dataa + data
+df_comp = pd.concat(dataaa).reset_index()
+df_comp.groupby('index').sum('rank')
 
 # %% ########################
 # PROCESSING

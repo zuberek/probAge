@@ -8,7 +8,7 @@
    version="1.1"
    id="svg259636"
    inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
-   sodipodi:docname="Extended Figure 2.svg"
+   sodipodi:docname="Extended Data Figure 2.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -28,13 +28,13 @@
      inkscape:guide-bbox="true"
      inkscape:zoom="0.86458475"
      inkscape:cx="189.68644"
-     inkscape:cy="425.63785"
+     inkscape:cy="541.30032"
      inkscape:window-width="1920"
      inkscape:window-height="1011"
      inkscape:window-x="0"
      inkscape:window-y="32"
      inkscape:window-maximized="1"
-     inkscape:current-layer="g295963">
+     inkscape:current-layer="layer1">
     <inkscape:grid
        type="xygrid"
        id="grid259640"
@@ -240,7 +240,7 @@
        style="image-rendering:optimizeQuality"
        xlink:href="ext2/Ext2B_boxplot_rhats.svg"
        id="image568"
-       x="10"
+       x="105.00003"
        y="160" />
     <image
        preserveAspectRatio="none"
@@ -250,7 +250,7 @@
        style="image-rendering:optimizeQuality"
        xlink:href="ext2/Ext2C_predictive_posterior.svg"
        id="image19616"
-       x="105"
+       x="10"
        y="160" />
     <image
        preserveAspectRatio="none"

@@ -16,7 +16,7 @@ amdata.var['heavy_smoker'] = amdata.var.weighted_smoke > amdata.var.weighted_smo
 
 df = amdata[SITE_NAME].to_df().T.rename(columns={"cg24090911":"value"})
 df['weighted_smoke'] = amdata.var.weighted_smoke
-df['status']  = amdata.var.weighted_smoke > amdata.var.weighted_smoke.std()
+df['status']  = amdata.var.weighted_smoke > amdata.var.weighted_smoke.quantile(0.85)
 df['age'] = amdata.var.age
 # %% PLOT
 g = sns.JointGrid()
@@ -56,8 +56,8 @@ g.figure.set_size_inches((plot.cm2inch(9.5),plot.cm2inch(6)))
 g.figure.tight_layout()
 
 # %% saving
-g.savefig(f'{paths.FIGURES_DIR}/fig1/1C_smoking_CpG.svg', bbox_inches='tight')
-g.savefig(f'{paths.FIGURES_DIR}/fig1/1C_smoking_CpG.png')
+g.savefig(f'{paths.FIGURES_DIR}/fig1/1C_smoking_CpG.svg', transparent=True)
+g.savefig(f'{paths.FIGURES_DIR}/fig1/1C_smoking_CpG.png', transparent=True)
 
 
 # %% STATISTICS
@@ -75,3 +75,18 @@ df = amdata.to_df().T
 df[['age', 'heavy_smoker', 'weighted_smoke']] = amdata.var[['age', 'heavy_smoker', 'weighted_smoke']]
 df['age_scaled'] = df.age / df.age.max()
 smf.ols("cg24090911 ~   scale(weighted_smoke) + scale(age)", df).fit().summary()
+
+# %%
+
+
+from scipy.stats import linregress
+
+values = np.argwhere(~np.isnan(amdata.var.weighted_smoke)).flatten()
+
+res = linregress(amdata.X.flatten()[values], amdata.var.weighted_smoke.iloc[values])
+res.rvalue**2
+
+# %%
+# correlation with age
+res = linregress(amdata.X.flatten(), amdata.var.age)
+res.rvalue**2

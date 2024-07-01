@@ -87,15 +87,14 @@ with Pool(7) as p:
 acc = [m['acc'][0] for m in person_maps]
 bias = [m['bias'][0] for m in person_maps]
 
-hannum.var['acc'] = acc
-hannum.var['bias'] = bias
+hannum_external.var['acc'] = acc
+hannum_external.var['bias'] = bias
 
 # np.sum(hannum.X>1)
 
 
 # %%
-# PLOTTING
-# plt.figure(figsize=(plot.cm2inch(9.5),pl2ot.cm2inch(6)))
+# PREP DATA
 
 plot_colors = {
     'corrected': 'tab:red',
@@ -106,7 +105,8 @@ plot_colors = {
 plot_df = pd.DataFrame()
 
 
-df = hannum.var[['acc', 'bias']]
+df = hannum_external.var[['retrained_acc', 'retrained_bias']]
+df = df.rename(columns={'retrained_acc':'acc', 'retrained_bias': 'bias'})
 df['model'] = 'Retrained'
 plot_df = pd.concat([plot_df, df], axis='index')  
 
@@ -121,9 +121,6 @@ df = df.rename(columns={'acc_wave3':'acc', 'bias_wave3': 'bias'})
 df['model'] = 'Corrected'
 plot_df = pd.concat([plot_df, df], axis='index')  
 
-plot_df.to_csv('../exports/hannum_retraining.csv')
-
-
 
 
 # %%
@@ -132,13 +129,13 @@ plot.fonts(8)
 
 
 sns.scatterplot(ax=g.ax_joint, data=plot_df, x='acc',  y= 'bias', hue='model',
-                alpha=0.6, palette=['tab:blue', 'tab:green',  'tab:red'], s=20)
+                alpha=0.7, palette=[colors[5], colors[2], colors[1]], s=20)
 sns.kdeplot(linewidths=1, ax=g.ax_joint, data=plot_df, x='acc',  y= 'bias', hue='model',
-                levels=5, palette=['tab:blue', 'tab:green',  'tab:red'])
+                levels=5, palette=[colors[5], colors[2], colors[1]])
 sns.kdeplot(linewidth=1, ax=g.ax_marg_y, data=plot_df,  y= 'bias', hue='model',
-                 palette=['tab:blue', 'tab:green',  'tab:red'], legend=False)
+                 palette=[colors[5], colors[2], colors[1]], legend=False)
 sns.kdeplot(linewidth=1, ax=g.ax_marg_x, data=plot_df,  x= 'acc', hue='model',
-                 palette=['tab:blue', 'tab:green',  'tab:red'], legend=False)
+                 palette=[colors[5], colors[2], colors[1]], legend=False)
 
 g.ax_joint.set_ylabel(r'Bias ($\beta$-value)')
 g.ax_joint.set_xlabel(r'Acceleration ($\beta$-value/year)')
@@ -156,8 +153,8 @@ for handle in legend.legendHandles:
 
 
 # %% saving
-g.savefig(f'{paths.FIGURES_DIR}/fig3/3F_prediction_corrected.svg')
-g.savefig(f'{paths.FIGURES_DIR}/fig3/3F_prediction_corrected.png')
+g.savefig(f'{paths.FIGURES_DIR}/fig3/3F_prediction_corrected.svg', transparent=True)
+g.savefig(f'{paths.FIGURES_DIR}/fig3/3F_prediction_corrected.png', transparent=True)
 
 # %%
 

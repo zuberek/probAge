@@ -8,7 +8,7 @@ sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
 from src import paths
 
-from src import modelling_bio_beta as model
+from src import modelling_bio_beta as modelling
 from src import batch_correction as bc
 import os.path
 

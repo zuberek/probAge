@@ -14,7 +14,7 @@ echo "$i.svg"
 
 cd figures
 
-for i in "Figure1" "Figure2" "Figure3" "Figure4" "Figure5" "Extended Data Figure 1" "Extended Data Figure 2" "Extended Data Figure 3" "Extended Data Figure 4"
+for i in "Figure1" "Figure2" "Figure3" "Figure4" "Figure5" "Extended Data Figure 1" "Extended Data Figure 2" "Extended Data Figure 3" "Extended Data Figure 4" "Extended Data Figure 5"
 do
     sed -i -e "s/$STRING_START/$STRING_EXPORT/g" "$i.svg"
     inkscape --export-type="png" --export-dpi=$DPI_EXPORT "$i.svg"

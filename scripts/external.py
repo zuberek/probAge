@@ -12,7 +12,7 @@ sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
 from src import paths
 
-from src import modelling_bio_beta as model
+from src import modelling_bio_beta as modelling
 from src import batch_correction as bc
 
 N_CORES = 15
@@ -48,7 +48,7 @@ amdata = bc.merge_external(amdata, amdata_ref)
 # %% #################
 # BATCH (MODEL) CORRECTION
 
-amdata_chunks = model.make_chunks(amdata, chunk_size=10)
+amdata_chunks = modelling.make_chunks(amdata, chunk_size=10)
 
 # print('Calculating the offsets...')
 # if 'status' in amdata.var.columns:
@@ -82,10 +82,10 @@ print('Calculating person parameters (acceleration and bias)...')
 
 # ab_maps = model.person_model(amdata, method='map', progressbar=True, map_method=None)
 
-amdata_chunks = model.make_chunks(amdata.T, chunk_size=15)
+amdata_chunks = modelling.make_chunks(amdata.T, chunk_size=15)
 amdata_chunks = [chunk.T for chunk in amdata_chunks]
 with Pool(N_CORES) as p:
-    map_chunks = list(tqdm(p.imap(model.person_model, amdata_chunks)
+    map_chunks = list(tqdm(p.imap(modelling.person_model, amdata_chunks)
                             ,total=len(amdata_chunks)))
     
 for param in ['acc', 'bias']:
@@ -100,12 +100,12 @@ participants[f'bias_{REF_DSET_NAME}'] = amdata.var[f'bias_{REF_DSET_NAME}']
 
 # amdata.var[f'acc_{REF_DSET_NAME}'] = ab_maps['acc']
 # amdata.var[f'bias_{REF_DSET_NAME}'] = ab_maps['bias']
-participants[f'll_{REF_DSET_NAME}'] = model.person_model_ll(amdata, 
+participants[f'll_{REF_DSET_NAME}'] = modelling.person_model_ll(amdata, 
                                                             acc_name=f'acc_{REF_DSET_NAME}', 
                                                             bias_name=f'bias_{REF_DSET_NAME}')
 
 # compute log likelihood for infered parameters to perform quality control
-participants[f'qc_{REF_DSET_NAME}'] = model.get_person_fit_quality(
+participants[f'qc_{REF_DSET_NAME}'] = modelling.get_person_fit_quality(
     participants[f'll_{REF_DSET_NAME}'])
 
 amdata.write_h5ad(f'{paths.DATA_PROCESSED_DIR}/{EXT_DSET_NAME}_person_fitted.h5ad')

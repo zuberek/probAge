@@ -26,9 +26,9 @@
      showgrid="true"
      showguides="true"
      inkscape:guide-bbox="true"
-     inkscape:zoom="1.2810465"
-     inkscape:cx="362.20386"
-     inkscape:cy="259.94372"
+     inkscape:zoom="0.90583667"
+     inkscape:cx="272.67609"
+     inkscape:cy="164.48881"
      inkscape:window-width="1920"
      inkscape:window-height="1011"
      inkscape:window-x="0"
@@ -202,22 +202,22 @@
       <image
          preserveAspectRatio="none"
          inkscape:svg-dpi="96"
-         width="94.999969"
-         height="60.000092"
-         style="image-rendering:optimizeQuality"
-         xlink:href="ext4/ext4A_corrected_site.svg"
-         id="image83318"
-         x="10"
-         y="30" />
-      <image
-         preserveAspectRatio="none"
-         inkscape:svg-dpi="96"
          width="93.174873"
          height="58.385075"
          style="image-rendering:optimizeQuality"
          xlink:href="ext4/Ext4B_corrected_VS_retrained.svg"
          id="image92397"
          x="105"
+         y="30" />
+      <image
+         preserveAspectRatio="none"
+         inkscape:svg-dpi="96"
+         width="94.999969"
+         height="60.000092"
+         style="image-rendering:optimizeQuality"
+         xlink:href="ext4/Ext4A_corrected_data.svg"
+         id="image177861"
+         x="10"
          y="30" />
     </g>
   </g>

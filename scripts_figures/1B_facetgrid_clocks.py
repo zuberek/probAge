@@ -19,7 +19,7 @@ df.replace('Hannum',    'Hannum (2013)',    inplace=True)
 
 #%% 
 # plotting
-# plot.fonts(8)
+plot.fonts(8)
 
 g= sns.FacetGrid(df,col='Clock', col_wrap=2, height=1.5, aspect=1.5)
 g.map_dataframe(sns.scatterplot, x="age_r2",  y='abs_smoke_beta', 
@@ -29,7 +29,6 @@ g.set_titles('{col_name}')
 g.set_xlabels("Age association ($R^2$)")
 g.set_ylabels("Smoking \n association \n" + r"($\beta$-coeff)")
 
-plot.fonts(8)
 g.figure.set_size_inches((plot.cm2inch(9.5),plot.cm2inch(6)))
 g.figure.tight_layout()
 
@@ -38,7 +37,7 @@ g.figure.tight_layout()
 
 #%% 
 # saving
-g.savefig(f'{paths.FIGURES_DIR}/fig1/1B_facetgrid_clocks.svg')
-g.savefig(f'{paths.FIGURES_DIR}/fig1/1B_facetgrid_clocks.png')
+g.savefig(f'{paths.FIGURES_DIR}/fig1/1B_facetgrid_clocks.svg', transparent=True)
+g.savefig(f'{paths.FIGURES_DIR}/fig1/1B_facetgrid_clocks.png', transparent=True)
 
 # %%

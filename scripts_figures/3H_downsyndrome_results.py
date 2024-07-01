@@ -15,6 +15,10 @@ DSET_NAME = 'downsyndrome' # reference datset name
 amdata = ad.read_h5ad(f'{paths.DATA_PROCESSED_DIR}/{DSET_NAME}_person_fitted.h5ad', backed='r')
 amdata.var.status = amdata.var.status.astype('string')
 amdata.var.loc[amdata.var.status=='healthy', 'status'] = 'Control'
+
+df = pd.read_csv('../figures/Extended Data Table 1.csv')
+df.columns
+df = df[['age', 'acc', 'bias', 'll', 'qc']].reset_index()
 # %% 
 # PLOT
 plot.fonts(8)
@@ -48,5 +52,27 @@ g.savefig(f'{paths.FIGURES_DIR}/fig3/3H_downsyndrome_results.png')
 # %% stats
 from scipy.stats import ttest_ind
 
-ttest_ind(amdata.var[amdata.var.status=='healthy'].acc_wave3,
+ttest_ind(amdata.var[amdata.var.status=='Control'].acc_wave3,
          amdata.var[amdata.var.status=='Down syndrome'].acc_wave3)
+
+
+# %% stats
+from scipy.stats import f_oneway
+
+f_oneway(amdata.var[amdata.var.status=='Control'].acc_wave3,
+         amdata.var[amdata.var.status=='Down syndrome'].acc_wave3)
+
+# %%
+import statsmodels.formula.api as smf
+from sklearn.preprocessing import scale
+
+df = amdata.var
+df['binary'] = df.status == 'Down syndrome'
+df.binary = df.binary*1
+smf.ols("binary ~   scale(acc) + scale(bias) + scale(age)", df).fit().summary()
+
+# %%
+
+df.groupby('status').mean(numeric_only=True).diff()
+
+df.acc.std()

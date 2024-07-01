@@ -8,7 +8,7 @@ import sys
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
 
-from src import modelling_bio_beta as model
+from src import modelling_bio_beta as modelling
 
 N_CORES = 15
 N_SITES = 1024 # number of sites to take in for the final person inferring
@@ -62,12 +62,12 @@ amdata = amdata[site_indexes].to_memory()
 # az.plot_trace(trace)
 
 
-amdata_chunks = model.make_chunks(amdata.T, chunk_size=15)
+amdata_chunks = modelling.make_chunks(amdata.T, chunk_size=15)
 amdata_chunks = [chunk.T for chunk in amdata_chunks]
 
 if MULTIPROCESSING:
     with Pool(N_CORES) as p:
-        map_chunks = list(tqdm(p.imap(model.person_model,
+        map_chunks = list(tqdm(p.imap(modelling.person_model,
                                       amdata_chunks
                                      )
                                 ,total=len(amdata_chunks)
@@ -75,7 +75,7 @@ if MULTIPROCESSING:
                             )
 
 if not MULTIPROCESSING:
-    map_chunks = map(model.person_model, amdata_chunks)
+    map_chunks = map(modelling.person_model, amdata_chunks)
 
 # %% ########################
 # ### SAVING
@@ -85,9 +85,9 @@ for param in ['acc', 'bias']:
     amdata.var[param] = param_data
 
 # compute log likelihood for infered parameters to perform quality control
-ab_ll = model.person_model_ll(amdata)
+ab_ll = modelling.person_model_ll(amdata)
 amdata.var['ll'] = ab_ll
-participants['qc'] = model.get_person_fit_quality(
+participants['qc'] = modelling.get_person_fit_quality(
     participants['ll'])
 
 

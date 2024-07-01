@@ -8,21 +8,27 @@ import sys
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
 
-SITE_NAME = 'cg09067967'
+SITE_NAME = 'cg06690548'
 
 amdata = amdata_src.AnnMethylData(f'{paths.DATA_PROCESSED_DIR}/wave3_meta.h5ad', backed='r')
 wave3_participants = pd.read_csv(f'{paths.DATA_PROCESSED_DIR}/wave3_participants.csv', index_col=0)
 amdata = amdata[SITE_NAME].to_memory()
+
 amdata.var.units = np.log(amdata.var.units+1)
-# amdata.var.heavy_drinker.value_counts()
 
 df = amdata[SITE_NAME].to_df().T.rename(columns={SITE_NAME:"value"})
 df['units'] = np.log(1+amdata.var.units)
 df['units'] = amdata.var.units
-df['status']  = df.units > df.units.mean()
+# df['status']  = df.units > df.units.mean()
+df['status']  = df.units > 2.3
+# values = np.argwhere(~np.isnan(amdata.var.units)).flatten()
+# values = np.argwhere(amdata.var.units>0).flatten()
+# amdata.var.units[].mean()
+# amdata.var.units.hist(bins=50)
 df['age'] = amdata.var.age
+
 # %%
-df.loc[df.units>3, 'units'] = df.units+4
+# df.loc[df.units>3, 'units'] = df.units+4
 # %% PLOT
 g = sns.JointGrid()
 g.ax_joint.set_title(SITE_NAME)
@@ -50,22 +56,37 @@ plot.fonts(8)
 g.figure.set_size_inches((plot.cm2inch(9.5),plot.cm2inch(6)))
 g.figure.tight_layout()
 
-legend = g.ax_joint.legend(title='Units intake',loc='upper right')
+legend = g.ax_joint.legend(title='Alcohol units\nintake',loc='upper right')
 for handle in legend.legendHandles:
     handle.set_alpha(1)
     handle.set_markersize(5)
 
+
 # %% saving
-g.savefig(f'{paths.FIGURES_DIR}/fig1/1D_drinking_CpG.svg')
-g.savefig(f'{paths.FIGURES_DIR}/fig1/1D_drinking_CpG.png')
+g.savefig(f'{paths.FIGURES_DIR}/fig1/1D_drinking_CpG.svg', transparent=True)
+g.savefig(f'{paths.FIGURES_DIR}/fig1/1D_drinking_CpG.png', transparent=True)
 
 
 
 # %%
 from scipy.stats import ttest_ind
-ttest_ind(amdata[:, df.status==True].X.flatten(),
-         amdata[::, df.status==False].X.flatten())
+ttest_ind(amdata[:, df.status==False].X.flatten(),
+         amdata[::, df.status==True].X.flatten())
 
 
+# %%
+
+
+from scipy.stats import linregress
+
+values = np.argwhere(~np.isnan(amdata.var.units)).flatten()
+
+res = linregress(amdata.X.flatten()[values], amdata.var.units.iloc[values])
+res.rvalue**2, res.pvalue
+
+# %%
+# correlation with age
+res = linregress(amdata.X.flatten(), amdata.var.age)
+res.rvalue**2, res.pvalue
 
 # %%
