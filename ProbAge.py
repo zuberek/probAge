@@ -9,6 +9,7 @@ from modules import loading
 import modules
 
 from src import modelling_bio_beta as modelling
+from src import batch_correction as bc
 
 import pandas as pd
 import numpy as np
@@ -26,7 +27,6 @@ if 'SITE_INFO' not in st.session_state:
     st.session_state.SITE_INFO = pd.read_csv(site_info_path, index_col=0)
 if 'PARAMS'  not in st.session_state:
     st.session_state.PARAMS = list(modelling.SITE_PARAMETERS.values())
-
 
 st.warning('Put the paper here')
 
@@ -53,7 +53,7 @@ if st.button("Run Inference"):
 
     t = st.empty()
     t.markdown('Inferring site offsets... ')
-    offsets = modelling.site_offsets(amdata, show_progress=True)['offset']
+    offsets = bc.site_offsets(amdata, show_progress=True)['offset']
     t.markdown('Inferring site offsets ✅')
     
     
@@ -89,4 +89,3 @@ with st.sidebar:
         file_name='downsyndrome_meta.csv',
         mime='text/csv',
     )
-
