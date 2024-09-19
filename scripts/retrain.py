@@ -1,9 +1,6 @@
 # %% ########################
 ### LOADING
 
-%load_ext autoreload 
-%autoreload 2
-
 import sys
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
@@ -11,11 +8,11 @@ from src.general_imports import *
 from src import modelling_bio_beta as modelling
 
 # INPUT PATH TO DATA AND METADATA
-data_path = '../data/downsyndrome.csv'
-meta_data_path = '../data/downsyndrome_meta.csv'
+DATA_PATH = '../data/downsyndrome.csv'
+META_DATA_PATH = '../data/downsyndrome_meta.csv'
 
 # PATH to OUTPUT
-output_path = '../exports/'
+OUTPUT_PATH = '../exports/'
 
 # Set the perfectage of participants used for training 
 TRAINING_PERCENTAGE = 100
@@ -30,8 +27,8 @@ with open('../resources/selected_sites.json') as f:
     selected_sites = json.load(f)
 
 # load data and metadata
-data = pd.read_csv(data_path, index_col=0)
-m_data = pd.read_csv(meta_data_path, index_col=0)
+data = pd.read_csv(DATA_PATH, index_col=0)
+m_data = pd.read_csv(META_DATA_PATH, index_col=0)
 
 # create intersection between selected sites and sites included in data
 selected_sites = (data.index).intersection(selected_sites)
@@ -122,6 +119,6 @@ plt.clf()
 ### EXPORTING RESULTS
 print('Exporting results')
 # Export anndata object
-amdata.write_h5ad(output_path + f'probage_results.h5ad')
+amdata.write_h5ad(OUTPUT_PATH + f'probage_results.h5ad')
 #export only participant information
-amdata.var.to_csv(output_path + f'probage_results_participant.csv')
+amdata.var.to_csv(OUTPUT_PATH + f'probage_results_participant.csv')
