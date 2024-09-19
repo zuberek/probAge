@@ -279,7 +279,7 @@ def bio_model_plot (amdata, bio_fit=True, xlim=(0,100), alpha=1, fits=None, ax=N
     return ax
 ############################
 ### PERSON INFERENCE
-def person_model(amdata, method='map', progressbar=False, map_method='Powell'):
+def person_model(amdata, method='map', progressbar=False, map_method='L-BFGS-B'):
 
     # The data has two dimensions: participant and CpG site
     coords = {"site": amdata.obs.index, "part": amdata.var.index}
