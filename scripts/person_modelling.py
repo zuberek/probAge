@@ -61,7 +61,6 @@ amdata = amdata[site_indexes].to_memory()
 # trace = mean_field.sample(1_000)
 # az.plot_trace(trace)
 
-
 amdata_chunks = modelling.make_chunks(amdata.T, chunk_size=15)
 amdata_chunks = [chunk.T for chunk in amdata_chunks]
 

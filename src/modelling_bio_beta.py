@@ -7,6 +7,7 @@ from tqdm import tqdm
 import pymc as pm
 import arviz as az
 from scipy.stats import beta
+from scipy.stats import norm
 
 # plotting packages
 import seaborn as sns
@@ -279,7 +280,7 @@ def bio_model_plot (amdata, bio_fit=True, xlim=(0,100), alpha=1, fits=None, ax=N
     return ax
 ############################
 ### PERSON INFERENCE
-def person_model(amdata, method='map', progressbar=False, map_method='L-BFGS-B'):
+def person_model(amdata, method='map', progressbar=False, map_method='L-BFGS-B', beta=True):
 
     # The data has two dimensions: participant and CpG site
     coords = {"site": amdata.obs.index, "part": amdata.var.index}
@@ -315,7 +316,6 @@ def person_model(amdata, method='map', progressbar=False, map_method='L-BFGS-B')
 
         # Define mean
         mean = eta_0 + np.exp(-omega*age)*((p-1)*eta_0 + p*eta_1) + bias
-        mean = pm.math.clip(mean, 0.001, 0.999)
 
         # Define variance
         variance = (var_term_0/N 
@@ -324,16 +324,29 @@ def person_model(amdata, method='map', progressbar=False, map_method='L-BFGS-B')
             )
         
         # Beta function parameter boundaries
-        variance = pm.math.clip(variance, 0, mean*(1-mean))
-        sigma = np.sqrt(variance)
+        if beta is False:
+            # Define likelihood
+            sigma = np.sqrt(variance)
 
-        # # Define likelihood
-        obs = pm.Normal("obs",
+            obs = pm.Normal("obs",
                     mu=mean,
                     sigma = sigma, 
                     dims=("site", "part"), 
                     observed=data)
-        
+
+        if beta is True:
+            # Clip mean and variance to fit within 0 and 1
+            mean = pm.math.clip(mean, 0.001, 0.999)
+            variance = pm.math.clip(variance, 0, mean*(1-mean))
+            sigma = np.sqrt(variance)
+
+            # Define likelihood
+            obs = pm.Normal("obs",
+                        mu=mean,
+                        sigma = sigma, 
+                        dims=("site", "part"), 
+                        observed=data)
+
         # return model
         
         if method == 'map':
@@ -385,5 +398,10 @@ def person_model_ll(amdata, acc_name='acc', bias_name='bias'):
 
     return beta.logpdf(data, a=a, b=b).sum(axis=0)
 
-def get_person_fit_quality(ab_ll, quantile=0.023):
-    return ab_ll < ab_ll.quantile(quantile)
+def get_person_fit_quality(ab_ll, error_magnitude=1e-10):
+    mu, sigma = np.mean(ab_ll), np.std(ab_ll)
+
+    fitted_dist = norm(mu, sigma)
+    probs = fitted_dist.cdf(ab_ll)
+    return probs<error_magnitude
+

@@ -14,6 +14,7 @@ from src import batch_correction as bc
 import pandas as pd
 import numpy as np
 import anndata as ad
+import tqdm
 
 # states
 if 'SELECTED' not in st.session_state:
@@ -63,11 +64,28 @@ if st.button("Run Inference"):
 
     t = st.empty()
     t.markdown('Inferring participants accelerations and biases...  ')
-    ab_maps = modelling.person_model(amdata, method='map', progressbar=True)
-    t.markdown('Inferring participants accelerations and biases ✅')
+    amdata_chunks = modelling.make_chunks(amdata.T, chunk_size=15)
+    amdata_chunks = [chunk.T for chunk in amdata_chunks]
 
-    amdata.var['acc'] = ab_maps['acc']
-    amdata.var['bias'] = ab_maps['bias']
+    map_chunks = list(tqdm(map(modelling.person_model,
+                                amdata_chunks
+                                )
+                            ,total=len(amdata_chunks)
+                            )
+                        )
+
+
+    ### SAVING
+    for param in ['acc', 'bias']:
+        param_data = np.concatenate([map[param] for map in map_chunks])
+        amdata.var[param] = param_data
+
+    # compute log likelihood for infered parameters to perform quality control
+    ab_ll = modelling.person_model_ll(amdata)
+    amdata.var['ll'] = ab_ll
+    amdata.var['qc'] = modelling.get_person_fit_quality(ab_ll)
+
+    t.markdown('Inferring participants accelerations and biases ✅')
 
     st.session_state.DATA = amdata
 
