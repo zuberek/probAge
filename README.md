@@ -68,6 +68,7 @@ Required columns:
   - Set to `True` for samples that represent the "normal" or "healthy" population
   - Set to `False` for samples from the group being studied (e.g., disease group)
   - Example: When studying disease acceleration, set `control=True` for healthy participants and `control=False` for disease participants
+  - Example: When studying a cohort of healthy participants, set 'control=True' for all participants.
 
 Additional columns are encouraged and can be included for further analysis. Common examples:
 - `sex`: Biological sex of the participant
