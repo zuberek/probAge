@@ -9,6 +9,8 @@ from src import batch_correction as bc
 # Load data into anndata format
 path_to_data = 'data/wave4_data.csv'
 path_to_metadata = 'data/wave4_metadata.csv'
+h5ad_export_path = ' data/fitted_cohort.h5ad'
+pandas_export_path = 'data/person_fit.csv'
 
 # set number of cores used for inference (as low as 1)
 MULTIPROCESSING = True
@@ -44,7 +46,6 @@ modelling.bio_model_plot(adata[site_index])
 
 print('Inferring participants accelerations and biases...  ')
 
-adata = adata[:, :1_000].copy()
 adata_chunks = modelling.make_chunks(adata.T, chunk_size=10)
 adata_chunks = [chunk.T for chunk in adata_chunks]
 
@@ -75,14 +76,11 @@ ab_ll = modelling.person_model_ll(adata)
 adata.var['ll'] = ab_ll
 adata.var['qc'] = modelling.get_person_fit_quality(ab_ll)
 
-
-sns.scatterplot(adata.var, x='acc', y='bias', hue='ll')
-
-adata.write_h5ad(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_person_fitted.h5ad')
+adata.write_h5ad(h5ad_export_path)
 
 metadata_df['acc'] = adata.var['acc']
 metadata_df['bias'] = adata.var['bias']
 metadata_df['ll'] = adata.var['ll']
 metadata_df['qc'] = adata.var['qc']
 
-metadata_df.to_csv(f'{paths.DATA_PROCESSED_DIR}/{DATASET_NAME}_participants.csv')
+metadata_df.to_csv(pandas_export_path)
