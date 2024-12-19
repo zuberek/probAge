@@ -40,9 +40,9 @@ conda activate probage
 
 ### Local Analysis
 
-Use `any_cohort_run.py` or `any_cohort_run_retrain.py` to analyze your cohort data locally, either by reusing a pretrained model in blood (fast) or refitting a model from scratch (slower but suited when analysing tissues other than blood).
+Use `any_cohort_run_no_train.py` or `any_cohort_run_retrain.py` to analyze your cohort data locally, either by reusing a pretrained model in blood (fast) or refitting a model from scratch (slower but suited when analysing tissues other than blood).
 
-1. Modify the data path in `any_cohort_run.py` or `any_cohort_run_retrain.py` to point to your methylation data.
+1. Modify the data path in `any_cohort_run_no_train.py` or `any_cohort_run_retrain.py` to point to your methylation data.
 2. Set global model parameters parameters.
 3. Run the analysis:
 ```bash
@@ -69,7 +69,7 @@ Required columns:
   - Set to `True` for samples that represent the "normal" or "healthy" population
   - Set to `False` for samples from the group being studied (e.g., disease group)
   - Example: When studying disease acceleration, set `control=True` for healthy participants and `control=False` for disease participants
-  - Example: When studying a cohort of healthy participants, set 'control=True' for all participants.
+  - Example: When studying a cohort of healthy participants, set `control=True` for all participants.
 
 Additional columns are encouraged and can be included for further analysis. Common examples:
 - `sex`: Biological sex of the participant
