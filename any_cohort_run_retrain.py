@@ -31,6 +31,11 @@ path_to_metadata = 'data/wave4_metadata.csv'
 h5ad_export_path = 'data/fitted_cohort.h5ad'
 pandas_export_path = 'data/person_fit.csv'
 
+# set retrain option to choose wether to find new sites
+# this option is lenghtier but it is recommended when
+# studying tissues that are not blood
+find_new_sites = True
+
 # set number of cores used for inference (as low as 1)
 MULTIPROCESSING = True
 N_CORES = 32
@@ -49,24 +54,46 @@ sample_list = set(data_df.columns)
 adata = ad.AnnData(data_df[list(sample_list)],
                     var=metadata_df.loc[list(sample_list)])
 
-# fill site information from pre-trained model
-sites_ref = pd.read_csv('streamlit/wave3_sites.csv', index_col=0)
-adata = adata[adata.obs.index.isin(sites_ref.index)].copy()
-adata.obs = sites_ref.loc[list(adata.obs.index)]
+if find_new_sites is True:
+    # compute pearson correlation values
+    # between methylation levels and age for each CpG site
+    adata.obs['pearson_r'] = r_regression(adata.X.T,
+                                         adata.var.age)
 
-#
-# # Load intersection of sites in new dataset
-params = list(modelling.SITE_PARAMETERS.values())
-print('Inferring site offsets for batch correction...')
-offsets = bc.site_offsets(adata[:, adata.var.control == True], show_progress=True)['offset']
-# print('Inferring site offsets ✅')
+    # sort data by decreasing order of pearson correlation
+    adata = adata[adata.obs.sort_values(by='pearson_r', ascending=False).index]
 
-adata.obs['offset'] = offsets.astype('float64')
-adata.obs.eta_0 = adata.obs.eta_0 + adata.obs.offset
-adata.obs.meth_init  = adata.obs.meth_init + adata.obs.offset
+    # select only top 1000 sites
+    adata = adata[:1_000].copy()
+
+else:
+    # fill site information from pre-trained model
+    sites_ref = pd.read_csv('streamlit/wave3_sites.csv', index_col=0)
+    adata = adata[adata.obs.index.isin(sites_ref.index)].copy()
+    adata.obs = sites_ref.loc[list(adata.obs.index)]
+
+
+control_data = adata[:, adata.var.control==True].copy()
+adata_chunks = modelling.make_chunks(control_data, chunk_size=15)
+
+# single process
+if not MULTIPROCESSING:
+    map_chunks = [modelling.site_MAP(chunk) for chunk in tqdm(adata_chunks)]
+
+# multiprocessing
+if MULTIPROCESSING:
+    with Pool(N_CORES) as p:
+        map_chunks = list(tqdm(p.imap(modelling.site_MAP, adata_chunks), total=len(adata_chunks)))
+
+# store results in original adata
+for param in modelling.SITE_PARAMETERS.values():
+    param_data = np.concatenate([map[param] for map in map_chunks])
+    adata.obs[param] = param_data
+
+# adata = modelling.get_saturation_inplace(adata)
 
 # check that sites are properly fitted
-site_index = -1
+site_index = 0
 modelling.bio_model_plot(adata[site_index])
 
 print('Inferring participants accelerations and biases...  ')
