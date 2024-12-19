@@ -43,7 +43,8 @@ conda activate probage
 To analyze your cohort data locally:
 
 1. Modify the data path in `any_cohort_run.py` to point to your methylation data
-2. Run the analysis:
+2. Set parameters to choose wether to retrain model or not.
+3. Run the analysis:
 ```bash
 python any_cohort_run.py
 ```
