@@ -47,7 +47,6 @@ beta_fit = True
 # Load data into anndata format
 data_df = pd.read_csv(path_to_data, index_col=0)
 metadata_df = pd.read_csv(path_to_metadata, index_col=0)
-metadata_df['control'] = np.random.choice([True, False], size=len(metadata_df))  
 
 # Create Anndata making sure samples are overlapping
 sample_list = set(data_df.columns)
