@@ -26,7 +26,7 @@ ProbAge is a Python package implementing the probabilistic model for epigenetic 
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/username/probage.git
+git clone https://github.com/zuberek/probage.git
 cd probage
 ```
 
