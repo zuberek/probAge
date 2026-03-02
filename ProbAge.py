@@ -14,7 +14,7 @@ from src import batch_correction as bc
 import pandas as pd
 import numpy as np
 import anndata as ad
-import tqdm
+from tqdm import tqdm
 
 # states
 if 'SELECTED' not in st.session_state:
@@ -29,7 +29,16 @@ if 'SITE_INFO' not in st.session_state:
 if 'PARAMS'  not in st.session_state:
     st.session_state.PARAMS = list(modelling.SITE_PARAMETERS.values())
 
-st.warning('Put the paper here')
+st.info("""
+### Probabilistic inference of epigenetic age acceleration from cellular dynamics  
+
+Jan K. Dabrowski, Emma J. Yang, Samuel J. C. Crofts, Robert F. Hillary, Daniel J. Simpson, Daniel L. McCartney,  Riccardo E. Marioni, Kristina Kirschner, Eric Latorre-Crespo & Tamir Chandra  
+
+*Nature Aging*, Volume 4, pages 1493–1507 (2024)  
+Published: 23 September 2024  
+
+[Read the full paper](https://www.nature.com/articles/s43587-024-00700-5)
+""")
 
 data = None
 meta = None
