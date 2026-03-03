@@ -3,16 +3,48 @@ import plotly.express as px
 import seaborn as sns
 import numpy as np
 import arviz as az
-
+import pandas as pd
+from modules import loading
 from src import modelling_bio_beta as modelling
+import anndata as ad
 
 from streamlit_plotly_events import plotly_events
 
+if 'SELECTED' not in st.session_state:
+    st.session_state.SELECTED = False
+if 'TRACED' not in st.session_state:
+    st.session_state.TRACED = False
+
+site_info_path = 'resources/ewas_fitted_sites.csv' 
+
+if 'SITE_INFO' not in st.session_state:
+    st.session_state.SITE_INFO = pd.read_csv(site_info_path, index_col=0)
+if 'PARAMS'  not in st.session_state:
+    st.session_state.PARAMS = list(modelling.SITE_PARAMETERS.values())
+
+
 if 'DATA' not in st.session_state:
     st.warning('Upload data and metadata to run model inference.')
+    
+    'You can also upload your resulting anndata inference file here to analyze it.'
+    
+    uploaded_h5ad = st.file_uploader(
+        "Upload AnnData file",
+        type="h5ad"
+    )
+    
+    if uploaded_h5ad:
+        amdata = ad.read_h5ad(uploaded_h5ad)
+        required_cols = {"acc", "bias"}
+        if not required_cols.issubset(amdata.var.columns):
+            st.error("AnnData must contain 'acc' and 'bias' in .var")
+            st.stop()
+
+        st.session_state.DATA = amdata
+        st.rerun()
 else:
     amdata = st.session_state.DATA
-
+    
     f'Download the acceleration and bias for {amdata.var.shape[0]} participants'
     st.download_button(
         label="⇩ Download CSV",
@@ -21,6 +53,22 @@ else:
         mime='text/csv',
     )
 
+    f'If you want to run the analysis later, download the full AnnData file'
+
+    import tempfile
+    import os
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        filepath = os.path.join(tmpdir, "ProbAge_results.h5ad")
+        amdata.write_h5ad(filepath)
+
+        with open(filepath, "rb") as f:
+            st.download_button(
+                label="⇩ Download full AnnData (.h5ad)",
+                data=f.read(),
+                file_name="ProbAge_results.h5ad",
+                mime="application/octet-stream",
+            )
 
     fig = px.scatter(data_frame=amdata.var, x='acc', y='bias', color='status', 
                 marginal_x='box', marginal_y='box',hover_name=amdata.var.index)
@@ -31,15 +79,22 @@ else:
         xanchor="right",
         x=0.99
     ))
-
-    selected_points = plotly_events(fig)
+    
+    selected_points = st.plotly_chart(
+        fig,
+        width='stretch',
+        on_select="rerun"
+    )
 
     col1, col2 = st.columns(2)
+    
+    if selected_points and selected_points.get("selection"):
+        points = selected_points["selection"]["points"]
 
-    if len(selected_points)>0:
-        mask = amdata.var['acc']==selected_points[0]['x']
-        st.session_state.SELECTED =  amdata.var.iloc[np.nonzero(mask.values)[0][0]].name
-        st.session_state.TRACED = False
+        if len(points) > 0:
+            idx = points[0]["hovertext"]
+            st.session_state.SELECTED = idx
+
     else:
         st.success('Click a point on the scatterplot to investigate a participant (For now only works in the acc vs bias view)')
 
