@@ -86,6 +86,33 @@ if st.button("Run Inference"):
     t.markdown('Inferring participants accelerations and biases ✅')
 
     st.session_state.DATA = amdata
+    
+    
+    f'Download the acceleration and bias for {amdata.var.shape[0]} participants'
+    st.download_button(
+        label="⇩ Download CSV",
+        data=amdata.var.to_csv().encode('utf-8'),
+        file_name='ProbAge_results.csv',
+        mime='text/csv',
+    )
+
+    f'If you want to run the analysis later, download the full AnnData file'
+
+    import tempfile
+    import os
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        filepath = os.path.join(tmpdir, "ProbAge_results.h5ad")
+        amdata.write_h5ad(filepath)
+
+        with open(filepath, "rb") as f:
+            st.download_button(
+                label="⇩ Download full AnnData (.h5ad)",
+                data=f.read(),
+                file_name="ProbAge_results.h5ad",
+                mime="application/octet-stream",
+            )
+
 
     # st.switch_page("pages/1_Inference.py")
  

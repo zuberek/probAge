@@ -14,14 +14,12 @@ Daniel L. McCartney,  Riccardo E. Marioni, Kristina Kirschner, Eric Latorre-Cres
 st.markdown("""
 ## Welcome
 
-This web application allows you to apply our published probabilistic epigenetic clock to your own DNA methylation dataset.  
-You can run the full inference pipeline and explore participant-specific age acceleration and bias estimates directly in your browser.
+This web application allows you to apply our published probabilistic epigenetic clock to your own DNA methylation dataset. You can run the full inference pipeline and explore participant-specific age acceleration and bias estimates directly in your browser.
 
 ### How to use the app
 
 **1️⃣ Inference tab**  
-Upload your methylation data and participant metadata, then run the inference using the provided button.  
-The model will automatically adjust to your data and compute participant-level acceleration and bias estimates. Please wait until the process completes.
+Upload your methylation data and participant metadata, then run the inference using the provided button. The model will automatically adjust to your data and compute participant-level acceleration and bias estimates. Please wait until the process completes.
 
 **2️⃣ Analysis tab**  
 Explore the inferred results. You can zoom, select a participant, and inspect their posterior distribution of age acceleration and bias.
